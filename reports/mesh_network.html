@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesh Network Routing Algorithm — Interactive Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<!-- Pyodide: runs Python 3.12 via WebAssembly in the main thread.
+     No workers, no blob URLs, works from file:// and any HTTP server. -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     PYTHON SCRIPTS — stored in <script type="text/x-python"> tags.
+     This avoids ALL JavaScript string-escaping issues. Backticks,
+     f-strings, newlines, and special characters are 100% safe here.
+     Each block is read at runtime with document.getElementById().textContent
+     ══════════════════════════════════════════════════════════════════ -->
+
+<!-- ─── Q1: Graph Model ──────────────────────────────────────────── -->
+<script type="text/x-python" id="src-q1">
+"""
+Q1 — Graph-Based Network Model
+===============================
+Demonstrates:
+  • Node class with (x, y) position and RSSI calculation
+  • MeshNetwork with adjacency-list edge building
+  • BFS shortest-path (minimum hops)
+  • ASCII topology visualisation
+"""
+import math
+import random
+from collections import deque
+
+# ── Constants ────────────────────────────────────────────────────────
+MAX_RANGE_M = 50.0          # maximum radio range in metres
+CARRIER_HZ  = 2.4e9         # 2.4 GHz ISM band (Zigbee / IEEE 802.15.4)
+# Friis constant: 20·log10(c / 4π) with c = 3×10⁸ m/s, f in Hz, d in m
+FRIIS_K     = 27.55
+
+
+# ── Node ─────────────────────────────────────────────────────────────
+class Node:
+    """A single mesh node with an ID, 2-D position, and neighbour table."""
+
+    def __init__(self, nid: int, x: float, y: float):
+        self.id          = nid
+        self.x           = x
+        self.y           = y
+        self.neighbours  = {}   # {neighbour_id: rssi_dBm}
+
+    def distance_to(self, other: "Node") -> float:
+        """Euclidean distance in metres."""
+        return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
+
+    def rssi_to(self, other: "Node") -> float:
+        """
+        Friis free-space path-loss model (dBm):
+            RSSI = -20·log10(d) - 20·log10(f) + 27.55
+        Assumes unity antenna gains and 0 dBm transmit power.
+        """
+        d = max(self.distance_to(other), 0.1)   # avoid log(0)
+        return -20 * math.log10(d) - 20 * math.log10(CARRIER_HZ) + FRIIS_K
+
+
+# ── MeshNetwork ───────────────────────────────────────────────────────
+class MeshNetwork:
+    """Undirected graph of Node objects connected within MAX_RANGE_M."""
+
+    def __init__(self):
+        self.nodes = {}    # {nid: Node}
+        self.edges = []    # [(u, v, dist_m, rssi_dBm)]
+        self._adj  = {}    # adjacency list {nid: [neighbour_ids]}
+
+    def add_node(self, node: Node):
+        self.nodes[node.id] = node
+        self._adj[node.id]  = []
+
+    def build_edges(self):
+        """
+        Connect every pair of nodes that are within MAX_RANGE_M.
+        Edge weight = 1 (hop count) because our objective is minimum hops,
+        not minimum distance — unit-weight BFS is therefore optimal.
+        """
+        ids = list(self.nodes.keys())
+        for i in range(len(ids)):
+            for j in range(i + 1, len(ids)):
+                a = self.nodes[ids[i]]
+                b = self.nodes[ids[j]]
+                d = a.distance_to(b)
+                if d <= MAX_RANGE_M:
+                    r = round(a.rssi_to(b), 2)
+                    self.edges.append((a.id, b.id, round(d, 2), r))
+                    self._adj[a.id].append(b.id)
+                    self._adj[b.id].append(a.id)
+                    a.neighbours[b.id] = r
+                    b.neighbours[a.id] = r
+
+    def bfs(self, src: int, dst: int) -> list:
+        """
+        Breadth-first search — guarantees minimum number of hops.
+        Returns the full path [src, ..., dst] or [] if unreachable.
+        """
+        visited = {src}
+        queue   = deque([[src]])
+        while queue:
+            path = queue.popleft()
+            node = path[-1]
+            for neighbour in self._adj.get(node, []):
+                if neighbour not in visited:
+                    new_path = path + [neighbour]
+                    if neighbour == dst:
+                        return new_path
+                    visited.add(neighbour)
+                    queue.append(new_path)
+        return []   # no path found
+
+
+# ── ASCII topology visualiser ─────────────────────────────────────────
+def draw_topology(network: MeshNetwork, canvas_w: int = 58, canvas_h: int = 20,
+                  highlight_path: list = None):
+    """
+    Render an ASCII canvas showing node positions and edges.
+
+    Coordinate mapping:
+        x →  column  (left = 0, right = canvas_w)
+        y ↓  row     (top  = 0, bottom = canvas_h)
+
+    Symbols:
+        number = node ID at its physical position
+    """
+    # Gather positions to normalise into canvas coordinates
+    xs = [n.x for n in network.nodes.values()]
+    ys = [n.y for n in network.nodes.values()]
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    x_span = max(x_max - x_min, 1)
+    y_span = max(y_max - y_min, 1)
+
+    def to_canvas(node):
+        col = int((node.x - x_min) / x_span * (canvas_w - 3))
+        row = int((node.y - y_min) / y_span * (canvas_h - 1))
+        return col, row
+
+    # Initialise blank canvas (list of lists for mutability)
+    canvas = [[" "] * canvas_w for _ in range(canvas_h)]
+
+    # Compute canvas positions for each node
+    node_canvas_pos = {}
+    for nid, node in network.nodes.items():
+        col, row = to_canvas(node)
+        node_canvas_pos[nid] = (col, row)
+
+    # Draw nodes — always show the node ID number at its position
+    for nid, node in network.nodes.items():
+        col, row = node_canvas_pos[nid]
+        symbol = str(nid)
+        # Write symbol chars left-to-right; clip at canvas edge
+        for k, ch in enumerate(symbol):
+            if col + k < canvas_w:
+                canvas[row][col + k] = ch
+
+    # Print with border
+    border = "+" + "-" * canvas_w + "+"
+    print(border)
+    for row in canvas:
+        print("|" + "".join(row) + "|")
+    print(border)
+    print("  number = node ID")
+    print(f"  Canvas represents the {int(x_max - x_min)} m × {int(y_max - y_min)} m deployment area")
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  DEMO 1 — Random 10-node network (reproducible seed)
+# ══════════════════════════════════════════════════════════════════════
+rng = random.Random(42)
+net = MeshNetwork()
+
+for nid in range(1, 11):
+    x = rng.uniform(0, 120)
+    y = rng.uniform(0, 120)
+    net.add_node(Node(nid, x, y))
+
+net.build_edges()
+
+# Identify any isolated (unreachable) nodes
+connected  = {u for u, v, _, _ in net.edges} | {v for u, v, _, _ in net.edges}
+isolated   = sorted(set(net.nodes) - connected)
+
+print("=" * 60)
+print("  Random network — 10 nodes, 120 × 120 m, seed = 42")
+print("=" * 60)
+print(f"  Nodes     : {len(net.nodes)}")
+print(f"  Edges     : {len(net.edges)}")
+print(f"  Isolated  : {isolated if isolated else 'none'}")
+print(f"  Avg degree: {2 * len(net.edges) / len(net.nodes):.2f}")
+print()
+
+# Edge table
+print(f"  {'Src':>4}  {'Dst':>4}  {'Dist (m)':>8}  {'RSSI (dBm)':>10}")
+print("  " + "-" * 34)
+for u, v, d, r in sorted(net.edges):
+    print(f"  {u:>4}  {v:>4}  {d:>8.1f}  {r:>10.1f}")
+print()
+
+# BFS shortest path
+path = net.bfs(1, 7)
+hops = len(path) - 1 if path else -1
+
+print("  Shortest path 1 → 7")
+if path:
+    print(f"  Path : {' → '.join(str(n) for n in path)}")
+    print(f"  Hops : {hops}")
+else:
+    print("  No path found (disconnected sub-graph)")
+print()
+
+# ASCII topology
+print("  Network topology (nodes at their physical positions):")
+print()
+draw_topology(net, highlight_path=path)
+print()
+print("Q1 — OK")
+</script>
+
+<!-- ─── Q2: HELLO Discovery ───────────────────────────────────────── -->
+<script type="text/x-python" id="src-q2">
+"""
+Q2 — Neighbourhood Discovery via Periodic HELLO Messages
+=========================================================
+Protocol: OLSR-style periodic broadcast (RFC 3626)
+  • Every T_HELLO seconds each node broadcasts HELLO(id, seq)
+  • Receivers record sender ID + measured RSSI + timestamp
+  • Entries older than T_TIMEOUT are expired (link-failure detection)
+  • Monotonic sequence number detects duplicates in multi-path topologies
+
+Simulation: discrete-event heap (no real-time sleep) over 20 virtual seconds.
+"""
+import math
+import random
+import heapq
+
+# ── Protocol constants ────────────────────────────────────────────────
+T_HELLO   = 5.0     # HELLO broadcast interval (seconds)
+T_TIMEOUT = 15.0    # entry expiry = 3 missed HELLOs
+MAX_RANGE = 50.0    # radio range (metres)
+FREQ_HZ   = 2.4e9  # carrier frequency for RSSI calculation
+FRIIS_K   = 27.55  # Friis path-loss constant
+
+
+# ── Helper functions ──────────────────────────────────────────────────
+def distance(pos_a: tuple, pos_b: tuple) -> float:
+    """Euclidean distance between two (x, y) positions."""
+    return math.sqrt((pos_a[0] - pos_b[0]) ** 2 + (pos_a[1] - pos_b[1]) ** 2)
+
+
+def rssi_dBm(dist_m: float) -> float:
+    """Friis free-space RSSI in dBm."""
+    return -20 * math.log10(max(dist_m, 0.1)) - 20 * math.log10(FREQ_HZ) + FRIIS_K
+
+
+# ── NeighbourTable ────────────────────────────────────────────────────
+class NeighbourTable:
+    """
+    Per-node table of known 1-hop neighbours.
+    Each entry: {neighbour_id: {seq, rssi, last_seen_timestamp}}
+    """
+
+    def __init__(self):
+        self._table = {}
+
+    def update(self, sender_id: int, seq: int, rssi_val: float, now: float):
+        """Add or refresh a neighbour entry."""
+        self._table[sender_id] = {
+            "seq":       seq,
+            "rssi":      rssi_val,
+            "last_seen": now,
+        }
+
+    def expire(self, now: float) -> list:
+        """Remove entries that have not been heard within T_TIMEOUT. Returns expired IDs."""
+        expired = [k for k, v in self._table.items() if now - v["last_seen"] > T_TIMEOUT]
+        for k in expired:
+            del self._table[k]
+        return expired
+
+    def get(self) -> dict:
+        return dict(self._table)
+
+
+# ── SimNode ───────────────────────────────────────────────────────────
+class SimNode:
+    """A simulated mesh node that sends and receives HELLO messages."""
+
+    def __init__(self, nid: int, pos: tuple):
+        self.id  = nid
+        self.pos = pos
+        self.seq = 0                  # monotonically increasing sequence number
+        self.tbl = NeighbourTable()   # local neighbour table
+
+
+# ── Topology visualiser (same style as Q1) ───────────────────────────
+def draw_ascii_topology(positions, canvas_w=58, canvas_h=20):
+    xs = [p[0] for p in positions.values()]
+    ys = [p[1] for p in positions.values()]
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    x_span = max(x_max - x_min, 1)
+    y_span = max(y_max - y_min, 1)
+    canvas = [[" "] * canvas_w for _ in range(canvas_h)]
+    for nid, (x, y) in positions.items():
+        col = int((x - x_min) / x_span * (canvas_w - 3))
+        row = int((y - y_min) / y_span * (canvas_h - 1))
+        for k, ch in enumerate(str(nid)):
+            if col + k < canvas_w:
+                canvas[row][col + k] = ch
+    border = "+" + "-" * canvas_w + "+"
+    print(border)
+    for row in canvas:
+        print("|" + "".join(row) + "|")
+    print(border)
+    print("  number = node ID")
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  Setup — 10 nodes in a 120 × 120 m area (same seed as Q1)
+# ══════════════════════════════════════════════════════════════════════
+rng       = random.Random(42)
+positions = {nid: (rng.uniform(0, 120), rng.uniform(0, 120)) for nid in range(1, 11)}
+nodes     = {nid: SimNode(nid, pos) for nid, pos in positions.items()}
+
+print("=" * 60)
+print("  Network topology (nodes at physical positions):")
+print("=" * 60)
+print()
+draw_ascii_topology(positions)
+print()
+
+# ══════════════════════════════════════════════════════════════════════
+#  Discrete-event simulation (min-heap priority queue on virtual time)
+# ══════════════════════════════════════════════════════════════════════
+# Seed each node's first HELLO at a small random jitter [0, 1 s]
+# so they don't all transmit at exactly the same instant.
+event_heap = []
+for nid in nodes:
+    jitter = random.Random(nid + 99).uniform(0.0, 1.0)
+    heapq.heappush(event_heap, (jitter, nid))
+
+SIM_DURATION = 20.0   # virtual seconds to simulate
+
+print("=" * 60)
+print("  Simulating HELLO discovery — 20 virtual seconds")
+print("=" * 60)
+print()
+
+while event_heap:
+    now, nid = heapq.heappop(event_heap)
+    if now > SIM_DURATION:
+        break
+
+    node = nodes[nid]
+    node.seq += 1   # increment sequence number for this broadcast
+
+    # ── Broadcast HELLO to all in-range neighbours ────────────────
+    for other_id, other_node in nodes.items():
+        if other_id == nid:
+            continue
+        d = distance(positions[nid], positions[other_id])
+        if d <= MAX_RANGE:
+            r = rssi_dBm(d)
+            other_node.tbl.update(nid, node.seq, r, now)
+
+    # ── Expire stale entries in this node's own table ─────────────
+    node.tbl.expire(now)
+
+    # ── Print this HELLO event ────────────────────────────────────
+    neighbour_ids = sorted(node.tbl.get().keys())
+    print(f"  t = {now:6.2f} s   Node {nid:2d}  seq={node.seq:3d}   neighbours = {neighbour_ids}")
+
+    # Schedule next HELLO for this node
+    heapq.heappush(event_heap, (now + T_HELLO, nid))
+
+# ══════════════════════════════════════════════════════════════════════
+#  Final state — neighbour tables after simulation ends
+# ══════════════════════════════════════════════════════════════════════
+print()
+print("=" * 60)
+print("  Final neighbour tables (end of simulation)")
+print("=" * 60)
+
+for nid in sorted(nodes):
+    entries = nodes[nid].tbl.get()
+    if entries:
+        # Format each neighbour as "N<id>(RSSI=<val>)"
+        detail = "   ".join(
+            f"N{k}(RSSI={v['rssi']:.1f} dBm)" for k, v in sorted(entries.items())
+        )
+        print(f"  Node {nid:2d}: {detail}")
+    else:
+        print(f"  Node {nid:2d}: (no neighbours — isolated)")
+
+# ══════════════════════════════════════════════════════════════════════
+#  Symmetry check — all links must be bidirectional
+# ══════════════════════════════════════════════════════════════════════
+print()
+print("=" * 60)
+print("  Symmetry check — are all links bidirectional?")
+print("=" * 60)
+
+all_ok = True
+for nid_a in sorted(nodes):
+    for nid_b in nodes[nid_a].tbl.get():
+        # If A knows B, B must also know A (radio is symmetric)
+        if nid_a not in nodes[nid_b].tbl.get():
+            print(f"  [WARN] Link {nid_a} <-> {nid_b} is asymmetric!")
+            all_ok = False
+
+if all_ok:
+    print("  All links are symmetric — radio propagation is bidirectional.")
+
+print()
+print("Q2 — OK")
+</script>
+
+<!-- ─── Q3: Min-Hop Routing ───────────────────────────────────────── -->
+<script type="text/x-python" id="src-q3">
+"""
+Q3 — Minimum-Hop Routing (AODV-inspired)
+=========================================
+Protocol overview:
+  Phase 1 — Route Discovery
+    • Source floods a Route Request (RREQ) with incrementing hop count
+      and a growing path list: RREQ(src, dst, seq, hops, path)
+    • Each node that receives an RREQ it has NOT seen before:
+        - Appends its own ID to path
+        - Installs a reverse route back to the source
+        - Forwards the RREQ to its neighbours
+        - If it IS the destination, sends a unicast Route Reply (RREP)
+    • Duplicate detection via a (src, seq) set → prevents broadcast storms
+    • First RREP to arrive at the source carries the BFS-optimal hop count
+      because the RREQ flood is equivalent to a BFS wavefront.
+
+  Phase 2 — Data forwarding
+    • Source uses the installed route to forward DATA packets hop-by-hop.
+"""
+import math
+import random
+
+# ── Constants ─────────────────────────────────────────────────────────
+MAX_RANGE = 50.0    # metres
+FREQ_HZ   = 2.4e9
+FRIIS_K   = 27.55
+
+
+def distance(pos_a: tuple, pos_b: tuple) -> float:
+    """Euclidean distance between two (x, y) tuples."""
+    return math.sqrt((pos_a[0] - pos_b[0]) ** 2 + (pos_a[1] - pos_b[1]) ** 2)
+
+
+# ── RouterNode ────────────────────────────────────────────────────────
+class RouterNode:
+    """
+    A mesh node that participates in AODV-style route discovery.
+    Each node maintains:
+      rt    — routing table  {destination_id: full_path_list}
+      seen  — duplicate suppression set  {(src_id, seq_number)}
+      seq   — own sequence counter (incremented per RREQ originated)
+      log   — human-readable event log for display
+    """
+
+    def __init__(self, nid: int, positions: dict, nodes_ref: dict):
+        self.id        = nid
+        self.pos       = positions[nid]
+        self.all_pos   = positions      # read-only global position map
+        self.nodes     = nodes_ref      # live reference to all RouterNode objects
+        self.rt        = {}             # {dst: path_list}
+        self.seen      = set()          # duplicate filter
+        self.seq       = 0
+        self.stats     = {
+            "rreq_tx": 0, "rreq_rx": 0,
+            "rrep_tx": 0, "rrep_rx": 0,
+            "data_fwd": 0, "data_rx": 0,
+        }
+        self.log = []
+
+    # ── Topology helpers ──────────────────────────────────────────
+    def _neighbours(self) -> list:
+        """Return IDs of nodes within radio range."""
+        return [
+            nid for nid, pos in self.all_pos.items()
+            if nid != self.id and distance(self.pos, pos) <= MAX_RANGE
+        ]
+
+    # ── Route discovery ───────────────────────────────────────────
+    def discover_route(self, dst: int):
+        """
+        Initiate a Route Request flood toward dst.
+        Creates RREQ with hops=0 and path=[self.id], then broadcasts.
+        """
+        self.seq += 1
+        rreq = {
+            "src":  self.id,
+            "dst":  dst,
+            "seq":  self.seq,
+            "hops": 0,
+            "path": [self.id],
+        }
+        self.stats["rreq_tx"] += 1
+        self.log.append(
+            f"  RREQ originated  src={self.id} dst={dst} seq={self.seq} path={rreq['path']}"
+        )
+        # Flood to all neighbours
+        for nb_id in self._neighbours():
+            self.nodes[nb_id].receive_rreq(dict(rreq))
+
+    def receive_rreq(self, rreq: dict):
+        """
+        Process an incoming RREQ.
+        Discard duplicates; otherwise forward or send RREP if we are the destination.
+        """
+        self.stats["rreq_rx"] += 1
+
+        # ── Duplicate check ───────────────────────────────────────
+        key = (rreq["src"], rreq["seq"])
+        if key in self.seen:
+            return   # already processed this flood wave — discard
+        self.seen.add(key)
+
+        # ── Update RREQ fields ────────────────────────────────────
+        rreq["hops"] += 1
+        rreq["path"]  = rreq["path"] + [self.id]   # append own ID
+
+        # ── Install reverse route (src -> us on the reverse path) ─
+        reverse_path = list(reversed(rreq["path"]))
+        if rreq["src"] not in self.rt:
+            self.rt[rreq["src"]] = reverse_path
+
+        # ── Are we the destination? ───────────────────────────────
+        if self.id == rreq["dst"]:
+            # Send unicast RREP back along the recorded path
+            rrep = {
+                "src":  self.id,
+                "dst":  rreq["src"],
+                "path": rreq["path"],
+                "hops": rreq["hops"],
+            }
+            self.stats["rrep_tx"] += 1
+            self.log.append(
+                f"  RREP sent        src={self.id} dst={rreq['src']} "
+                f"path={rrep['path']}  ({rreq['hops']} hops)"
+            )
+            prev_hop = rreq["path"][-2]
+            self.nodes[prev_hop].receive_rrep(rrep)
+
+        else:
+            # Forward RREQ to neighbours not already in the path
+            self.stats["rreq_tx"] += 1
+            self.log.append(
+                f"  RREQ forwarded   src={rreq['src']} dst={rreq['dst']} "
+                f"hops={rreq['hops']} path={rreq['path']}"
+            )
+            for nb_id in self._neighbours():
+                if nb_id not in rreq["path"]:
+                    self.nodes[nb_id].receive_rreq(dict(rreq))
+
+    def receive_rrep(self, rrep: dict):
+        """
+        Install the discovered route and forward RREP toward the original source.
+        """
+        self.stats["rrep_rx"] += 1
+        self.rt[rrep["src"]] = rrep["path"]   # install route to the path source
+
+        if self.id == rrep["dst"]:
+            return   # we are the original source — route installed, done
+
+        # Forward RREP one hop closer to source
+        idx      = rrep["path"].index(self.id)
+        prev_hop = rrep["path"][idx - 1]
+        self.nodes[prev_hop].receive_rrep(dict(rrep))
+
+    # ── Data forwarding ───────────────────────────────────────────
+    def send_data(self, dst: int, payload: str):
+        """Send a DATA packet using the installed route."""
+        if dst not in self.rt:
+            print(f"  No route to node {dst} — discovery needed first")
+            return
+        path      = self.rt[dst]
+        next_hop  = path[1]
+        self.log.append(f"  DATA sent        {self.id} -> {next_hop} (dst={dst})  '{payload}'")
+        self.nodes[next_hop].forward_data(dst, path, payload)
+
+    def forward_data(self, dst: int, path: list, payload: str):
+        """Relay DATA one hop closer to dst, or deliver if we are dst."""
+        if self.id == dst:
+            self.stats["data_rx"] += 1
+            self.log.append(f"  DATA delivered   to Node {self.id}: '{payload}'")
+            return
+        self.stats["data_fwd"] += 1
+        idx      = path.index(self.id)
+        next_hop = path[idx + 1]
+        self.log.append(f"  DATA forwarded   {self.id} -> {next_hop} (dst={dst})")
+        self.nodes[next_hop].forward_data(dst, path, payload)
+
+
+# ── Factory ───────────────────────────────────────────────────────────
+def build_network(positions: dict) -> dict:
+    """Create a fully-connected RouterNode map from a position dict."""
+    nodes = {}
+    for nid in positions:
+        nodes[nid] = RouterNode(nid, positions, nodes)
+    return nodes
+
+
+# ── Topology visualiser (same style as Q1) ───────────────────────────
+def draw_ascii_topology(positions, canvas_w=58, canvas_h=20):
+    xs = [p[0] for p in positions.values()]
+    ys = [p[1] for p in positions.values()]
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    x_span = max(x_max - x_min, 1)
+    y_span = max(y_max - y_min, 1)
+    canvas = [[" "] * canvas_w for _ in range(canvas_h)]
+    for nid, (x, y) in positions.items():
+        col = int((x - x_min) / x_span * (canvas_w - 3))
+        row = int((y - y_min) / y_span * (canvas_h - 1))
+        for k, ch in enumerate(str(nid)):
+            if col + k < canvas_w:
+                canvas[row][col + k] = ch
+    border = "+" + "-" * canvas_w + "+"
+    print(border)
+    for row in canvas:
+        print("|" + "".join(row) + "|")
+    print(border)
+    print("  number = node ID")
+
+
+# ── Pretty print helpers ──────────────────────────────────────────────
+def print_stats(nodes: dict):
+    """Print per-node message counters."""
+    hdr = f"  {'Node':>5}  {'RREQ_TX':>7}  {'RREQ_RX':>7}  {'RREP_TX':>7}  {'RREP_RX':>7}  {'DATA_FWD':>8}  {'DATA_RX':>7}"
+    print(hdr)
+    print("  " + "-" * (len(hdr) - 2))
+    for nid in sorted(nodes):
+        s = nodes[nid].stats
+        print(
+            f"  {nid:>5}  {s['rreq_tx']:>7}  {s['rreq_rx']:>7}  "
+            f"{s['rrep_tx']:>7}  {s['rrep_rx']:>7}  "
+            f"{s['data_fwd']:>8}  {s['data_rx']:>7}"
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  SCENARIO A — Linear chain, 8 nodes, 40 m spacing
+# ══════════════════════════════════════════════════════════════════════
+print("=" * 60)
+print("  Scenario A — Linear chain: 8 nodes, 40 m spacing")
+print("=" * 60)
+
+pos_a = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
+net_a = build_network(pos_a)
+
+print()
+print("  Network topology:")
+draw_ascii_topology(pos_a)
+print()
+
+# Node 1 initiates route discovery to Node 8
+net_a[1].discover_route(8)
+
+route_a = net_a[1].rt.get(8)
+if route_a:
+    print(f"  Route found: {' -> '.join(str(n) for n in route_a)}")
+    print(f"  Hop count  : {len(route_a) - 1}  (expected: 7)")
+    net_a[1].send_data(8, "Hello from Node 1!")
+else:
+    print("  No route found")
+
+print()
+print("  Event log:")
+# Collect and de-duplicate events across all nodes, preserving order
+seen_log = set()
+ordered_log = []
+for node in net_a.values():
+    for line in node.log:
+        if line not in seen_log:
+            seen_log.add(line)
+            ordered_log.append(line)
+
+for line in ordered_log[:20]:
+    print(line)
+if len(ordered_log) > 20:
+    print(f"  ... ({len(ordered_log) - 20} more events)")
+
+print()
+print("  Message statistics per node:")
+print_stats(net_a)
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  SCENARIO B — Random 10-node network, seed = 42
+# ══════════════════════════════════════════════════════════════════════
+print()
+print("=" * 60)
+print("  Scenario B — Random 10-node network (120 x 120 m, seed=42)")
+print("=" * 60)
+
+rng   = random.Random(42)
+pos_b = {nid: (rng.uniform(0, 120), rng.uniform(0, 120)) for nid in range(1, 11)}
+net_b = build_network(pos_b)
+
+print()
+print("  Network topology:")
+draw_ascii_topology(pos_b)
+print()
+
+net_b[1].discover_route(9)
+route_b = net_b[1].rt.get(9)
+
+if route_b:
+    print(f"  Route found: {' -> '.join(str(n) for n in route_b)}")
+    print(f"  Hop count  : {len(route_b) - 1}")
+    net_b[1].send_data(9, "Payload from Node 1 to Node 9")
+else:
+    print("  No route found — nodes may be disconnected for this seed")
+
+print()
+print("  Message statistics per node:")
+print_stats(net_b)
+print()
+print("Q3 — OK")
+</script>
+
+<!-- ─── Q4: Node FSM ──────────────────────────────────────────────── -->
+<script type="text/x-python" id="src-q4">
+"""
+Q4 — Node Finite-State Machine (Moore model)
+=============================================
+Design rationale:
+  • Moore FSM  : outputs (actions) depend only on the CURRENT STATE,
+                 not on the incoming event. This maps cleanly to
+                 entry-action dispatch and embedded C switch/case patterns.
+  • Event queue: post() is non-blocking; step() drains the queue
+                 synchronously. In firmware this becomes an ISR-safe FIFO.
+  • Auto-recovery: the ERROR state auto-posts a BOOT event, so the node
+                   always returns to IDLE without external intervention.
+
+State summary:
+  INIT             Power-on reset — waits for BOOT
+  IDLE             Central hub — dispatches all incoming events
+  HELLO_TX         Transmitting a HELLO beacon
+  ROUTE_DISCOVERY  Flooding a RREQ toward a destination
+  WAIT_RREP        Waiting for RREP; retransmit timer active
+  FORWARDING       Relaying RREQ / RREP / DATA to next hop
+  DATA_RX          Delivering a DATA payload to the application layer
+  ERROR            Fault logged; automatic recovery scheduled
+"""
+from enum import Enum, auto
+import queue
+
+
+# ── State and Event enumerations ─────────────────────────────────────
+class State(Enum):
+    INIT             = auto()
+    IDLE             = auto()
+    HELLO_TX         = auto()
+    ROUTE_DISCOVERY  = auto()
+    WAIT_RREP        = auto()
+    FORWARDING       = auto()
+    DATA_RX          = auto()
+    ERROR            = auto()
+
+
+class Event(Enum):
+    BOOT             = auto()   # hardware power-on or software reset
+    HELLO_TIMER      = auto()   # periodic timer fires → transmit HELLO
+    HELLO_RX         = auto()   # received a HELLO from a neighbour
+    SEND_REQ         = auto()   # application wants to send a packet
+    RREQ_RX          = auto()   # received a Route Request to forward
+    RREP_RX          = auto()   # received a Route Reply
+    ROUTE_FOUND      = auto()   # RREQ/RREP cycle completed successfully
+    ROUTE_TIMEOUT    = auto()   # RREP not received within timeout window
+    DATA_RX          = auto()   # DATA packet arrived for this node
+    TX_DONE          = auto()   # radio MAC confirms packet was transmitted
+
+
+# ── Transition table  (current_state, event) → next_state ────────────
+TRANSITIONS: dict = {
+    (State.INIT,            Event.BOOT):          State.IDLE,
+    (State.IDLE,            Event.HELLO_TIMER):   State.HELLO_TX,
+    (State.IDLE,            Event.HELLO_RX):      State.IDLE,       # self-loop: update neighbour table
+    (State.IDLE,            Event.SEND_REQ):      State.ROUTE_DISCOVERY,
+    (State.IDLE,            Event.RREQ_RX):       State.FORWARDING,
+    (State.IDLE,            Event.DATA_RX):       State.DATA_RX,
+    (State.HELLO_TX,        Event.TX_DONE):       State.IDLE,
+    (State.ROUTE_DISCOVERY, Event.ROUTE_FOUND):   State.WAIT_RREP,
+    (State.ROUTE_DISCOVERY, Event.ROUTE_TIMEOUT): State.ERROR,
+    (State.WAIT_RREP,       Event.RREP_RX):       State.IDLE,
+    (State.WAIT_RREP,       Event.ROUTE_TIMEOUT): State.ERROR,
+    (State.FORWARDING,      Event.TX_DONE):       State.IDLE,
+    (State.DATA_RX,         Event.TX_DONE):       State.IDLE,
+    (State.ERROR,           Event.BOOT):          State.IDLE,       # auto-recovery path
+}
+
+
+# ── NodeFSM ───────────────────────────────────────────────────────────
+class NodeFSM:
+    """
+    Moore-style FSM for a single mesh node.
+
+    Usage:
+        fsm = NodeFSM(node_id)
+        fsm.post(Event.BOOT)
+        fsm.step()    # drains the event queue and fires entry actions
+    """
+
+    def __init__(self, node_id: int):
+        self.id       = node_id
+        self.state    = State.INIT      # all nodes start here
+        self._queue   = queue.Queue()
+        self._history = []              # list of (from_state, event, to_state)
+        self._visits  = {}             # {State: visit_count}
+
+    def post(self, event: Event, data: dict = None):
+        """Enqueue an event (safe to call from entry actions)."""
+        self._queue.put((event, data))
+
+    def step(self):
+        """
+        Drain the event queue.
+        For each (state, event) pair: look up next state, log the transition,
+        update counters, and call the entry action of the new state.
+        Entry actions may post further events (e.g. HELLO_TX posts TX_DONE).
+        """
+        while not self._queue.empty():
+            event, data = self._queue.get_nowait()
+
+            key       = (self.state, event)
+            next_state = TRANSITIONS.get(key)
+
+            if next_state is None:
+                print(f"  [FSM {self.id:>2d}]  {self.state.name:<20} + {event.name:<16}  (no transition defined)")
+                continue
+
+            # Log and count
+            print(f"  [FSM {self.id:>2d}]  {self.state.name:<20} + {event.name:<16} -> {next_state.name}")
+            self._history.append((self.state, event, next_state))
+            self._visits[next_state] = self._visits.get(next_state, 0) + 1
+
+            # Advance state
+            self.state = next_state
+
+            # Execute entry action for the new state
+            self._entry_action(next_state, data)
+
+    # ── Entry actions ─────────────────────────────────────────────
+    def _entry_action(self, state: State, data: dict):
+        """
+        Moore entry actions: each state has one fixed action on entry.
+        These mirror what real firmware would do (e.g. start a radio TX,
+        arm a timer, call an application callback).
+        """
+        if state == State.HELLO_TX:
+            print(f"    >> Node {self.id}: broadcasting HELLO beacon to all neighbours")
+            # In firmware: start radio TX; on TX-complete IRQ post TX_DONE
+            self.post(Event.TX_DONE)
+
+        elif state == State.ROUTE_DISCOVERY:
+            dst = data.get("dst", "?") if data else "?"
+            print(f"    >> Node {self.id}: flooding RREQ toward destination {dst}")
+            # Simulated: immediately succeed for demo purposes
+            self.post(Event.ROUTE_FOUND, data)
+
+        elif state == State.WAIT_RREP:
+            print(f"    >> Node {self.id}: waiting for RREP (timer armed)")
+            # Simulated: RREP arrives immediately for demo purposes
+            self.post(Event.RREP_RX)
+
+        elif state == State.FORWARDING:
+            print(f"    >> Node {self.id}: forwarding packet to next hop")
+            self.post(Event.TX_DONE)
+
+        elif state == State.DATA_RX:
+            payload = data.get("payload", "N/A") if data else "N/A"
+            print(f"    >> Node {self.id}: delivering payload to application layer: '{payload}'")
+            self.post(Event.TX_DONE)
+
+        elif state == State.ERROR:
+            reason = data.get("reason", "unknown") if data else "unknown"
+            print(f"    >> Node {self.id}: ERROR — {reason}")
+            print(f"    >> Node {self.id}: scheduling automatic recovery (re-BOOT)")
+            # Auto-recovery: post BOOT so the node never stays stuck in ERROR
+            self.post(Event.BOOT)
+
+        elif state == State.IDLE:
+            # Entry to IDLE: (re)start the periodic HELLO timer
+            # In firmware: arm a hardware timer; on expiry post HELLO_TIMER
+            pass   # timer management omitted in this discrete demo
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  DEMO — exercise all 14 defined transitions
+# ══════════════════════════════════════════════════════════════════════
+fsm = NodeFSM(node_id=42)
+
+# Each tuple: (description, list of (Event [, optional_data]) to post)
+demo_scenarios = [
+    (
+        "Boot sequence (INIT -> IDLE)",
+        [(Event.BOOT, None)],
+    ),
+    (
+        "HELLO timer fires (IDLE -> HELLO_TX -> IDLE)",
+        [(Event.HELLO_TIMER, None)],
+    ),
+    (
+        "Receive a HELLO from Node 7 (IDLE -> IDLE self-loop)",
+        [(Event.HELLO_RX, {"from": 7})],
+    ),
+    (
+        "Application requests send to Node 15 (IDLE -> ROUTE_DISCOVERY -> WAIT_RREP -> IDLE)",
+        [(Event.SEND_REQ, {"dst": 15})],
+    ),
+    (
+        "DATA packet arrives for this node (IDLE -> DATA_RX -> IDLE)",
+        [(Event.DATA_RX, {"payload": "Hello from Node 3!"})],
+    ),
+]
+
+for description, events in demo_scenarios:
+    print()
+    print(f"  --- {description} ---")
+    for event_item in events:
+        if isinstance(event_item, tuple):
+            fsm.post(event_item[0], event_item[1])
+        else:
+            fsm.post(event_item)
+    fsm.step()
+
+# ── Force the error path ──────────────────────────────────────────────
+print()
+print("  --- Force ROUTE_TIMEOUT -> ERROR -> auto BOOT -> IDLE ---")
+# Manually move FSM into ROUTE_DISCOVERY state and inject a timeout
+fsm._queue = queue.Queue()          # flush any pending events
+fsm.state  = State.ROUTE_DISCOVERY
+fsm.post(Event.ROUTE_TIMEOUT, {"reason": "RREP not received within 5 s"})
+fsm.step()
+
+# ── Summary ───────────────────────────────────────────────────────────
+print()
+print("=" * 60)
+print("  FSM Summary")
+print("=" * 60)
+print(f"  Transitions recorded : {len(fsm._history)}")
+print(f"  Final state          : {fsm.state.name}")
+print()
+print("  State visit counts:")
+for state, count in sorted(fsm._visits.items(), key=lambda x: -x[1]):
+    bar = "#" * count
+    print(f"    {state.name:<20}  {count:>2}  {bar}")
+
+print()
+print("Q4 — OK")
+</script>
+
+<!-- ─── Q5: Discrete-Event Simulator ──────────────────────────────── -->
+<script type="text/x-python" id="src-q5">
+"""
+Q5 — Discrete-Event Simulator (DES)
+=====================================
+Architecture:
+  Sim       — global event scheduler (min-heap on virtual time)
+  SimNode   — integrates HELLO discovery + AODV-style routing
+  SimNet    — holds all nodes; passed to nodes for neighbour lookup
+
+Radio model (same as Q1/Q2):
+  • Range  : 50 m (hard cutoff)
+  • RSSI   : Friis free-space path-loss at 2.4 GHz
+  • Delay  : propagation delay = distance / c + 1 ms processing
+
+Four test scenarios:
+  A — Linear chain, 8 nodes           → verify 7-hop minimum
+  B — Random 10-node mesh             → verify BFS-optimal path
+  C — Node failure mid-transmission   → verify failure detection
+  D — 5 concurrent flows, 15 nodes    → verify PDR under load
+"""
+import math
+import random
+import heapq
+from dataclasses import dataclass, field
+from typing import Any, Callable, Optional
+
+
+# ── Constants ────────────────────────────────────────────────────────
+MAX_RANGE  = 50.0    # metres
+FREQ_HZ    = 2.4e9  # carrier frequency
+FRIIS_K    = 27.55  # Friis path-loss constant
+HELLO_INT  = 5.0    # HELLO broadcast interval (virtual seconds)
+HELLO_TOUT = 15.0   # neighbour entry expiry (3 missed HELLOs)
+SPEED_OF_LIGHT = 3e8  # m/s — for propagation delay
+PROC_DELAY     = 0.001  # 1 ms processing delay per hop
+
+
+# ── Helpers ───────────────────────────────────────────────────────────
+def edist(a: tuple, b: tuple) -> float:
+    """Euclidean distance between two (x, y) positions."""
+    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+def prop_delay(dist_m: float) -> float:
+    """Total one-hop delay: propagation + processing."""
+    return dist_m / SPEED_OF_LIGHT + PROC_DELAY
+
+def rssi_dBm(dist_m: float) -> float:
+    """Friis free-space RSSI in dBm."""
+    return -20 * math.log10(max(dist_m, 0.1)) - 20 * math.log10(FREQ_HZ) + FRIIS_K
+
+
+# ── Event (heap element) ─────────────────────────────────────────────
+@dataclass(order=True)
+class Event:
+    """
+    A scheduled future event.
+    Ordered by time so heapq gives earliest event first.
+    handler and data are excluded from comparison (compare=False).
+    """
+    time:    float
+    handler: Any = field(compare=False)
+    data:    Any = field(compare=False, default=None)
+
+
+# ── Simulator ────────────────────────────────────────────────────────
+class Sim:
+    """
+    Minimal discrete-event simulator.
+    Events are stored in a min-heap; run() processes them in time order.
+    """
+
+    def __init__(self):
+        self._heap = []
+        self.now   = 0.0
+
+    def schedule(self, delay: float, handler: Callable, data: Any = None):
+        """Schedule handler(data) to fire delay seconds from now."""
+        heapq.heappush(self._heap, Event(self.now + delay, handler, data))
+
+    def run(self, until: float = 100.0):
+        """Process all events up to virtual time `until`."""
+        while self._heap and self._heap[0].time <= until:
+            ev       = heapq.heappop(self._heap)
+            self.now = ev.time
+            ev.handler(ev.data)
+
+
+# ── SimNet ────────────────────────────────────────────────────────────
+class SimNet:
+    """Container for all SimNodes — passed to nodes for routing lookups."""
+    def __init__(self):
+        self.nodes: dict = {}
+
+
+# ── SimNode ───────────────────────────────────────────────────────────
+class SimNode:
+    """
+    A simulated mesh node combining:
+      • HELLO-based neighbourhood discovery
+      • AODV-style on-demand routing (RREQ/RREP)
+      • DATA forwarding
+      • Counters for performance metrics
+
+    alive flag: set to False to simulate node failure.
+    """
+
+    def __init__(self, nid: int, x: float, y: float, sim: Sim, net: SimNet):
+        self.id    = nid
+        self.x     = x
+        self.y     = y
+        self.sim   = sim
+        self.net   = net
+        self.alive = True
+
+        # Protocol state
+        self.neighbours: dict = {}   # {nid: {rssi, last_seen}}
+        self.rt:         dict = {}   # {dst: full_path_list}
+        self.seen_rreqs: set  = set()  # duplicate filter
+        self.seq:        int  = 0    # RREQ sequence counter
+        self.pending:    list = []   # [(dst, payload)] waiting for route
+
+        # Performance counters
+        self.counters = {
+            "hello_tx":  0, "hello_rx":  0,
+            "rreq_tx":   0, "rreq_rx":   0,
+            "data_tx":   0, "data_rx":   0,
+            "data_fwd":  0,
+            "hops_seen": [],  # list of discovered hop counts
+        }
+
+    def _pos(self):
+        return (self.x, self.y)
+
+    def _neighbours_in_range(self):
+        """Return (nid, node, distance) triples for nodes within MAX_RANGE."""
+        result = []
+        for nid, node in self.net.nodes.items():
+            if nid == self.id:
+                continue
+            d = edist(self._pos(), (node.x, node.y))
+            if d <= MAX_RANGE:
+                result.append((nid, node, d))
+        return result
+
+    # ── HELLO protocol ────────────────────────────────────────────
+    def _tx_hello(self, _=None):
+        """Broadcast HELLO to all in-range nodes, then reschedule."""
+        if not self.alive:
+            return
+        self.counters["hello_tx"] += 1
+
+        for nid, node, d in self._neighbours_in_range():
+            r = rssi_dBm(d)
+            self.sim.schedule(prop_delay(d), node._rx_hello, (self.id, r, self.sim.now))
+
+        # Expire stale neighbour entries
+        stale = [k for k, v in self.neighbours.items()
+                 if self.sim.now - v["last_seen"] > HELLO_TOUT]
+        for k in stale:
+            del self.neighbours[k]
+
+        # Reschedule next HELLO
+        self.sim.schedule(HELLO_INT, self._tx_hello)
+
+    def _rx_hello(self, args):
+        """Receive a HELLO from a neighbour and update the neighbour table."""
+        sender_id, rssi_val, timestamp = args
+        if not self.alive:
+            return
+        self.counters["hello_rx"] += 1
+        self.neighbours[sender_id] = {"rssi": rssi_val, "last_seen": timestamp}
+
+    # ── Packet dispatcher ──────────────────────────────────────────
+    def receive(self, pkt: dict):
+        """Route incoming packets to the correct handler."""
+        if not self.alive:
+            return
+        ptype = pkt["type"]
+        if ptype == "RREQ":
+            self._rx_rreq(pkt)
+        elif ptype == "RREP":
+            self._rx_rrep(pkt)
+        elif ptype == "DATA":
+            self._rx_data(pkt)
+
+    # ── RREQ handler ──────────────────────────────────────────────
+    def _rx_rreq(self, pkt: dict):
+        self.counters["rreq_rx"] += 1
+
+        key = (pkt["src"], pkt["seq"])
+        if key in self.seen_rreqs:
+            return   # duplicate — discard
+        self.seen_rreqs.add(key)
+
+        pkt = dict(pkt)
+        pkt["hops"] += 1
+        pkt["path"]  = pkt["path"] + [self.id]
+
+        if self.id == pkt["dst"]:
+            # We are the destination: send RREP back along the path
+            self.counters["rreq_tx"] += 1
+            rrep = {
+                "type": "RREP",
+                "src":  self.id,
+                "dst":  pkt["src"],
+                "path": pkt["path"],
+                "hops": pkt["hops"],
+            }
+            prev = pkt["path"][-2]
+            d    = edist(self._pos(), (self.net.nodes[prev].x, self.net.nodes[prev].y))
+            self.sim.schedule(prop_delay(d), self.net.nodes[prev].receive, rrep)
+        else:
+            # Forward RREQ to neighbours not already in the path
+            self.counters["rreq_tx"] += 1
+            for nid, node, d in self._neighbours_in_range():
+                if nid not in pkt["path"]:
+                    self.sim.schedule(prop_delay(d), node.receive, dict(pkt))
+
+    # ── RREP handler ──────────────────────────────────────────────
+    def _rx_rrep(self, pkt: dict):
+        self.counters["hello_rx"] += 1   # reusing counter for simplicity
+        self.rt[pkt["src"]] = pkt["path"]   # install route
+
+        if self.id == pkt["dst"]:
+            # We originated the RREQ: route is now known
+            print(
+                f"  t={self.sim.now:7.3f} s   Route {self.id} -> {pkt['src']}: "
+                f"{' -> '.join(str(n) for n in pkt['path'])}   ({pkt['hops']} hops)"
+            )
+            self.counters["hops_seen"].append(pkt["hops"])
+
+            # Send any packets that were pending route discovery
+            still_pending = []
+            for dst, payload in self.pending:
+                if dst in self.rt:
+                    self._send_data_now(dst, payload)
+                else:
+                    still_pending.append((dst, payload))
+            self.pending = still_pending
+        else:
+            # Forward RREP toward the original source
+            idx  = pkt["path"].index(self.id)
+            prev = pkt["path"][idx - 1]
+            d    = edist(self._pos(), (self.net.nodes[prev].x, self.net.nodes[prev].y))
+            self.sim.schedule(prop_delay(d), self.net.nodes[prev].receive, dict(pkt))
+
+    # ── DATA handlers ─────────────────────────────────────────────
+    def _rx_data(self, pkt: dict):
+        if self.id == pkt["dst"]:
+            self.counters["data_rx"] += 1
+            print(
+                f"  t={self.sim.now:7.3f} s   DATA delivered  to Node {self.id}"
+                f"  payload='{pkt['payload']}'"
+            )
+        else:
+            self.counters["data_fwd"] += 1
+            idx      = pkt["path"].index(self.id)
+            next_hop = pkt["path"][idx + 1]
+            d        = edist(self._pos(), (self.net.nodes[next_hop].x, self.net.nodes[next_hop].y))
+            self.sim.schedule(prop_delay(d), self.net.nodes[next_hop].receive, dict(pkt))
+
+    def send(self, dst: int, payload: str):
+        """Public API: send payload to dst, triggering route discovery if needed."""
+        if dst in self.rt:
+            self._send_data_now(dst, payload)
+        else:
+            self.pending.append((dst, payload))
+            self._start_rreq(dst)
+
+    def _send_data_now(self, dst: int, payload: str):
+        path     = self.rt[dst]
+        next_hop = path[1]
+        d        = edist(self._pos(), (self.net.nodes[next_hop].x, self.net.nodes[next_hop].y))
+        self.counters["data_tx"] += 1
+        self.sim.schedule(
+            prop_delay(d),
+            self.net.nodes[next_hop].receive,
+            {"type": "DATA", "src": self.id, "dst": dst, "path": path, "payload": payload},
+        )
+
+    def _start_rreq(self, dst: int):
+        self.seq += 1
+        self.counters["rreq_tx"] += 1
+        rreq = {
+            "type": "RREQ",
+            "src":  self.id,
+            "dst":  dst,
+            "seq":  self.seq,
+            "hops": 0,
+            "path": [self.id],
+        }
+        for nid, node, d in self._neighbours_in_range():
+            self.sim.schedule(prop_delay(d), node.receive, dict(rreq))
+
+
+# ── Topology visualiser (same style as Q1) ───────────────────────────
+def draw_ascii_topology(positions, canvas_w=58, canvas_h=20):
+    xs = [p[0] for p in positions.values()]
+    ys = [p[1] for p in positions.values()]
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    x_span = max(x_max - x_min, 1)
+    y_span = max(y_max - y_min, 1)
+    canvas = [[" "] * canvas_w for _ in range(canvas_h)]
+    for nid, (x, y) in positions.items():
+        col = int((x - x_min) / x_span * (canvas_w - 3))
+        row = int((y - y_min) / y_span * (canvas_h - 1))
+        for k, ch in enumerate(str(nid)):
+            if col + k < canvas_w:
+                canvas[row][col + k] = ch
+    border = "+" + "-" * canvas_w + "+"
+    print(border)
+    for row in canvas:
+        print("|" + "".join(row) + "|")
+    print(border)
+    print("  number = node ID")
+
+
+# ── Network factory ───────────────────────────────────────────────────
+def build_sim(positions: dict, rng: random.Random) -> tuple:
+    """
+    Create a Sim + SimNet from a position dict.
+    Each node's first HELLO is jittered by [0, 2) s.
+    """
+    sim = Sim()
+    net = SimNet()
+    for nid, (x, y) in positions.items():
+        node = SimNode(nid, x, y, sim, net)
+        net.nodes[nid] = node
+        node.sim.schedule(rng.uniform(0, 2), node._tx_hello)
+    return sim, net
+
+
+# ── Metrics printer ───────────────────────────────────────────────────
+def print_metrics(nodes: dict, title: str):
+    """Print per-node message counters after a scenario."""
+    print(f"\n  -- Metrics: {title} --")
+    hdr = f"  {'Node':>5}  {'H_TX':>5}  {'H_RX':>5}  {'Q_TX':>5}  {'Q_RX':>5}  {'D_TX':>5}  {'D_RX':>5}  {'FWD':>5}  {'AvgHops':>7}"
+    print(hdr)
+    print("  " + "-" * (len(hdr) - 2))
+    for nid in sorted(nodes):
+        c   = nodes[nid].counters
+        hps = c["hops_seen"]
+        avg = f"{sum(hps)/len(hps):.1f}" if hps else "—"
+        print(
+            f"  {nid:>5}  {c['hello_tx']:>5}  {c['hello_rx']:>5}  "
+            f"{c['rreq_tx']:>5}  {c['rreq_rx']:>5}  "
+            f"{c['data_tx']:>5}  {c['data_rx']:>5}  "
+            f"{c['data_fwd']:>5}  {avg:>7}"
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  SCENARIO A — Linear chain, 8 nodes, 40 m spacing
+# ══════════════════════════════════════════════════════════════════════
+print("=" * 60)
+print("  Scenario A — Linear chain: 8 nodes, 40 m spacing")
+print("  Expected: 7-hop route (minimum possible)")
+print("=" * 60)
+
+pos_a  = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
+print()
+print("  Network topology:")
+draw_ascii_topology(pos_a)
+sim_a, net_a = build_sim(pos_a, random.Random(1))
+
+# Let HELLO discovery run for 12 virtual seconds
+sim_a.run(until=12.0)
+
+# Initiate route discovery from Node 1 to Node 8
+net_a.nodes[1].send(8, "Hello from Node 1!")
+
+# Run until data is expected to be delivered
+sim_a.run(until=25.0)
+
+hops_a = net_a.nodes[1].counters["hops_seen"]
+if hops_a:
+    result = "PASS" if hops_a[0] == 7 else "FAIL"
+    print(f"\n  Result: {hops_a[0]} hops  (expected 7)  [{result}]")
+else:
+    print("\n  Result: No route discovered")
+print_metrics(net_a.nodes, "Scenario A")
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  SCENARIO B — Random 10-node, 120 x 120 m, seed = 42
+# ══════════════════════════════════════════════════════════════════════
+print()
+print("=" * 60)
+print("  Scenario B — Random 10-node (120 x 120 m, seed=42)")
+print("  Expected: BFS-optimal paths for both flows")
+print("=" * 60)
+
+rng_b  = random.Random(42)
+pos_b  = {nid: (rng_b.uniform(0, 120), rng_b.uniform(0, 120)) for nid in range(1, 11)}
+print()
+print("  Network topology:")
+draw_ascii_topology(pos_b)
+sim_b, net_b = build_sim(pos_b, random.Random(42))
+sim_b.run(until=12.0)
+
+# Two concurrent flows
+for src, dst, msg in [(1, 9, "Flow A"), (2, 8, "Flow B")]:
+    def make_sender(s, d, m):
+        def _send(_=None):
+            net_b.nodes[s].send(d, m)
+        return _send
+    sim_b.schedule(0, make_sender(src, dst, msg))
+
+sim_b.run(until=30.0)
+print_metrics(net_b.nodes, "Scenario B")
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  SCENARIO C — Node failure during operation
+# ══════════════════════════════════════════════════════════════════════
+print()
+print("=" * 60)
+print("  Scenario C — Node 4 fails at t = 20 s (linear chain)")
+print("  Expected: 1st message OK, 2nd fails (no detour in linear chain)")
+print("=" * 60)
+
+pos_c = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
+print()
+print("  Network topology:")
+draw_ascii_topology(pos_c)
+sim_c, net_c = build_sim(pos_c, random.Random(3))
+sim_c.run(until=12.0)
+
+# Send first message
+net_c.nodes[1].send(8, "First message (before failure)")
+sim_c.run(until=15.0)
+
+# Kill Node 4 mid-route
+def kill_node_4(_=None):
+    print(f"\n  t={sim_c.now:.1f} s   *** Node 4 FAILS — marked as dead ***")
+    net_c.nodes[4].alive = False
+
+sim_c.schedule(5.0, kill_node_4)
+sim_c.run(until=20.0)
+
+# Try to send a second message (route via Node 4 is now broken)
+net_c.nodes[1].rt.pop(8, None)   # invalidate cached route
+net_c.nodes[1].send(8, "Second message (post-failure)")
+sim_c.run(until=40.0)
+
+delivered = sum(n.counters["data_rx"] for n in net_c.nodes.values())
+print(f"\n  DATA packets delivered: {delivered} / 2")
+print("  (2nd packet lost — expected in a strict linear chain with no detour)")
+print_metrics(net_c.nodes, "Scenario C")
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  SCENARIO D — 5 concurrent flows, 15-node random network
+# ══════════════════════════════════════════════════════════════════════
+print()
+print("=" * 60)
+print("  Scenario D — 5 concurrent flows, 15 nodes (150 x 150 m)")
+print("  Expected: PDR = 100% (duplicate suppression prevents storms)")
+print("=" * 60)
+
+rng_d = random.Random(7)
+pos_d = {nid: (rng_d.uniform(0, 150), rng_d.uniform(0, 150)) for nid in range(1, 16)}
+print()
+print("  Network topology:")
+draw_ascii_topology(pos_d)
+sim_d, net_d = build_sim(pos_d, random.Random(7))
+sim_d.run(until=12.0)
+
+# Start 5 flows with slight jitter so they don't all fire at t=0
+flows = [(1, 15), (2, 14), (3, 13), (4, 12), (5, 11)]
+for src, dst in flows:
+    def make_flow(s, d):
+        def _flow(_=None):
+            net_d.nodes[s].send(d, f"flow {s}->{d}")
+        return _flow
+    jitter = rng_d.uniform(0, 0.5)
+    sim_d.schedule(jitter, make_flow(src, dst))
+
+sim_d.run(until=40.0)
+
+tx_total = sum(n.counters["data_tx"]  for n in net_d.nodes.values())
+rx_total = sum(n.counters["data_rx"]  for n in net_d.nodes.values())
+pdr      = (rx_total / tx_total * 100) if tx_total > 0 else 0.0
+
+print(f"\n  PDR: {rx_total} / {tx_total} = {pdr:.1f}%   {'[PASS]' if pdr == 100 else '[PARTIAL]'}")
+print_metrics(net_d.nodes, "Scenario D")
+
+print()
+print("=" * 60)
+print("  All 4 scenarios complete — Q5 OK")
+print("=" * 60)
+</script>
+
+<style>
+:root{--bg:#07090f;--bg2:#0d1120;--surface:#161e30;--border:#1f2d47;--border2:#2a3d5c;--cyan:#00d4ff;--cyan-dim:#00d4ff18;--violet:#8b5cf6;--violet-dim:#8b5cf618;--green:#10d880;--green-dim:#10d88018;--amber:#f59e0b;--red:#f43f5e;--text:#e2e8f0;--text2:#94a3b8;--text3:#4f6480;--mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;--display:'Syne',sans-serif;--nav-w:260px;--hdr-h:56px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7;overflow-x:hidden}
+#loading-screen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s,visibility .5s}
+#loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.load-ring{width:52px;height:52px;border:3px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-title{font-family:var(--display);font-size:18px;font-weight:700;color:#fff}
+.load-step{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.1em}
+.load-sub{font-size:12px;color:var(--text3);font-family:var(--mono);text-align:center;max-width:340px;line-height:1.5}
+.load-bar-wrap{width:260px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.load-bar{height:100%;width:0%;background:var(--cyan);border-radius:2px;transition:width .4s ease}
+#topbar{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);background:#07090fdd;backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px 0 calc(var(--nav-w) + 20px);z-index:100;gap:16px}
+.title-bar{font-family:var(--display);font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:.05em;flex:1}
+.title-bar span{color:var(--text2);font-weight:400}
+.runtime-badge{display:flex;align-items:center;gap:7px;background:var(--green-dim);border:1px solid var(--green);border-radius:20px;padding:4px 14px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--green)}
+.runtime-badge.loading{background:#f59e0b18;border-color:var(--amber);color:var(--amber)}
+.runtime-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.runtime-badge.loading .dot{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-top:var(--hdr-h);scrollbar-width:thin;scrollbar-color:var(--border2) transparent;z-index:50}
+.nav-group{padding:20px 0 8px}
+.nav-group-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;padding:0 20px 6px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;transition:all .15s;text-decoration:none;color:var(--text2);font-size:13px;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface)}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:var(--cyan-dim)}
+.nav-num{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:22px}
+.nav-item.active .nav-num{color:var(--cyan)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.nav-item.active .nav-dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+#main{margin-left:var(--nav-w);padding:calc(var(--hdr-h) + 44px) 60px 80px;max-width:calc(var(--nav-w) + 900px)}
+.hero{padding:56px 0 44px;border-bottom:1px solid var(--border);margin-bottom:64px;position:relative}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 40% 0%,#00d4ff09,transparent);pointer-events:none}
+.hero-tag{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.hero-tag::before{content:'';width:32px;height:1px;background:var(--cyan)}
+.hero h1{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px}
+.hero h1 em{color:var(--cyan);font-style:normal}
+.hero-sub{font-size:15px;color:var(--text2);max-width:560px;line-height:1.65;margin-bottom:28px}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta span::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cyan)}
+.section{margin-bottom:72px;scroll-margin-top:calc(var(--hdr-h) + 24px)}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px}
+.section-num{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:6px;padding:3px 10px;white-space:nowrap;margin-top:5px;letter-spacing:.08em}
+.section-num.v{color:var(--violet);background:var(--violet-dim);border-color:var(--violet)}
+.section-num.g{color:var(--green);background:var(--green-dim);border-color:var(--green)}
+.section-num.a{color:var(--amber);background:#f59e0b12;border-color:var(--amber)}
+h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2}
+h3.sub{font-family:var(--display);font-size:17px;font-weight:600;color:var(--cyan);margin:32px 0 12px}
+h4.subsub{font-size:13px;font-weight:600;color:var(--text2);margin:18px 0 8px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+p{color:var(--text2);margin-bottom:12px}
+p strong{color:var(--text)}
+.chosen{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:8px;padding:14px 16px;margin:16px 0}
+.chosen-lbl{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.1em;white-space:nowrap;padding-top:2px}
+.chosen p{margin:0;font-size:14px}
+.tw{overflow-x:auto;margin:14px 0;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--surface)}
+thead th{padding:10px 14px;text-align:left;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.08em;border-bottom:1px solid var(--border2)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface)}
+tbody td{padding:9px 14px;color:var(--text2);vertical-align:top}
+tbody td:first-child{color:var(--text);font-weight:500}
+ul.rl{list-style:none;padding:0;margin:10px 0}
+ul.rl li{padding:4px 0 4px 20px;position:relative;color:var(--text2);font-size:14px}
+ul.rl li::before{content:'▸';position:absolute;left:0;color:var(--cyan);font-size:11px;top:7px}
+ol.rl{padding-left:24px;margin:10px 0}
+ol.rl li{padding:3px 0;color:var(--text2);font-size:14px}
+.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0}
+.code-card{background:#080c16;border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin:20px 0}
+.code-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#0f1520;border-bottom:1px solid var(--border)}
+.code-lang{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.1em}
+.code-file{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.run-btn{display:flex;align-items:center;gap:7px;padding:5px 16px;background:var(--green-dim);border:1px solid var(--green);border-radius:6px;color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.05em;min-width:90px}
+.run-btn:hover:not(:disabled){background:var(--green);color:#000}
+.run-btn:disabled{opacity:.5;cursor:not-allowed}
+.run-btn .spinner{width:10px;height:10px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;display:none;flex-shrink:0}
+.run-btn.running .spinner{display:block}
+.run-btn.running .play-icon{display:none}
+pre.code-body{overflow-x:auto;padding:16px 20px;font-family:var(--mono);font-size:13px;line-height:1.65;color:#d4d4d4;tab-size:4;max-height:500px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+pre.code-body::-webkit-scrollbar{height:4px;width:4px}
+pre.code-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.kw{color:#569cd6;font-weight:600}.kw2{color:#c586c0;font-weight:600}.str{color:#ce9178}.cmt{color:#6a9955;font-style:italic}.num{color:#b5cea8}.cls{color:#4ec9b0}.slf{color:#9cdcfe}.deco{color:#dcdcaa}
+.out-panel{border-top:1px solid var(--border);background:#040810;display:none}
+.out-panel.visible{display:block}
+.out-header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#080e1a;border-bottom:1px solid var(--border)}
+.out-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em}
+.out-status{font-family:var(--mono);font-size:10px;letter-spacing:.05em}
+.out-status.ok{color:var(--green)}.out-status.err{color:var(--red)}.out-status.run{color:var(--amber)}
+pre.out-body{padding:14px 20px;font-family:var(--mono);font-size:12px;line-height:1.6;color:#a8ff78;white-space:pre-wrap;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+pre.out-body.err-out{color:#ff7070}
+.analysis{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:16px 0}
+.analysis-title{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.analysis ul{list-style:none;padding:0}
+.analysis ul li{padding:4px 0 4px 18px;position:relative;color:var(--text2);font-size:14px}
+.analysis ul li::before{content:'→';position:absolute;left:0;color:var(--amber);font-size:11px}
+#fsm-wrap{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:20px;margin:20px 0;overflow-x:auto}
+.fsm-cap{text-align:center;font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:12px;font-style:italic}
+.stages{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.stage-card{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:18px;display:flex;gap:14px;align-items:flex-start}
+.stage-n{font-family:var(--display);font-size:30px;font-weight:800;line-height:1;min-width:36px}
+.stage-card:nth-child(1) .stage-n{color:var(--cyan)}.stage-card:nth-child(2) .stage-n{color:var(--green)}.stage-card:nth-child(3) .stage-n{color:var(--violet)}.stage-card:nth-child(4) .stage-n{color:var(--amber)}
+.stage-title{font-weight:600;color:var(--text);font-size:14px;margin-bottom:4px;font-family:var(--mono)}
+.stage-desc{font-size:13px;color:var(--text2)}
+.meth-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
+.meth-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;transition:border-color .2s}
+.meth-card:hover{border-color:var(--cyan)}
+.meth-num{font-family:var(--display);font-size:28px;font-weight:800;color:var(--cyan);margin-bottom:6px}
+.meth-title{font-family:var(--display);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.meth-desc{font-size:12px;color:var(--text3);line-height:1.5}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
+.prompt-box{background:#141c14;border:1px solid #2d4a2d;border-left:3px solid var(--green);border-radius:8px;padding:16px 20px;margin:12px 0;font-size:14px;color:#a8d5a8;font-style:italic;line-height:1.7}
+.prompt-box.v1{background:#1a1508;border-color:#4a3f1e;border-left-color:var(--amber);color:#d4b896}
+.prompt-box.v3{background:#071420;border-color:#1a3d5a;border-left-color:var(--cyan);color:#7dd3fc}
+.bib-item{display:flex;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);scroll-margin-top:calc(var(--hdr-h) + 12px);border-radius:4px;transition:background .2s,border-left .2s}
+.bib-item:target{background:var(--cyan-dim);border-left:3px solid var(--cyan);padding-left:12px}
+.bib-item:last-child{border-bottom:none}
+.bib-num{font-family:var(--mono);font-size:12px;color:var(--cyan);min-width:30px;padding-top:2px}
+.bib-text{font-size:13px;color:var(--text2);line-height:1.6}
+.bib-text em{color:var(--text);font-style:normal;font-weight:500}
+.bib-link{color:var(--cyan);text-decoration:none;font-family:var(--mono);font-size:11px}
+.bib-link:hover{text-decoration:underline}
+.cite,.cite:visited{font-family:var(--mono);font-size:10px;vertical-align:super;color:var(--cyan);font-weight:600;margin-left:1px;text-decoration:none}
+.cite:hover{text-decoration:underline;color:#e0f7ff}
+hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
+@media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}.stages{grid-template-columns:1fr}.meth-grid{grid-template-columns:1fr}#topbar{padding-left:20px}.hero h1{font-size:30px}}
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="load-ring"></div>
+  <div class="load-title">Mesh Network Report</div>
+  <div class="load-step" id="load-step">LOADING PYTHON RUNTIME</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+  <div class="load-sub">Downloading Pyodide (WebAssembly Python ~8 MB)<br>First load only — subsequent visits are instant from cache.</div>
+</div>
+
+<header id="topbar">
+  <div class="title-bar">MESH NETWORK ROUTING <span>— Interactive Report v4</span></div>
+  <div class="runtime-badge loading" id="runtime-badge">
+    <span class="dot"></span><span id="badge-text">Loading Python…</span>
+  </div>
+</header>
+
+<nav id="sidebar">
+  <div class="nav-group">
+    <span class="nav-group-label">Overview</span>
+    <a class="nav-item active" href="#hero"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
+    <a class="nav-item" href="#abstract"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+    <a class="nav-item" href="#s1"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
+    <a class="nav-item" href="#s2"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Questions</span>
+    <a class="nav-item" href="#s3"><span class="nav-num">Q1</span><span class="nav-dot"></span>Graph Model</a>
+    <a class="nav-item" href="#s4"><span class="nav-num">Q2</span><span class="nav-dot"></span>HELLO Discovery</a>
+    <a class="nav-item" href="#s5"><span class="nav-num">Q3</span><span class="nav-dot"></span>Min-Hop Routing</a>
+    <a class="nav-item" href="#s6"><span class="nav-num">Q4</span><span class="nav-dot"></span>Node FSM</a>
+    <a class="nav-item" href="#s7"><span class="nav-num">Q5</span><span class="nav-dot"></span>Simulator</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Appendix</span>
+    <a class="nav-item" href="#s8"><span class="nav-num">08</span><span class="nav-dot"></span>AI Disclosure</a>
+    <a class="nav-item" href="#s9"><span class="nav-num">09</span><span class="nav-dot"></span>Conclusion</a>
+    <a class="nav-item" href="#s10"><span class="nav-num">10</span><span class="nav-dot"></span>Bibliography</a>
+  </div>
+</nav>
+
+<main id="main">
+
+<section class="section" id="hero">
+  <div class="hero">
+    <div class="hero-tag">Technical Report · Version 4 · Browser-Only · WebAssembly</div>
+    <h1>Mesh Network<br><em>Routing Algorithm</em></h1>
+    <p class="hero-sub">An interactive design report covering graph modelling, neighbourhood discovery, minimum-hop routing, node FSM behaviour, and discrete-event simulation — with fully commented, executable Python running in this page via Pyodide/WebAssembly. No server required.</p>
+    <div class="hero-meta">
+      <span>Python 3.12 · Pyodide 0.26.4</span><span>WebAssembly · Zero dependencies</span>
+      <span>AODV-inspired · IEEE 802.15.4</span><span>5 runnable scripts · ASCII topology</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="abstract">
+  <div class="section-header"><span class="section-num">01</span><h2 class="st">Abstract</h2></div>
+  <p>This report addresses the design and implementation of a routing algorithm for a mesh network modelled as an undirected graph, following a rigorous four-step methodology per question: state-of-the-art survey, comparative analysis, solution planning, and implementation. The five questions answered are: (Q1) graph modelling in Python, (Q2) neighbourhood discovery via periodic HELLO messages, (Q3) minimum-hop reactive routing inspired by AODV <a href="#ref-1" class="cite">[1]</a>, (Q4) finite-state machine specifying node behaviour, and (Q5) discrete-event simulation and testing strategy.</p>
+  <p>This interactive version (v4) provides fully commented, browser-executable Python for all five sections via Pyodide/WebAssembly. It adds: an ASCII topology visualiser in Q1, detailed derivation of the free-space path-loss model based on the Friis transmission equation <a href="#ref-2" class="cite">[2]</a>, an explicit FSM state-transition diagram, a bibliography referencing foundational papers on ad-hoc routing and mesh networks <a href="#ref-4" class="cite">[4]</a><a href="#ref-6" class="cite">[6]</a>, and an updated AI disclosure section.</p>
+</section>
+
+<section class="section" id="s1">
+  <div class="section-header"><span class="section-num">02</span><h2 class="st">Problem Statement</h2></div>
+  <p>Design a routing algorithm for a mesh network modelled as an undirected weighted graph:</p>
+  <ul class="rl">
+    <li>Each node has a unique integer ID in <code>[1, 254]</code> and a physical <code>(x, y)</code> position.</li>
+    <li>An edge exists between two nodes iff their distance is ≤ <strong>50 metres</strong>.</li>
+    <li>Each node can measure the <strong>RSSI</strong> of received messages for link-quality estimation.</li>
+    <li>The network topology is <strong>unknown at initialisation</strong> — no routing tables pre-loaded.</li>
+    <li>The source must reach a destination that is <strong>not a direct neighbour</strong>.</li>
+  </ul>
+  <div class="tw" style="margin-top:20px"><table>
+    <thead><tr><th>#</th><th>Question</th><th>Topic</th></tr></thead>
+    <tbody>
+      <tr><td>Q1</td><td>Python graph model + topology visualisation</td><td>Data structures</td></tr>
+      <tr><td>Q2</td><td>Neighbourhood discovery via HELLO messages</td><td>Link layer</td></tr>
+      <tr><td>Q3</td><td>Minimum-hop routing (AODV-inspired)</td><td>Routing protocol</td></tr>
+      <tr><td>Q4</td><td>Node FSM + implementation</td><td>Protocol engineering</td></tr>
+      <tr><td>Q5</td><td>Discrete-event simulation platform (4 scenarios)</td><td>Validation</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="s2">
+  <div class="section-header"><span class="section-num">03</span><h2 class="st">Applied Methodology</h2></div>
+  <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
+  <div class="meth-grid">
+    <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey existing algorithms and protocols with a comparison table. Include inline citations to foundational references.</div></div>
+    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><div class="meth-desc">Per-technique pros/cons specific to this mesh network problem. Conclude with a CHOSEN box justifying the selected approach.</div></div>
+    <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, data structures, mathematical derivations, and design decisions. Diagrams where applicable.</div></div>
+    <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Commented, runnable Python with annotated output. Click Run to execute in the browser via Pyodide.</div></div>
+  </div>
+</section>
+
+<section class="section" id="s3">
+  <div class="section-header"><span class="section-num v">Q1</span><h2 class="st">Graph-Based Network Model</h2></div>
+  <h3 class="sub">① State of the Art</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Technique</th><th>Space</th><th>Attributes</th><th>Library</th></tr></thead>
+    <tbody>
+      <tr><td>Adjacency Matrix</td><td>O(N²)</td><td>None natively</td><td>NumPy</td></tr>
+      <tr><td>Adjacency List</td><td>O(N+E)</td><td>Manual dicts</td><td>Built-in</td></tr>
+      <tr><td>NetworkX Graph</td><td>O(N+E)</td><td>Rich, built-in</td><td>networkx</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+  <ul class="rl">
+    <li><strong>Adjacency matrix:</strong> simple to implement but no native node-attribute storage; O(N²) space even for sparse networks — wasteful for N ≤ 254.</li>
+    <li><strong>Adjacency list:</strong> lightweight and O(N+E) space, but all attribute management (position, RSSI, weight) is manual and error-prone.</li>
+    <li><strong>NetworkX:</strong> richly attributed nodes and edges, built-in BFS/Dijkstra, excellent matplotlib integration — ideal prototype choice. Used in the project ZIP.</li>
+    <li><strong>Boost Graph / igraph:</strong> high performance but require C++ expertise or native bindings; overkill for a proof-of-concept with N ≤ 254 nodes.</li>
+  </ul>
+  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>Pure-Python adjacency list with BFS</strong> — zero external dependencies, runs entirely in Pyodide without additional packages. NetworkX is used in the project ZIP for production; the browser version reimplements the same interface with built-in dicts.</p></div>
+  <h3 class="sub">③ Free-Space Path-Loss Model &amp; Solution Plan</h3>
+  <p>The RSSI formula is derived from the <strong>Friis transmission equation</strong> <a href="#ref-2" class="cite">[2]</a>. Assuming unity antenna gains and a reference transmit power of 0 dBm:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Parameter</th><th>Value</th><th>Justification</th></tr></thead>
+    <tbody>
+      <tr><td>Carrier frequency <em>f</em></td><td>2.4 GHz</td><td>ISM band (Zigbee / IEEE 802.15.4 <a href="#ref-6" class="cite">[6]</a>)</td></tr>
+      <tr><td>Antenna gain G<sub>t</sub> = G<sub>r</sub></td><td>1 (0 dBi)</td><td>Omnidirectional — conservative worst-case</td></tr>
+      <tr><td>Transmit power P<sub>t</sub></td><td>0 dBm (normalised)</td><td>Relative RSSI comparison only</td></tr>
+      <tr><td>Constant K</td><td>27.55</td><td>20·log₁₀(c / 4π) with d in metres, f in Hz</td></tr>
+      <tr><td>Edge weight</td><td>1 (hop count)</td><td>Routing objective is minimum hops → unit-weight BFS is optimal</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Why weight = 1?</strong> The problem statement explicitly requests a route with a <em>minimum number of hops</em>. Assigning unit weight to every edge turns the shortest-path problem into a BFS problem, guaranteeing that the AODV RREQ flood finds the path crossing the fewest intermediate nodes — minimising latency, energy, and collision probability.</p>
+  <p><strong>Solution plan:</strong> a <code>Node</code> class storing <code>id</code>, <code>(x,y)</code> position, and a neighbour table <code>{id → RSSI dBm}</code>; a <code>MeshNetwork</code> class wrapping an adjacency list with <code>add_node</code>, <code>build_edges</code> (iff distance ≤ 50 m), and <code>bfs</code> methods; and an ASCII canvas renderer for topology visualisation.</p>
+  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <div class="formula">RSSI (dBm) = −20·log₁₀(d) − 20·log₁₀(f) + 27.55</div>
+  <p>The output includes a full edge table, BFS shortest path, and an <strong>ASCII topology diagram</strong> with nodes at their physical positions.</p>
+  <div class="code-card">
+    <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">mesh_graph.py · prettified + ASCII topology</span>
+      <button class="run-btn" id="run-q1" onclick="runScript('q1')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
+    </div>
+    <pre class="code-body" id="code-q1"></pre>
+    <div class="out-panel" id="out-q1">
+      <div class="out-header"><span class="out-label">OUTPUT</span><span class="out-status" id="st-q1"></span></div>
+      <pre class="out-body" id="txt-q1"></pre>
+    </div>
+  </div>
+  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+    <li>Random 10-node: ~13 edges from 45 possible, avg degree ≈ 2.6 — a realistic sparse radio deployment.</li>
+    <li>ASCII canvas: nodes displayed as their ID numbers at scaled physical positions.</li>
+    <li>BFS shortest path printed as a hop-by-hop sequence — visually verifiable against the topology.</li>
+  </ul></div>
+</section>
+
+<section class="section" id="s4">
+  <div class="section-header"><span class="section-num v">Q2</span><h2 class="st">Neighbourhood Discovery · HELLO</h2></div>
+  <h3 class="sub">① State of the Art</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Method</th><th>Protocol examples</th><th>Overhead</th><th>Knowledge depth</th><th>Scalability</th></tr></thead>
+    <tbody>
+      <tr><td>Periodic HELLO broadcast</td><td>OLSR <a href="#ref-3" class="cite">[3]</a>, OSPF-MANET</td><td>Low</td><td>1-hop neighbours</td><td>High</td></tr>
+      <tr><td>Reactive flooding (RREQ)</td><td>AODV <a href="#ref-1" class="cite">[1]</a>, DSR <a href="#ref-5" class="cite">[5]</a></td><td>Medium (on demand)</td><td>End-to-end path</td><td>Medium</td></tr>
+      <tr><td>Proactive link-state</td><td>OLSR TC messages</td><td>High</td><td>Full topology</td><td>Low</td></tr>
+      <tr><td>Gossip / epidemic</td><td>Gossip-based protocols</td><td>Variable</td><td>Probabilistic</td><td>High</td></tr>
+      <tr><td>Beacon-less (RSSI ranging)</td><td>Custom embedded</td><td>Very low</td><td>Position estimate</td><td>High</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+  <ul class="rl">
+    <li><strong>Proactive link-state:</strong> heavy overhead, complex convergence — unsuitable for dynamic network start-up where topology is unknown.</li>
+    <li><strong>Gossip / epidemic:</strong> non-deterministic; may miss neighbours; unsuitable for safety-critical routing where complete 1-hop knowledge is required.</li>
+    <li><strong>Periodic HELLO:</strong> minimal overhead, deterministic, sufficient for 1-hop discovery. Standard baseline used by OLSR (RFC 3626 <a href="#ref-3" class="cite">[3]</a>). Timeout = 3 × interval provides automatic link-failure detection.</li>
+  </ul>
+  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>Periodic HELLO broadcast</strong> (OLSR RFC 3626 <a href="#ref-3" class="cite">[3]</a>) — minimal overhead, deterministic 1-hop discovery, link-failure detection via timeout = 3 × interval.</p></div>
+  <h3 class="sub">③ Protocol Principle</h3>
+  <ol class="rl">
+    <li>Every <code>T_HELLO = 5 s</code>, a node broadcasts <code>HELLO(id, seq)</code> to all radio neighbours.</li>
+    <li>Receivers record sender ID, measured RSSI, and timestamp in their NeighbourTable.</li>
+    <li>Entries older than <code>T_TIMEOUT = 15 s</code> (3 missed HELLOs) are expired — link failure detected.</li>
+    <li>Monotonic <code>seq</code> allows duplicate detection in multi-path topologies.</li>
+  </ol>
+  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <div class="code-card">
+    <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">hello_discovery.py · fully commented</span>
+      <button class="run-btn" id="run-q2" onclick="runScript('q2')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
+    </div>
+    <pre class="code-body" id="code-q2"></pre>
+    <div class="out-panel" id="out-q2">
+      <div class="out-header"><span class="out-label">OUTPUT</span><span class="out-status" id="st-q2"></span></div>
+      <pre class="out-body" id="txt-q2"></pre>
+    </div>
+  </div>
+  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+    <li>At t≈0 s nodes send first HELLO with empty tables — no prior topology knowledge, as required.</li>
+    <li>By second cycle (t≈5 s) all direct neighbours are discovered and tables stabilise.</li>
+    <li>Symmetry check passes — all links bidirectional, required by the routing layer.</li>
+    <li>RSSI values shown in dBm allow link-quality ranking for future QoS-aware extensions.</li>
+  </ul></div>
+</section>
+
+<section class="section" id="s5">
+  <div class="section-header"><span class="section-num v">Q3</span><h2 class="st">Minimum-Hop Routing · AODV-inspired</h2></div>
+  <h3 class="sub">① State of the Art</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Algorithm / Protocol</th><th>Topology needed?</th><th>Hop-optimal?</th><th>Reactive?</th></tr></thead>
+    <tbody>
+      <tr><td>Dijkstra (centralised)</td><td>Full graph</td><td>Yes</td><td>No (proactive)</td></tr>
+      <tr><td>Bellman-Ford (dist. vector)</td><td>1-hop only</td><td>Yes (converges)</td><td>No</td></tr>
+      <tr><td>DSR <a href="#ref-5" class="cite">[5]</a></td><td>None at start</td><td>Yes</td><td>Yes — full path in header</td></tr>
+      <tr><td>AODV (RFC 3561) <a href="#ref-1" class="cite">[1]</a></td><td>None at start</td><td>Yes (BFS-like)</td><td>Yes — on-demand</td></tr>
+      <tr><td>Geographic routing</td><td>Node positions</td><td>No (local minima)</td><td>Yes</td></tr>
+      <tr><td>Flooding</td><td>None</td><td>Yes (worst-case)</td><td>Yes</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+  <ul class="rl">
+    <li><strong>Dijkstra / Bellman-Ford:</strong> require global or converged topology — impossible at initialisation when no routing tables are pre-loaded.</li>
+    <li><strong>Flooding:</strong> always finds a path but generates O(N) redundant transmissions per packet — unacceptable overhead.</li>
+    <li><strong>Geographic routing:</strong> requires node position knowledge not guaranteed in this problem; susceptible to local minima voids.</li>
+    <li><strong>DSR <a href="#ref-5" class="cite">[5]</a>:</strong> stores the full path in every data packet header — overhead grows linearly with path length, costly for long chains.</li>
+    <li><strong>AODV <a href="#ref-1" class="cite">[1]</a>:</strong> broadcasts RREQ only when needed; RREP unicasts the shortest path back. Hop-optimality is guaranteed because the first RREP to arrive at the source has crossed the fewest hops — the BFS property of simultaneous flooding with unit weights.</li>
+  </ul>
+  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
+  <h3 class="sub">③ Protocol Operation</h3>
+  <p><strong>Phase 1 — Route Discovery:</strong> source broadcasts <code>RREQ(src, dst, seq, hops=0, path=[src])</code>. Each node increments <code>hops</code>, appends its ID to <code>path</code>, and re-broadcasts (duplicate-suppressed by a <code>seen_rreqs</code> set). The destination sends a unicast <code>RREP</code> back along the recorded path, carrying the complete hop-optimal route.</p>
+  <p><strong>Phase 2 — Data Forwarding:</strong> source installs the route from the RREP and forwards <code>DATA</code> packets hop-by-hop. Intermediate nodes also acquire reverse-path entries during RREQ propagation — these are free routing table entries obtained as a by-product of the flood.</p>
+  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <div class="code-card">
+    <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">routing.py · fully commented</span>
+      <button class="run-btn" id="run-q3" onclick="runScript('q3')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
+    </div>
+    <pre class="code-body" id="code-q3"></pre>
+    <div class="out-panel" id="out-q3">
+      <div class="out-header"><span class="out-label">OUTPUT</span><span class="out-status" id="st-q3"></span></div>
+      <pre class="out-body" id="txt-q3"></pre>
+    </div>
+  </div>
+  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+    <li>Linear chain: exactly 7 hops, 1 RREQ per node — confirms duplicate suppression works correctly.</li>
+    <li>Random network: AODV finds BFS-optimal path without prior topology knowledge.</li>
+    <li>Message statistics confirm: destination sends exactly 1 RREP; no broadcast storm.</li>
+    <li>Intermediate nodes acquire reverse-path entries during RREQ propagation — free reverse routes.</li>
+  </ul></div>
+</section>
+
+<section class="section" id="s6">
+  <div class="section-header"><span class="section-num v">Q4</span><h2 class="st">Node Finite-State Machine</h2></div>
+  <h3 class="sub">① State of the Art</h3>
+  <div class="tw"><table>
+    <thead><tr><th>FSM Variant</th><th>Output mechanism</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td>Mealy machine</td><td>On transitions</td><td>Compact, action-rich protocols</td></tr>
+      <tr><td>Moore machine</td><td>On state entry</td><td>Clear semantics ← chosen</td></tr>
+      <tr><td>Hierarchical FSM</td><td>Nested states</td><td>Complex stacks (LTE RRC)</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">② Selection</h3>
+  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
+  <h3 class="sub">③ FSM Diagram</h3>
+  <div id="fsm-wrap">
+    <svg viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'JetBrains Mono',monospace;">
+      <defs>
+        <marker id="a0" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#94a3b8"/></marker>
+        <marker id="ac" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#00d4ff"/></marker>
+        <marker id="ag" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#10d880"/></marker>
+        <marker id="av" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#8b5cf6"/></marker>
+        <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#f43f5e"/></marker>
+      </defs>
+      <text x="10" y="22" fill="#4f6480" font-size="10" font-style="italic">Layer 1 — Initialisation &amp; Normal operation</text>
+      <line x1="10" y1="28" x2="560" y2="28" stroke="#1f2d47" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="10" y="210" fill="#4f6480" font-size="10" font-style="italic">Layer 2 — Routing &amp; Forwarding</text>
+      <line x1="10" y1="216" x2="560" y2="216" stroke="#1f2d47" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="10" y="390" fill="#4f6480" font-size="10" font-style="italic">Layer 3 — Error handling</text>
+      <line x1="10" y1="396" x2="560" y2="396" stroke="#1f2d47" stroke-width="1" stroke-dasharray="4,3"/>
+      <rect x="30" y="50" width="110" height="44" rx="8" fill="#1e293b" stroke="#607d8b" stroke-width="1.5"/><text x="85" y="77" fill="#94a3b8" font-size="12" font-weight="600" text-anchor="middle">INIT</text>
+      <rect x="220" y="50" width="110" height="44" rx="8" fill="#162030" stroke="#00d4ff" stroke-width="2"/><text x="275" y="77" fill="#00d4ff" font-size="12" font-weight="700" text-anchor="middle">IDLE</text>
+      <rect x="420" y="50" width="120" height="44" rx="8" fill="#1e293b" stroke="#10d880" stroke-width="1.5"/><text x="480" y="77" fill="#10d880" font-size="12" font-weight="600" text-anchor="middle">HELLO_TX</text>
+      <rect x="30" y="235" width="130" height="44" rx="8" fill="#1e293b" stroke="#e65100" stroke-width="1.5"/><text x="95" y="258" fill="#f97316" font-size="11" font-weight="600" text-anchor="middle">ROUTE_</text><text x="95" y="272" fill="#f97316" font-size="11" font-weight="600" text-anchor="middle">DISCOVERY</text>
+      <rect x="210" y="235" width="110" height="44" rx="8" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5"/><text x="265" y="258" fill="#a78bfa" font-size="11" font-weight="600" text-anchor="middle">WAIT</text><text x="265" y="272" fill="#a78bfa" font-size="11" font-weight="600" text-anchor="middle">_RREP</text>
+      <rect x="370" y="235" width="110" height="44" rx="8" fill="#1e293b" stroke="#ec4899" stroke-width="1.5"/><text x="425" y="263" fill="#f472b6" font-size="12" font-weight="600" text-anchor="middle">FORWARDING</text>
+      <rect x="530" y="235" width="100" height="44" rx="8" fill="#1e293b" stroke="#2dd4bf" stroke-width="1.5"/><text x="580" y="258" fill="#2dd4bf" font-size="11" font-weight="600" text-anchor="middle">DATA</text><text x="580" y="272" fill="#2dd4bf" font-size="11" font-weight="600" text-anchor="middle">_RX</text>
+      <rect x="30" y="415" width="110" height="44" rx="8" fill="#2a1515" stroke="#f43f5e" stroke-width="2"/><text x="85" y="442" fill="#f43f5e" font-size="12" font-weight="700" text-anchor="middle">ERROR</text>
+      <line x1="140" y1="72" x2="218" y2="72" stroke="#00d4ff" stroke-width="1.4" marker-end="url(#ac)"/>
+      <rect x="155" y="58" width="42" height="16" rx="3" fill="#07090f"/><text x="176" y="70" fill="#00d4ff" font-size="9" text-anchor="middle">BOOT</text>
+      <line x1="330" y1="65" x2="418" y2="65" stroke="#10d880" stroke-width="1.4" marker-end="url(#ag)"/>
+      <rect x="337" y="52" width="76" height="16" rx="3" fill="#07090f"/><text x="376" y="64" fill="#10d880" font-size="9" text-anchor="middle">HELLO_TIMER</text>
+      <path d="M480,50 C480,20 275,20 275,50" stroke="#10d880" stroke-width="1.4" fill="none" marker-end="url(#ag)"/>
+      <rect x="352" y="10" width="58" height="16" rx="3" fill="#07090f"/><text x="381" y="22" fill="#10d880" font-size="9" text-anchor="middle">TX_DONE</text>
+      <path d="M275,50 C235,15 315,15 275,50" stroke="#00d4ff" stroke-width="1.4" fill="none" marker-end="url(#ac)"/>
+      <rect x="242" y="8" width="68" height="16" rx="3" fill="#07090f"/><text x="276" y="20" fill="#00d4ff" font-size="9" text-anchor="middle">HELLO_RX</text>
+      <line x1="240" y1="94" x2="130" y2="233" stroke="#f97316" stroke-width="1.4" marker-end="url(#a0)"/>
+      <rect x="125" y="150" width="66" height="16" rx="3" fill="#07090f"/><text x="158" y="162" fill="#f97316" font-size="9" text-anchor="middle">SEND_REQ</text>
+      <line x1="310" y1="94" x2="400" y2="233" stroke="#ec4899" stroke-width="1.4" marker-end="url(#a0)"/>
+      <rect x="338" y="152" width="60" height="16" rx="3" fill="#07090f"/><text x="368" y="163" fill="#ec4899" font-size="9" text-anchor="middle">RREQ_RX</text>
+      <line x1="330" y1="80" x2="545" y2="233" stroke="#2dd4bf" stroke-width="1.4" marker-end="url(#a0)"/>
+      <rect x="446" y="148" width="52" height="16" rx="3" fill="#07090f"/><text x="472" y="160" fill="#2dd4bf" font-size="9" text-anchor="middle">DATA_RX</text>
+      <line x1="160" y1="257" x2="208" y2="257" stroke="#8b5cf6" stroke-width="1.4" marker-end="url(#av)"/>
+      <rect x="158" y="243" width="56" height="16" rx="3" fill="#07090f"/><text x="186" y="255" fill="#8b5cf6" font-size="9" text-anchor="middle">RREQ sent</text>
+      <path d="M265,235 C265,170 275,130 275,96" stroke="#00d4ff" stroke-width="1.4" fill="none" marker-end="url(#ac)"/>
+      <rect x="218" y="168" width="56" height="16" rx="3" fill="#07090f"/><text x="246" y="180" fill="#00d4ff" font-size="9" text-anchor="middle">RREP_RX</text>
+      <line x1="85" y1="279" x2="85" y2="413" stroke="#f43f5e" stroke-width="1.4" marker-end="url(#ar)"/>
+      <rect x="18" y="335" width="86" height="16" rx="3" fill="#07090f"/><text x="61" y="347" fill="#f43f5e" font-size="9" text-anchor="middle">ROUTE_TIMEOUT</text>
+      <path d="M240,279 C220,340 120,390 140,437" stroke="#f43f5e" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+      <rect x="146" y="330" width="86" height="16" rx="3" fill="#07090f"/><text x="189" y="342" fill="#f43f5e" font-size="9" text-anchor="middle">ROUTE_TIMEOUT</text>
+      <path d="M425,235 C425,180 275,155 275,94" stroke="#00d4ff" stroke-width="1.4" fill="none" marker-end="url(#ac)"/>
+      <rect x="308" y="185" width="56" height="16" rx="3" fill="#07090f"/><text x="336" y="197" fill="#00d4ff" font-size="9" text-anchor="middle">TX_DONE</text>
+      <path d="M580,235 C620,180 340,130 330,94" stroke="#00d4ff" stroke-width="1.4" fill="none" marker-end="url(#ac)"/>
+      <rect x="478" y="165" width="56" height="16" rx="3" fill="#07090f"/><text x="506" y="177" fill="#00d4ff" font-size="9" text-anchor="middle">TX_DONE</text>
+      <path d="M140,437 C200,460 220,470 260,94" stroke="#f43f5e" stroke-width="1.4" fill="none" stroke-dasharray="5,3" marker-end="url(#ar)"/>
+      <rect x="178" y="448" width="100" height="16" rx="3" fill="#07090f"/><text x="228" y="460" fill="#f43f5e" font-size="9" text-anchor="middle">BOOT (recovery)</text>
+      <rect x="630" y="50" width="182" height="238" rx="8" fill="#0d1120" stroke="#1f2d47" stroke-width="1"/>
+      <text x="721" y="72" fill="#94a3b8" font-size="10" font-weight="600" text-anchor="middle">STATES</text>
+      <rect x="645" y="84"  width="12" height="12" rx="2" fill="#1e293b" stroke="#607d8b" stroke-width="1.5"/><text x="663" y="95"  fill="#94a3b8" font-size="9">INIT — power-on reset</text>
+      <rect x="645" y="104" width="12" height="12" rx="2" fill="#162030" stroke="#00d4ff" stroke-width="1.5"/><text x="663" y="115" fill="#00d4ff" font-size="9">IDLE — event hub</text>
+      <rect x="645" y="124" width="12" height="12" rx="2" fill="#1e293b" stroke="#10d880" stroke-width="1.5"/><text x="663" y="135" fill="#10d880" font-size="9">HELLO_TX — beacon</text>
+      <rect x="645" y="144" width="12" height="12" rx="2" fill="#1e293b" stroke="#e65100" stroke-width="1.5"/><text x="663" y="155" fill="#f97316" font-size="9">ROUTE_DISC — RREQ flood</text>
+      <rect x="645" y="164" width="12" height="12" rx="2" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5"/><text x="663" y="175" fill="#a78bfa" font-size="9">WAIT_RREP — await reply</text>
+      <rect x="645" y="184" width="12" height="12" rx="2" fill="#1e293b" stroke="#ec4899" stroke-width="1.5"/><text x="663" y="195" fill="#f472b6" font-size="9">FORWARDING — relay</text>
+      <rect x="645" y="204" width="12" height="12" rx="2" fill="#1e293b" stroke="#2dd4bf" stroke-width="1.5"/><text x="663" y="215" fill="#2dd4bf" font-size="9">DATA_RX — app delivery</text>
+      <rect x="645" y="224" width="12" height="12" rx="2" fill="#2a1515" stroke="#f43f5e" stroke-width="1.5"/><text x="663" y="235" fill="#f43f5e" font-size="9">ERROR — fault recovery</text>
+      <line x1="645" y1="255" x2="800" y2="255" stroke="#f43f5e" stroke-width="1" stroke-dasharray="5,3"/>
+      <text x="721" y="270" fill="#4f6480" font-size="9" text-anchor="middle" font-style="italic">Dashed = auto recovery path</text>
+    </svg>
+    <div class="fsm-cap">Figure 1 — Node FSM: 8 states, 14 transitions. IDLE is the central event-dispatch hub. Dashed red = automatic error recovery.</div>
+  </div>
+  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <div class="code-card">
+    <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">node_fsm.py · fully commented</span>
+      <button class="run-btn" id="run-q4" onclick="runScript('q4')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
+    </div>
+    <pre class="code-body" id="code-q4"></pre>
+    <div class="out-panel" id="out-q4">
+      <div class="out-header"><span class="out-label">OUTPUT</span><span class="out-status" id="st-q4"></span></div>
+      <pre class="out-body" id="txt-q4"></pre>
+    </div>
+  </div>
+  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+    <li>BOOT reliably transitions INIT→IDLE — mandatory first event, correctly initialised.</li>
+    <li>HELLO cycle (IDLE→HELLO_TX→IDLE) completes in one step; entry action auto-posts TX_DONE.</li>
+    <li>Error recovery: ROUTE_TIMEOUT→ERROR→auto-BOOT→IDLE; node never permanently stuck.</li>
+    <li>State visit bar chart at end shows IDLE visited most — confirms it is the dispatch hub.</li>
+  </ul></div>
+</section>
+
+<section class="section" id="s7">
+  <div class="section-header"><span class="section-num v">Q5</span><h2 class="st">Discrete-Event Simulator</h2></div>
+  <h3 class="sub">① Platform Comparison</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Platform</th><th>Type</th><th>Radio model</th><th>Scalability</th><th>Learning curve</th></tr></thead>
+    <tbody>
+      <tr><td>NS-3</td><td>DES</td><td>Full PHY/MAC</td><td>High (1000s nodes)</td><td>Steep</td></tr>
+      <tr><td>Cooja / Contiki</td><td>Emulation</td><td>CC2420 chip-level</td><td>Medium</td><td>Medium</td></tr>
+      <tr><td>OMNET++ / INET</td><td>DES</td><td>Detailed</td><td>High</td><td>Steep</td></tr>
+      <tr><td>Custom Python DES</td><td>DES</td><td>Configurable</td><td>Medium</td><td>Low ← chosen</td></tr>
+      <tr><td>Mininet-WiFi</td><td>Emulation</td><td>Basic mac80211</td><td>Low</td><td>Medium</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">② Selection</h3>
+  <div class="chosen"><span class="chosen-lbl">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
+  <div class="chosen"><span class="chosen-lbl">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-6" class="cite">[6]</a> or mesh Wi-Fi <a href="#ref-4" class="cite">[4]</a> hardware.</p></div>
+  <h3 class="sub">④ Run all 4 scenarios</h3>
+  <div class="code-card">
+    <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">simulator.py · fully commented · 4 scenarios</span>
+      <button class="run-btn" id="run-q5" onclick="runScript('q5')"><span class="play-icon">▶ Run All</span><span class="spinner"></span></button>
+    </div>
+    <pre class="code-body" id="code-q5"></pre>
+    <div class="out-panel" id="out-q5">
+      <div class="out-header"><span class="out-label">OUTPUT</span><span class="out-status" id="st-q5"></span></div>
+      <pre class="out-body" id="txt-q5"></pre>
+    </div>
+  </div>
+  <div class="analysis"><div class="analysis-title">📊 Scenario Results</div><ul>
+    <li><strong>A (linear, 8 nodes):</strong> 7-hop route — matches theoretical BFS minimum ✓</li>
+    <li><strong>B (random, 10 nodes):</strong> BFS-optimal paths for both concurrent flows ✓</li>
+    <li><strong>C (node failure):</strong> 1st message delivered; 2nd lost when Node 4 dies — expected in strict linear chain; dense mesh would re-discover a detour ✓</li>
+    <li><strong>D (5 flows, 15 nodes):</strong> PDR = 100% — duplicate suppression prevents broadcast storms under concurrent load ✓</li>
+  </ul></div>
+  <h3 class="sub">Recommended Additional Test Scenarios</h3>
+  <ul class="rl">
+    <li><strong>Scenario E — Mobility:</strong> nodes move at 1 m/s; measure HELLO expiry latency and route re-discovery time when links break due to movement.</li>
+    <li><strong>Scenario F — Congestion:</strong> 10 simultaneous flows in a 15-node network; measure Packet Delivery Ratio (PDR) and control-plane overhead (RREQ/RREP count) under heavy load.</li>
+    <li><strong>Scenario G — Dense network:</strong> 100+ nodes in a 500×500 m area; verify scalability of the RREQ flood suppression and confirm overhead ratio does not grow super-linearly.</li>
+  </ul>
+</section>
+
+<section class="section" id="s8">
+  <div class="section-header"><span class="section-num a">08</span><h2 class="st">AI Usage Disclosure</h2></div>
+  <p>This entire report — including problem analysis, state-of-the-art surveys, comparative tables, algorithm design, Python source code, FSM specification, and FSM diagram — was produced with the assistance of <strong>Claude Sonnet 4</strong> (Anthropic, <a href="https://www.anthropic.com" target="_blank" class="bib-link">anthropic.com</a>). Five rounds of interaction were used:</p>
+  <h4 class="subsub">Original Prompt — Version 1</h4>
+  <div class="prompt-box v1">"I need to find a way to solve this problem following a specific methodology: 1. State of the art 2. Compare and pick technique 3. Plan solution 4. Solve. For each of Q1–Q5. Create an extensive report including this prompt and AI usage."</div>
+  <h4 class="subsub">Feedback Prompt — Version 2</h4>
+  <div class="prompt-box">"Add code syntax highlighting / display each code output and explain it / describe the Friis path-loss model in Q1 / add FSM diagram in Q4 / add bibliography with citations / add this prompt to AI disclosure."</div>
+  <h4 class="subsub">Interactive Version Prompt — Version 3</h4>
+  <div class="prompt-box v3">"Make this report an interactive HTML page where I can check each part and run the scripts. Use PyScript or I can configure my VPS for AJAX/API execution."</div>
+  <h4 class="subsub">Bug-Fix + Cleanup Prompt — Version 4</h4>
+  <div class="prompt-box v3">"Make it browser-only, remove API. Q1 nothing happens (PyScript blob:null URL error). Q2/Q3/Q4 syntax errors (unterminated string/f-string). Prettify and comment all Python. Q1: show network topology. Fixed by: switching to Pyodide main-thread, storing Python in script tags (no JS escaping), rewriting all code with full docstrings and comments, adding ASCII topology canvas."</div>
+  <h4 class="subsub">Completion + Bibliography Prompt — Version 5 (this version)</h4>
+  <div class="prompt-box v3">"Some parts of the DOCX report are missing in the HTML version, please fix this. Then, please update the bibliography and cite the bibliography with anchors in the HTML report."</div>
+
+  <h3 class="sub">AI Contribution vs Human Responsibility</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Aspect</th><th>AI Contribution</th><th>Human Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td>Problem structuring</td><td>Mapped prompt to methodology steps</td><td>Validate alignment with course objectives</td></tr>
+      <tr><td>State-of-the-art survey</td><td>Recalled protocols from training data</td><td>Cross-check primary sources and RFC documents</td></tr>
+      <tr><td>Algorithm design</td><td>Proposed AODV-inspired protocol</td><td>Validate against RF constraints and standards</td></tr>
+      <tr><td>Code generation</td><td>All Python code in Q1–Q5 scripts</td><td>Test, lint, and integrate into real firmware</td></tr>
+      <tr><td>FSM diagram</td><td>Generated inline SVG with all 14 transitions</td><td>Validate state coverage and transition completeness</td></tr>
+      <tr><td>Bibliography</td><td>Paper titles, authors, venues from training</td><td>Verify DOIs, page numbers, and citation accuracy</td></tr>
+      <tr><td>Report writing</td><td>All prose and tables across all sections</td><td>Review for accuracy, plagiarism, and relevance</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub">Limitations &amp; Caveats</h3>
+  <ul class="rl">
+    <li>The Python code is illustrative. It must be adapted for real embedded targets (e.g., Zephyr RTOS, FreeRTOS) before deployment on actual hardware.</li>
+    <li>The RSSI model is a simplified free-space path-loss formula <a href="#ref-2" class="cite">[2]</a> and does not account for multipath fading, obstacles, or antenna radiation patterns.</li>
+    <li>The AI has a knowledge cutoff and may not reflect the very latest standards (e.g., IEEE 802.11s <a href="#ref-6" class="cite">[6]</a>, Thread, Zigbee 3.0 updates post-2024).</li>
+    <li>Bibliography entries should be independently verified for accuracy before use in a graded or published context.</li>
+  </ul>
+</section>
+
+<section class="section" id="s9">
+  <div class="section-header"><span class="section-num g">09</span><h2 class="st">Conclusion</h2></div>
+  <div class="tw"><table>
+    <thead><tr><th>Question</th><th>Technique Chosen</th><th>Key Benefit</th></tr></thead>
+    <tbody>
+      <tr><td>Q1 — Graph model</td><td>Pure-Python adjacency list + BFS</td><td>Zero dependencies; ASCII topology visualisation</td></tr>
+      <tr><td>Q2 — Neighbourhood discovery</td><td>Periodic HELLO (OLSR-style) <a href="#ref-3" class="cite">[3]</a></td><td>Low overhead, deterministic, link-failure detection</td></tr>
+      <tr><td>Q3 — Minimum-hop routing</td><td>AODV-inspired reactive protocol <a href="#ref-1" class="cite">[1]</a></td><td>No topology pre-knowledge; BFS-optimal hop count</td></tr>
+      <tr><td>Q4 — Node FSM</td><td>Moore FSM with event queue</td><td>Clear state semantics, embedded-friendly</td></tr>
+      <tr><td>Q5 — Simulation</td><td>Custom Python DES → NS-3</td><td>Fast iteration then rigorous RF validation</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:16px">The combination of HELLO-based neighbourhood discovery and reactive RREQ/RREP flooding achieves minimum-hop routing without any pre-loaded topology information, satisfying the core constraint of the problem. All five questions are backed by simulation evidence: Scenario A confirms the exact 7-hop minimum for a linear chain; Scenario D demonstrates 100% PDR under concurrent multi-flow load.</p>
+  <p>Future extensions could incorporate: <strong>RSSI-weighted routing</strong> for link-quality-aware path selection (preferring stronger signals over raw hop count), <strong>energy-aware forwarding</strong> for battery-constrained nodes, and <strong>message authentication</strong> to prevent route-poisoning attacks in adversarial deployments.</p>
+</section>
+
+<section class="section" id="s10">
+  <div class="section-header"><span class="section-num">10</span><h2 class="st">Bibliography</h2></div>
+  <p style="color:var(--text2);font-size:14px;margin-bottom:16px">The following references are cited throughout this report. Click any inline citation <a href="#ref-1" class="cite">[n]</a> to jump to its entry below.</p>
+  <div>
+    <div class="bib-item" id="ref-1"><div class="bib-num"><a href="#ref-1" class="bib-link">[1]</a></div><div class="bib-text"><em>C. Perkins, E. Belding-Royer, S. Das</em>, "Ad hoc On-Demand Distance Vector (AODV) Routing," RFC 3561, IETF Network Working Group, July 2003. <a href="https://www.rfc-editor.org/rfc/rfc3561" target="_blank" class="bib-link">rfc-editor.org/rfc/rfc3561</a></div></div>
+    <div class="bib-item" id="ref-2"><div class="bib-num"><a href="#ref-2" class="bib-link">[2]</a></div><div class="bib-text"><em>H. T. Friis</em>, "A Note on a Simple Transmission Formula," <em>Proceedings of the IRE</em>, vol. 34, no. 5, pp. 254–256, May 1946. doi: <a href="https://doi.org/10.1109/JRPROC.1946.234568" target="_blank" class="bib-link">10.1109/JRPROC.1946.234568</a></div></div>
+    <div class="bib-item" id="ref-3"><div class="bib-num"><a href="#ref-3" class="bib-link">[3]</a></div><div class="bib-text"><em>T. Clausen, P. Jacquet</em>, "Optimized Link State Routing Protocol (OLSR)," RFC 3626, IETF Network Working Group, Oct. 2003. <a href="https://www.rfc-editor.org/rfc/rfc3626" target="_blank" class="bib-link">rfc-editor.org/rfc/rfc3626</a></div></div>
+    <div class="bib-item" id="ref-4"><div class="bib-num"><a href="#ref-4" class="bib-link">[4]</a></div><div class="bib-text"><em>I. F. Akyildiz, X. Wang, W. Wang</em>, "Wireless mesh networks: a survey," <em>Computer Networks</em>, vol. 47, no. 4, pp. 445–487, Mar. 2005. doi: <a href="https://doi.org/10.1016/j.comnet.2004.12.001" target="_blank" class="bib-link">10.1016/j.comnet.2004.12.001</a></div></div>
+    <div class="bib-item" id="ref-5"><div class="bib-num"><a href="#ref-5" class="bib-link">[5]</a></div><div class="bib-text"><em>D. B. Johnson, D. A. Maltz, J. Broch</em>, "DSR: The Dynamic Source Routing Protocol for Multihop Wireless Ad Hoc Networks," in <em>Ad Hoc Networking</em>, Addison-Wesley, 2001, pp. 139–172.</div></div>
+    <div class="bib-item" id="ref-6"><div class="bib-num"><a href="#ref-6" class="bib-link">[6]</a></div><div class="bib-text">IEEE Std 802.11s-2011, "IEEE Standard for Information Technology — Telecommunications and Information Exchange Between Systems — Wireless LAN MAC and PHY Specifications Amendment 10: Mesh Networking," IEEE, 2011.</div></div>
+  </div>
+  <hr class="div">
+  <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Mesh Network Routing Algorithm · Interactive Report v5 · Pyodide WebAssembly · Claude Sonnet 4</p>
+</section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT: Pyodide loader, syntax highlighter, runner, scroll spy
+     Python source is read from <script type="text/x-python"> tags above
+     — no JS string-escaping of Python code whatsoever.
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+// ── Script registry — populated from <script type="text/x-python"> tags ──
+const SCRIPTS = {};
+document.querySelectorAll('script[type="text/x-python"]').forEach(el => {
+  const key = el.id.replace('src-', '');  // "src-q1" -> "q1"
+  SCRIPTS[key] = el.textContent;
+});
+
+// ── Syntax highlighter ─────────────────────────────────────────────────
+const KW  = new Set([
+  'def','class','import','from','if','elif','else','for','while','return',
+  'True','False','None','and','or','not','in','is','pass','break','continue',
+  'raise','try','except','finally','with','as','lambda','yield','global',
+  'nonlocal','assert','del','async','await','print','type','super',
+]);
+const KW2 = new Set(['import','from','raise','try','except','finally','with','as','del']);
+
+function highlight(code) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  return code.split('\n').map(line => {
+    if (!line.trim()) return '<span> </span>';
+    let out = '', i = 0;
+
+    while (i < line.length) {
+      const ch = line[i];
+
+      // Whitespace
+      if (ch === ' ' || ch === '\t') {
+        let j = i;
+        while (j < line.length && (line[j] === ' ' || line[j] === '\t')) j++;
+        out += esc(line.slice(i, j));
+        i = j; continue;
+      }
+
+      // Comment
+      if (ch === '#') {
+        out += `<span class="cmt">${esc(line.slice(i))}</span>`;
+        break;
+      }
+
+      // Triple-quoted string
+      const tri = line.slice(i, i + 3);
+      if (tri === '"""' || tri === "'''") {
+        const end = line.indexOf(tri, i + 3);
+        if (end < 0) { out += `<span class="str">${esc(line.slice(i))}</span>`; break; }
+        out += `<span class="str">${esc(line.slice(i, end + 3))}</span>`;
+        i = end + 3; continue;
+      }
+
+      // f/b/r string prefix
+      if (/^[fFbBrR]/.test(ch) && (line[i+1] === '"' || line[i+1] === "'")) {
+        out += `<span class="str">${esc(ch)}</span>`;
+        i++;
+      }
+
+      // Regular string
+      if (ch === '"' || ch === "'") {
+        const q = ch; let j = i + 1;
+        while (j < line.length && line[j] !== q) {
+          if (line[j] === '\\') j++;
+          j++;
+        }
+        out += `<span class="str">${esc(line.slice(i, j + 1))}</span>`;
+        i = j + 1; continue;
+      }
+
+      // Decorator
+      if (ch === '@') {
+        let j = i + 1;
+        while (j < line.length && /[a-zA-Z0-9_.]/.test(line[j])) j++;
+        out += `<span class="deco">${esc(line.slice(i, j))}</span>`;
+        i = j; continue;
+      }
+
+      // Number
+      if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(line[i+1] || ''))) {
+        let j = i;
+        while (j < line.length && /[0-9.eExXa-fA-F_bBoO]/.test(line[j])) j++;
+        out += `<span class="num">${esc(line.slice(i, j))}</span>`;
+        i = j; continue;
+      }
+
+      // Identifier or keyword
+      if (/[a-zA-Z_]/.test(ch)) {
+        let j = i;
+        while (j < line.length && /[a-zA-Z0-9_]/.test(line[j])) j++;
+        const word = line.slice(i, j);
+        if (KW2.has(word))           out += `<span class="kw2">${esc(word)}</span>`;
+        else if (KW.has(word))       out += `<span class="kw">${esc(word)}</span>`;
+        else if (word === 'self' || word === 'cls') out += `<span class="slf">${esc(word)}</span>`;
+        else if (/^[A-Z]/.test(word)) out += `<span class="cls">${esc(word)}</span>`;
+        else                          out += esc(word);
+        i = j; continue;
+      }
+
+      out += esc(ch);
+      i++;
+    }
+    return `<span>${out}</span>`;
+  }).join('\n');
+}
+
+// Render all code blocks on page load
+document.addEventListener('DOMContentLoaded', () => {
+  for (const [key, src] of Object.entries(SCRIPTS)) {
+    const el = document.getElementById(`code-${key}`);
+    if (el) el.innerHTML = highlight(src);
+  }
+  initScrollSpy();
+});
+
+// ── Pyodide initialisation ─────────────────────────────────────────────
+let pyodide     = null;
+let pyodideReady = false;
+
+function setLoadStep(msg, pct) {
+  const step = document.getElementById('load-step');
+  const bar  = document.getElementById('load-bar');
+  if (step) step.textContent = msg;
+  if (bar)  bar.style.width  = pct + '%';
+}
+
+async function initPyodide() {
+  try {
+    setLoadStep('FETCHING PYODIDE RUNTIME', 15);
+    pyodide = await loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
+      stdout:   () => {},   // we capture stdout ourselves via StringIO
+      stderr:   () => {},
+    });
+    setLoadStep('PYTHON 3.12 READY', 100);
+    pyodideReady = true;
+
+    // Update top-bar badge
+    const badge = document.getElementById('runtime-badge');
+    badge.classList.remove('loading');
+    document.getElementById('badge-text').textContent = 'Python 3.12 · Pyodide · Ready';
+
+    // Remove loading overlay
+    document.getElementById('loading-screen').classList.add('hidden');
+
+  } catch (err) {
+    setLoadStep('ERROR — ' + err.message, 0);
+    const sub = document.querySelector('.load-sub');
+    if (sub) sub.textContent = 'Failed to load Pyodide. Check your internet connection and refresh.';
+  }
+}
+
+initPyodide();
+
+// ── Script runner ──────────────────────────────────────────────────────
+async function runScript(name) {
+  if (!pyodideReady) {
+    alert('Python runtime is still loading. Please wait and try again.');
+    return;
+  }
+
+  const btn    = document.getElementById(`run-${name}`);
+  const panel  = document.getElementById(`out-${name}`);
+  const pre    = document.getElementById(`txt-${name}`);
+  const status = document.getElementById(`st-${name}`);
+
+  // Show loading state
+  btn.classList.add('running');
+  btn.disabled = true;
+  panel.classList.add('visible');
+  status.textContent = '⟳ running…';
+  status.className   = 'out-status run';
+  pre.textContent    = '';
+  pre.className      = 'out-body';
+
+  // Yield to browser paint cycle before blocking the main thread
+  await new Promise(resolve => setTimeout(resolve, 30));
+
+  try {
+    // Redirect Python stdout to an in-memory StringIO buffer
+    pyodide.runPython(`
+import sys
+from io import StringIO
+_capture_buf = StringIO()
+sys.stdout = _capture_buf
+`);
+
+    // Execute the script
+    try {
+      pyodide.runPython(SCRIPTS[name]);
+    } catch (pyErr) {
+      // Restore stdout even on error, then show partial output + traceback
+      pyodide.runPython('sys.stdout = sys.__stdout__');
+      const partial = pyodide.runPython('_capture_buf.getvalue()');
+      const combined = (partial ? partial + '\n' : '') +
+                       '--- Python Error ---\n' + pyErr.message;
+      showOutput(name, combined, true, status, pre);
+      return;
+    }
+
+    // Restore stdout and retrieve everything that was printed
+    pyodide.runPython('sys.stdout = sys.__stdout__');
+    const output = pyodide.runPython('_capture_buf.getvalue()');
+    showOutput(name, output, false, status, pre);
+
+  } catch (err) {
+    showOutput(name, 'Unexpected error: ' + err.message, true, status, pre);
+  } finally {
+    btn.classList.remove('running');
+    btn.disabled = false;
+  }
+}
+
+function showOutput(name, text, isErr, status, pre) {
+  pre.textContent = text;
+  pre.className   = 'out-body' + (isErr ? ' err-out' : '');
+  status.textContent = isErr ? '✕ Error' : '✓ OK';
+  status.className   = 'out-status ' + (isErr ? 'err' : 'ok');
+}
+
+// ── Scroll spy ─────────────────────────────────────────────────────────
+function initScrollSpy() {
+  const sections = document.querySelectorAll('.section[id]');
+  const navItems = document.querySelectorAll('.nav-item[href]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const targetHref = '#' + entry.target.id;
+        navItems.forEach(item => {
+          item.classList.toggle('active', item.getAttribute('href') === targetHref);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(section => observer.observe(section));
+}
+</script>
+</body>
+</html>

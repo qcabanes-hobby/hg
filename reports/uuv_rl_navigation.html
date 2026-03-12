@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UUV RL Navigation — Interactive Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg2:#0d1120;--surface:#161e30;--border:#1f2d47;--border2:#2a3d5c;--cyan:#00d4ff;--cyan-dim:#00d4ff18;--violet:#8b5cf6;--violet-dim:#8b5cf618;--green:#10d880;--green-dim:#10d88018;--amber:#f59e0b;--red:#f43f5e;--text:#e2e8f0;--text2:#94a3b8;--text3:#4f6480;--mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;--display:'Syne',sans-serif;--nav-w:260px;--hdr-h:56px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7;overflow-x:hidden}
+
+/* Loading */
+#loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s,visibility .5s}
+#loader.done{opacity:0;visibility:hidden;pointer-events:none}
+.spin-ring{width:52px;height:52px;border:3px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-bar{width:260px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.load-fill{height:100%;width:0%;background:var(--cyan);border-radius:2px;transition:width .4s ease}
+.load-txt{font-size:12px;color:var(--text3);font-family:var(--mono);text-align:center;max-width:340px;line-height:1.5}
+
+/* Topbar */
+#topbar{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);background:#07090fdd;backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px 0 calc(var(--nav-w) + 20px);z-index:100;gap:16px}
+.title-bar{font-family:var(--display);font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:.05em;flex:1}
+.title-bar span{color:var(--text2);font-weight:400}
+.runtime-badge{display:flex;align-items:center;gap:7px;background:var(--green-dim);border:1px solid var(--green);border-radius:20px;padding:4px 14px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--green)}
+.runtime-badge.loading{background:#f59e0b18;border-color:var(--amber);color:var(--amber)}
+.runtime-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.runtime-badge.loading .dot{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Sidebar */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-top:var(--hdr-h);scrollbar-width:thin;scrollbar-color:var(--border2) transparent;z-index:50}
+.nav-group{padding:20px 0 8px}
+.nav-group-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;padding:20px 20px 6px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;transition:all .15s;text-decoration:none;color:var(--text2);font-size:13px;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface)}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:var(--cyan-dim)}
+.nav-num{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:22px}
+.nav-item.active .nav-num{color:var(--cyan)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.nav-item.active .nav-dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+
+/* Main */
+#main{margin-left:var(--nav-w);padding:calc(var(--hdr-h) + 44px) 60px 80px;max-width:calc(var(--nav-w) + 900px)}
+
+/* Sections */
+section.section{margin-bottom:72px;scroll-margin-top:calc(var(--hdr-h) + 24px)}
+
+/* Hero */
+.hero-title{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px}
+.hero-sub{font-size:15px;color:var(--text2);max-width:560px;line-height:1.65;margin-bottom:28px}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
+.pill{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:4px 14px;border-radius:20px;border:1px solid var(--border2);color:var(--text2)}
+
+/* Section Headings */
+h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2;display:flex;align-items:center;gap:14px;margin-bottom:28px}
+h3.sub{font-family:var(--display);font-size:17px;font-weight:600;color:var(--cyan);margin:32px 0 12px}
+.section-num{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:6px;padding:3px 10px;white-space:nowrap;letter-spacing:.08em;flex-shrink:0}
+.section-num.v{color:var(--violet);background:var(--violet-dim);border-color:var(--violet)}
+.section-num.g{color:var(--green);background:var(--green-dim);border-color:var(--green)}
+.section-num.a{color:var(--amber);background:#f59e0b12;border-color:var(--amber)}
+p{color:var(--text2);margin-bottom:12px}
+p strong{color:var(--text)}
+
+/* Chosen */
+.chosen{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:8px;padding:14px 16px;margin:16px 0}
+.chosen-label{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.1em;white-space:nowrap;padding-top:2px}
+.chosen p{margin:0;font-size:14px}
+
+/* Tables */
+.tw{overflow-x:auto;margin:14px 0;border-radius:8px;border:1px solid var(--border)}
+.tw table{width:100%;border-collapse:collapse;font-size:13px}
+.tw th{padding:10px 14px;text-align:left;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.08em;border-bottom:1px solid var(--border2);background:var(--surface)}
+.tw td{padding:9px 14px;color:var(--text2);vertical-align:top;border-bottom:1px solid var(--border)}
+.tw tr:last-child td{border-bottom:none}
+.tw tr:hover td{background:var(--surface)}
+.tw td:first-child{color:var(--text);font-weight:500}
+
+/* Formula */
+.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0;overflow-x:auto;white-space:pre}
+
+/* Code card */
+.code-card{background:#080c16;border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin:20px 0}
+.code-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#0f1520;border-bottom:1px solid var(--border)}
+.code-lang{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.1em}
+.code-file{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.run-btn{display:flex;align-items:center;gap:7px;padding:5px 16px;background:var(--green-dim);border:1px solid var(--green);border-radius:6px;color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.05em;min-width:90px}
+.run-btn:hover:not(:disabled){background:var(--green);color:#000}
+.run-btn:disabled{opacity:.5;cursor:not-allowed}
+.run-btn .spinner{width:10px;height:10px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;display:none;flex-shrink:0}
+.run-btn.running .spinner{display:block}
+.run-btn.running .btn-text{display:none}
+pre.code-body{overflow-x:auto;padding:16px 20px;font-family:var(--mono);font-size:13px;line-height:1.65;color:#d4d4d4;tab-size:4;max-height:500px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+pre.code-body::-webkit-scrollbar{height:4px;width:4px}
+pre.code-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+/* Syntax highlighting */
+.code-body .kw{color:#569cd6;font-weight:600}.code-body .imp{color:#c586c0;font-weight:600}.code-body .str{color:#ce9178}.code-body .cmt{color:#6a9955;font-style:italic}.code-body .num{color:#b5cea8}.code-body .cls{color:#4ec9b0}.code-body .slf{color:#9cdcfe}.code-body .dec{color:#dcdcaa}
+
+/* Output panel */
+.out-panel{border-top:1px solid var(--border);background:#040810;display:none}
+.out-panel.show{display:block}
+.out-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#080e1a;border-bottom:1px solid var(--border)}
+.out-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em}
+.out-status{font-family:var(--mono);font-size:10px;letter-spacing:.05em}
+.out-status.ok{color:var(--green)}.out-status.err{color:var(--red)}.out-status.run{color:var(--amber)}
+pre.out-body{padding:14px 20px;font-family:var(--mono);font-size:12px;line-height:1.6;color:#a8ff78;white-space:pre-wrap;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+pre.out-body.err{color:#ff7070}
+
+/* Analysis */
+.analysis{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:16px 0}
+.analysis-title{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.analysis ul{list-style:none;padding:0}
+.analysis li{padding:4px 0 4px 18px;position:relative;color:var(--text2);font-size:14px}
+.analysis li::before{content:'\2192';position:absolute;left:0;color:var(--amber);font-size:11px}
+
+/* Prompt boxes */
+.prompt-box{background:#141c14;border:1px solid #2d4a2d;border-left:3px solid var(--green);border-radius:8px;padding:16px 20px;margin:12px 0;font-size:14px;color:#a8d5a8;font-style:italic;line-height:1.7}
+.prompt-box.v1{background:#1a1508;border-color:#4a3f1e;border-left-color:var(--amber);color:#d4b896}
+.prompt-box.v3{background:#071420;border-color:#1a3d5a;border-left-color:var(--cyan);color:#7dd3fc}
+.prompt-box-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-weight:600;font-style:normal}
+.prompt-box.v1 .prompt-box-label{color:var(--amber)}
+.prompt-box.v3 .prompt-box-label{color:var(--cyan)}
+
+/* Methodology Cards */
+.meth-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
+.meth-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;transition:border-color .2s}
+.meth-card:hover{border-color:var(--cyan)}
+.meth-num{font-family:var(--display);font-size:28px;font-weight:800;color:var(--cyan);margin-bottom:6px}
+.meth-title{font-family:var(--display);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.meth-desc{font-size:12px;color:var(--text3);line-height:1.5}
+
+/* Bibliography */
+.bib-item{display:flex;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);scroll-margin-top:calc(var(--hdr-h) + 12px);border-radius:4px;transition:background .2s,border-left .2s}
+.bib-item:target{background:var(--cyan-dim);border-left:3px solid var(--cyan);padding-left:12px}
+.bib-item:last-child{border-bottom:none}
+.bib-num{font-family:var(--mono);font-size:12px;color:var(--cyan);min-width:30px;padding-top:2px}
+.bib-text{font-size:13px;color:var(--text2);line-height:1.6}
+.bib-text em{color:var(--text);font-style:normal;font-weight:500}
+.bib-link{color:var(--cyan);text-decoration:none;font-family:var(--mono);font-size:11px}
+.bib-link:hover{text-decoration:underline}
+.cite,.cite:visited{font-family:var(--mono);font-size:10px;vertical-align:super;color:var(--cyan);font-weight:600;margin-left:1px;text-decoration:none}
+.cite:hover{text-decoration:underline;color:#e0f7ff}
+
+/* SVG diagrams */
+.svg-wrap{margin:20px 0;overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.svg-wrap svg{max-width:100%;height:auto;display:block;margin:0 auto}
+.svg-caption{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:12px;text-align:center}
+
+/* Misc */
+code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
+
+/* Responsive */
+@media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero-title{font-size:30px}.meth-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<!-- ── Loading Overlay ──────────────────── -->
+<div id="loader">
+<div class="spin-ring"></div>
+<div class="load-bar"><div class="load-fill" id="loadFill"></div></div>
+<div class="load-txt">Downloading Pyodide (~8 MB) — first load only; cached after</div>
+</div>
+
+<!-- ── Top Bar ─────────────────────────── -->
+<div id="topbar">
+<div class="title-bar">UUV RL NAVIGATION <span>— Interactive Report v1</span></div>
+<div class="runtime-badge loading" id="runtime-badge">
+  <span class="dot"></span><span id="badge-text">Loading Python…</span>
+</div>
+</div>
+
+<!-- ── Sidebar ─────────────────────────── -->
+<nav id="sidebar">
+<div class="nav-group-label">Overview</div>
+<a href="#hero" class="nav-item active"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
+<a href="#abstract" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+<a href="#s1" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
+<a href="#s2" class="nav-item"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
+<div class="nav-group-label">Questions</div>
+<a href="#s3" class="nav-item"><span class="nav-num">Q1</span><span class="nav-dot"></span>SysML Model</a>
+<a href="#s4" class="nav-item"><span class="nav-num">Q2</span><span class="nav-dot"></span>RL Architecture</a>
+<a href="#s5" class="nav-item"><span class="nav-num">Q3</span><span class="nav-dot"></span>Variable Space</a>
+<a href="#s6" class="nav-item"><span class="nav-num">Q4</span><span class="nav-dot"></span>Sensor Processing</a>
+<a href="#s7" class="nav-item"><span class="nav-num">Q5</span><span class="nav-dot"></span>Reward Strategy</a>
+<a href="#s8" class="nav-item"><span class="nav-num">Q6</span><span class="nav-dot"></span>RL Algorithm</a>
+<a href="#s9" class="nav-item"><span class="nav-num">Q7</span><span class="nav-dot"></span>Convergence</a>
+<a href="#s10" class="nav-item"><span class="nav-num">Q8</span><span class="nav-dot"></span>Training &amp; Eval</a>
+<a href="#s11" class="nav-item"><span class="nav-num">Q9</span><span class="nav-dot"></span>Embedded Platform</a>
+<a href="#s12" class="nav-item"><span class="nav-num">Q10</span><span class="nav-dot"></span>ROS Integration</a>
+<div class="nav-group-label">Appendix</div>
+<a href="#s13" class="nav-item"><span class="nav-num">13</span><span class="nav-dot"></span>AI Disclosure</a>
+<a href="#s14" class="nav-item"><span class="nav-num">14</span><span class="nav-dot"></span>Conclusion</a>
+<a href="#s15" class="nav-item"><span class="nav-num">15</span><span class="nav-dot"></span>Bibliography</a>
+</nav>
+
+<!-- ── Main Content ────────────────────── -->
+<div id="main">
+
+<!-- ── HERO ─────────────────────────────── -->
+<section class="section" id="hero">
+<h2 class="st"><span class="section-num">00</span>Introduction</h2>
+<h1 class="hero-title">Reinforcement Learning Navigation<br>for Underwater Unmanned Vehicles</h1>
+<p class="hero-sub">Model-free depth and bearing control of a 50 kg UUV using differential thrust motors and ballast pump, with IMU and pressure sensor feedback.</p>
+<div class="hero-meta">
+<span class="pill">Version 1.0</span>
+<span class="pill">10 Questions</span>
+<span class="pill">Python 3.12 / Pyodide</span>
+<span class="pill">RL + Marine Control</span>
+</div>
+</section>
+
+<!-- ── ABSTRACT ─────────────────────────── -->
+<section class="section" id="abstract">
+<h2 class="st"><span class="section-num">01</span>Abstract</h2>
+<p>This report addresses the engineering challenge of designing a model-free reinforcement learning controller for an underwater unmanned vehicle (UUV). The vehicle has three degrees of freedom — yaw via differential motor thrust, forward translation via equal motor thrust, and depth via a three-state ballast pump — and is equipped with a 9-axis IMU (accelerometer, gyroscope, magnetometer) plus a pressure sensor. The RL agent must stabilize the trajectory between navigation beacon waypoints defined by magnetic bearing and depth targets, without prior knowledge of the plant transfer function, and subject to bounded external disturbances.</p>
+<p>Across ten questions we develop: (Q1) a SysML system model; (Q2) a functional RL-environment architecture; (Q3) state and action variable spaces; (Q4) sensor fusion and observation preprocessing; (Q5) a multi-objective reward function; (Q6) a complete RL algorithm with pseudocode and Keras implementation; (Q7) convergence acceleration strategies; (Q8) training and evaluation methodology; (Q9) embedded platform selection; and (Q10) ROS integration plan. Each question follows a four-step methodology — state-of-the-art survey, comparative selection, solution planning, and solution discussion — with diagrams and mathematical derivations throughout.</p>
+</section>
+
+<!-- ── PROBLEM STATEMENT ────────────────── -->
+<section class="section" id="s1">
+<h2 class="st"><span class="section-num">02</span>Problem Statement</h2>
+<h3 class="sub">System Constraints</h3>
+<p><strong>Actuators:</strong> Two DC motors driven by H-bridges with PWM for differential thrust (yaw + forward), and a ballast pump with three states (water-in, water-out, stopped) for depth control.</p>
+<p><strong>Sensors:</strong> 3-axis accelerometer + gyroscope (IMU), 3-axis magnetometer, and a pressure sensor for depth. Maximum sample rate N<sub>max</sub> readings per second.</p>
+<p><strong>Navigation:</strong> A sequence of beacon waypoints, each specifying a target magnetic bearing and target depth. Travel time between beacons must be minimized.</p>
+<p><strong>Assumptions:</strong> External disturbances (currents, waves) are bounded within actuator authority. The transfer function of the plant is unknown — the RL agent must learn to control purely from sensor feedback. The UUV weighs approximately 50 kg.</p>
+
+<h3 class="sub">Question Index</h3>
+<div class="tw"><table>
+<tr><th>Q#</th><th>Question</th><th>Type Tags</th></tr>
+<tr><td>1</td><td>SysML model: use cases, block diagrams, internal block diagram, requirements</td><td>GRAPH-MODEL</td></tr>
+<tr><td>2</td><td>Functional architecture for the RL agent and its environment</td><td>GRAPH-MODEL</td></tr>
+<tr><td>3</td><td>Variable space definition (state, action, observation)</td><td>MATHEMATICAL</td></tr>
+<tr><td>4</td><td>Sensor data processing pipeline to feed the RL agent</td><td>ALGORITHM, MATHEMATICAL</td></tr>
+<tr><td>5</td><td>Reward strategy and function design</td><td>MATHEMATICAL</td></tr>
+<tr><td>6</td><td>RL algorithm: pseudocode and Python/Keras code</td><td>ALGORITHM</td></tr>
+<tr><td>7</td><td>Convergence speed estimation and optimization</td><td>MATHEMATICAL, ALGORITHM</td></tr>
+<tr><td>8</td><td>Training and evaluation methodology</td><td>SIMULATION</td></tr>
+<tr><td>9</td><td>Embedded platform selection</td><td>CLASSIFICATION</td></tr>
+<tr><td>10</td><td>ROS-compliant implementation steps</td><td>GRAPH-MODEL, ALGORITHM</td></tr>
+</table></div>
+</section>
+
+<!-- ── METHODOLOGY ──────────────────────── -->
+<section class="section" id="s2">
+<h2 class="st"><span class="section-num">03</span>Methodology</h2>
+<p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
+<div class="meth-grid">
+<div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey ≥ 3 existing techniques with a comparison table. Include inline citations to foundational references.</div></div>
+<div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><div class="meth-desc">Per-technique pros/cons specific to this UUV problem. Conclude with a CHOSEN box justifying the selected approach.</div></div>
+<div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, data structures, mathematical derivations, and design decisions. Diagrams where applicable.</div></div>
+<div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Detailed solution description, block diagrams, Keras code (Q6), and implementation plans.</div></div>
+</div>
+</section>
+<!-- ══ Q1 — SysML Model ══════════════════ -->
+<section class="section" id="s3">
+<h2 class="st"><span class="section-num v">Q1</span>SysML System Model</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Technique</th><th>Diagram Types</th><th>Formality</th><th>Tool Support</th></tr>
+<tr><td>SysML 1.6<a href="#ref-4" class="cite">[4]</a></td><td>BDD, IBD, Use Case, Requirements, Activity, State Machine, Sequence, Parametric</td><td>High — OMG standard</td><td>Cameo, Papyrus, Enterprise Architect</td></tr>
+<tr><td>UML 2.5</td><td>Class, Component, Deployment, Use Case, Sequence, State, Activity</td><td>High — OMG standard</td><td>Broad IDE support</td></tr>
+<tr><td>Capella / Arcadia</td><td>Operational, System, Logical, Physical architecture layers</td><td>Medium-High — MBSE method</td><td>Capella (Eclipse-based)</td></tr>
+<tr><td>Informal block diagrams</td><td>Free-form boxes and arrows</td><td>Low</td><td>Any drawing tool</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>SysML 1.6:</strong> Purpose-built for systems engineering; provides dedicated requirement diagrams and parametric diagrams ideal for capturing the 50 kg UUV physical constraints alongside functional architecture. Widely adopted in aerospace and defense marine systems.</p>
+<p><strong>UML 2.5:</strong> Excellent for software, but lacks native requirement and parametric diagram types needed to model mass, buoyancy, and sensor constraints in a single model.</p>
+<p><strong>Capella/Arcadia:</strong> Powerful for full MBSE lifecycle but introduces heavy methodology overhead for a single-system report; not easily reproducible in document form.</p>
+<p><strong>Informal diagrams:</strong> Quick but lack traceability between requirements, structure, and behavior — critical for validating that all 3 DOF are covered.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>SysML 1.6</strong> — The standard provides Block Definition Diagrams for system decomposition, Internal Block Diagrams for port/flow connectivity, Use Case diagrams for operational scenarios, and Requirement Diagrams for traceability. This combination covers all four diagram types requested while maintaining formal traceability between physical constraints (50 kg mass, pump states, PWM range) and functional behavior<a href="#ref-4" class="cite">[4]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning</h3>
+<p>We model the UUV system using four SysML diagram types. The <strong>Block Definition Diagram (BDD)</strong> captures the system hierarchy: the top-level UUV block contains sub-blocks for the Propulsion Subsystem (2 motors, 2 H-bridges), Ballast Subsystem (pump, tank, valve), Sensor Suite (IMU, magnetometer, pressure sensor), Navigation Controller (RL agent), and Power Supply. Each block carries value properties such as <code>mass: Real = 50 kg</code>, <code>maxRPM: Integer</code>, etc.</p>
+<p>The <strong>Internal Block Diagram</strong> shows flow ports connecting the sensor suite outputs (bearing, angular rates, depth) to the RL agent's observation input, and the agent's action output to the motor drivers and pump controller. The <strong>Use Case Diagram</strong> defines actors (Operator, Environment) and use cases (Navigate to Waypoint, Maintain Depth, Maintain Bearing, Emergency Surface). The <strong>Requirement Diagram</strong> links top-level requirements to sub-requirements with «satisfy» and «verify» relationships.</p>
+
+<h3 class="sub">④ SysML Diagrams</h3>
+
+<!-- BDD Diagram -->
+<div class="svg-wrap">
+<svg viewBox="0 0 820 420" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<defs><marker id="arr-c" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker>
+<marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/></marker></defs>
+<text x="410" y="22" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">«bdd» UUV System — Block Definition Diagram</text>
+<!-- Top block -->
+<rect x="295" y="36" width="230" height="60" rx="8" fill="#161e30" stroke="#00d4ff" stroke-width="2"/>
+<text x="410" y="58" fill="#fff" font-size="12" text-anchor="middle" font-weight="700">«block» UUV_System</text>
+<text x="410" y="76" fill="#94a3b8" font-size="10" text-anchor="middle">mass=50kg  maxDepth=50m  DOF=3</text>
+<!-- Composition lines -->
+<line x1="340" y1="96" x2="100" y2="150" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+<line x1="380" y1="96" x2="290" y2="150" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+<line x1="410" y1="96" x2="410" y2="150" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+<line x1="440" y1="96" x2="530" y2="150" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+<line x1="480" y1="96" x2="710" y2="150" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+<!-- Propulsion -->
+<rect x="15" y="150" width="180" height="72" rx="8" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="105" y="172" fill="#10d880" font-size="11" text-anchor="middle" font-weight="600">«block» Propulsion</text>
+<text x="105" y="188" fill="#94a3b8" font-size="9" text-anchor="middle">motors=2 × DC brushless</text>
+<text x="105" y="202" fill="#94a3b8" font-size="9" text-anchor="middle">driver=H-bridge + PWM</text>
+<text x="105" y="216" fill="#94a3b8" font-size="9" text-anchor="middle">maxThrust=20N each</text>
+<!-- Ballast -->
+<rect x="210" y="150" width="160" height="72" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="290" y="172" fill="#f59e0b" font-size="11" text-anchor="middle" font-weight="600">«block» Ballast</text>
+<text x="290" y="188" fill="#94a3b8" font-size="9" text-anchor="middle">states={IN, OUT, STOP}</text>
+<text x="290" y="202" fill="#94a3b8" font-size="9" text-anchor="middle">tankVolume=2L</text>
+<text x="290" y="216" fill="#94a3b8" font-size="9" text-anchor="middle">pump=reversible DC</text>
+<!-- Sensor Suite -->
+<rect x="385" y="150" width="170" height="72" rx="8" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="470" y="172" fill="#8b5cf6" font-size="11" text-anchor="middle" font-weight="600">«block» SensorSuite</text>
+<text x="470" y="188" fill="#94a3b8" font-size="9" text-anchor="middle">IMU=9-axis MEMS</text>
+<text x="470" y="202" fill="#94a3b8" font-size="9" text-anchor="middle">magnetometer=3-axis</text>
+<text x="470" y="216" fill="#94a3b8" font-size="9" text-anchor="middle">pressure=0-10bar abs</text>
+<!-- Nav Controller -->
+<rect x="570" y="150" width="170" height="72" rx="8" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+<text x="655" y="172" fill="#00d4ff" font-size="11" text-anchor="middle" font-weight="600">«block» NavController</text>
+<text x="655" y="188" fill="#94a3b8" font-size="9" text-anchor="middle">algorithm=TD3 (RL)</text>
+<text x="655" y="202" fill="#94a3b8" font-size="9" text-anchor="middle">obs_dim=12  act_dim=3</text>
+<text x="655" y="216" fill="#94a3b8" font-size="9" text-anchor="middle">rate=100Hz</text>
+<!-- Power -->
+<rect x="640" y="250" width="160" height="56" rx="8" fill="#161e30" stroke="#4f6480" stroke-width="1.5"/>
+<text x="720" y="272" fill="#94a3b8" font-size="11" text-anchor="middle" font-weight="600">«block» PowerSupply</text>
+<text x="720" y="290" fill="#4f6480" font-size="9" text-anchor="middle">24V LiPo  100Wh</text>
+<line x1="710" y1="222" x2="720" y2="250" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4"/>
+<!-- Sub-blocks Motor L / R -->
+<rect x="15" y="250" width="85" height="42" rx="6" fill="#0d1120" stroke="#10d880" stroke-width="1"/>
+<text x="57" y="268" fill="#10d880" font-size="9" text-anchor="middle">Motor_L</text>
+<text x="57" y="282" fill="#4f6480" font-size="8" text-anchor="middle">PWM[-1,1]</text>
+<rect x="110" y="250" width="85" height="42" rx="6" fill="#0d1120" stroke="#10d880" stroke-width="1"/>
+<text x="152" y="268" fill="#10d880" font-size="9" text-anchor="middle">Motor_R</text>
+<text x="152" y="282" fill="#4f6480" font-size="8" text-anchor="middle">PWM[-1,1]</text>
+<line x1="57" y1="222" x2="57" y2="250" stroke="#10d880" stroke-width="1"/>
+<line x1="152" y1="222" x2="152" y2="250" stroke="#10d880" stroke-width="1"/>
+<!-- Legend -->
+<rect x="15" y="330" width="800" height="80" rx="8" fill="#0d1120" stroke="#1f2d47"/>
+<text x="30" y="352" fill="#fff" font-size="11" font-weight="700">Legend</text>
+<rect x="30" y="362" width="12" height="12" rx="2" fill="none" stroke="#00d4ff" stroke-width="2"/><text x="50" y="373" fill="#94a3b8" font-size="9">Controller / Top-level</text>
+<rect x="200" y="362" width="12" height="12" rx="2" fill="none" stroke="#10d880" stroke-width="2"/><text x="220" y="373" fill="#94a3b8" font-size="9">Propulsion subsystem</text>
+<rect x="400" y="362" width="12" height="12" rx="2" fill="none" stroke="#f59e0b" stroke-width="2"/><text x="420" y="373" fill="#94a3b8" font-size="9">Ballast subsystem</text>
+<rect x="580" y="362" width="12" height="12" rx="2" fill="none" stroke="#8b5cf6" stroke-width="2"/><text x="600" y="373" fill="#94a3b8" font-size="9">Sensor subsystem</text>
+<text x="30" y="400" fill="#4f6480" font-size="9">◇── = composition    ──▷ = directed association    - - - = dependency</text>
+</svg>
+<div class="svg-caption">Figure 1 — SysML Block Definition Diagram. UUV_System decomposes into 5 subsystems; value properties capture physical constraints (50 kg, 24V, 50 m max depth).</div>
+</div>
+
+<!-- IBD Diagram -->
+<div class="svg-wrap">
+<svg viewBox="0 0 820 320" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<defs><marker id="arr-f" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker></defs>
+<text x="410" y="22" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">«ibd» UUV_System — Internal Block Diagram (Signal Flow)</text>
+<rect x="10" y="35" width="800" height="270" rx="10" fill="none" stroke="#1f2d47" stroke-width="1.5" stroke-dasharray="6"/>
+<text x="25" y="52" fill="#4f6480" font-size="9">UUV_System</text>
+<!-- Sensor ports -->
+<rect x="30" y="70" width="120" height="40" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="90" y="95" fill="#8b5cf6" font-size="10" text-anchor="middle">IMU (9-axis)</text>
+<rect x="30" y="125" width="120" height="40" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="90" y="150" fill="#8b5cf6" font-size="10" text-anchor="middle">Magnetometer</text>
+<rect x="30" y="180" width="120" height="40" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="90" y="205" fill="#8b5cf6" font-size="10" text-anchor="middle">Pressure Sensor</text>
+<!-- Sensor Fusion -->
+<rect x="230" y="100" width="140" height="60" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="300" y="125" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="600">Sensor Fusion</text>
+<text x="300" y="142" fill="#4f6480" font-size="9" text-anchor="middle">Compl. Filter</text>
+<!-- RL Agent -->
+<rect x="440" y="90" width="150" height="80" rx="8" fill="#161e30" stroke="#00d4ff" stroke-width="2"/>
+<text x="515" y="120" fill="#00d4ff" font-size="11" text-anchor="middle" font-weight="700">RL Agent</text>
+<text x="515" y="138" fill="#94a3b8" font-size="9" text-anchor="middle">TD3 Actor</text>
+<text x="515" y="152" fill="#94a3b8" font-size="9" text-anchor="middle">obs(12)→act(3)</text>
+<!-- Actuators -->
+<rect x="660" y="65" width="120" height="36" rx="6" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="720" y="88" fill="#10d880" font-size="10" text-anchor="middle">Motor_L (PWM)</text>
+<rect x="660" y="115" width="120" height="36" rx="6" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="720" y="138" fill="#10d880" font-size="10" text-anchor="middle">Motor_R (PWM)</text>
+<rect x="660" y="165" width="120" height="36" rx="6" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="720" y="188" fill="#f59e0b" font-size="10" text-anchor="middle">Pump Ctrl</text>
+<!-- Nav Manager -->
+<rect x="350" y="230" width="140" height="40" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1"/>
+<text x="420" y="255" fill="#00d4ff" font-size="10" text-anchor="middle">Nav Manager</text>
+<!-- Arrows -->
+<line x1="150" y1="90" x2="230" y2="120" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<line x1="150" y1="145" x2="230" y2="130" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<line x1="150" y1="200" x2="230" y2="145" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<text x="175" y="103" fill="#4f6480" font-size="8">accel+gyro</text>
+<text x="178" y="138" fill="#4f6480" font-size="8">mag_xyz</text>
+<text x="170" y="178" fill="#4f6480" font-size="8">pressure</text>
+<line x1="370" y1="130" x2="440" y2="130" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<text x="385" y="122" fill="#f59e0b" font-size="8">obs_12D</text>
+<line x1="590" y1="110" x2="660" y2="83" stroke="#10d880" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<line x1="590" y1="130" x2="660" y2="133" stroke="#10d880" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<line x1="590" y1="150" x2="660" y2="183" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr-f)"/>
+<text x="608" y="98" fill="#10d880" font-size="8">pwm_L</text>
+<text x="608" y="127" fill="#10d880" font-size="8">pwm_R</text>
+<text x="605" y="168" fill="#f59e0b" font-size="8">pump_cmd</text>
+<line x1="420" y1="230" x2="480" y2="170" stroke="#00d4ff" stroke-width="1" stroke-dasharray="4" marker-end="url(#arr-f)"/>
+<text x="430" y="206" fill="#4f6480" font-size="8">target(ψ,z)</text>
+</svg>
+<div class="svg-caption">Figure 2 — Internal Block Diagram. Flow ports show signal path: sensors → fusion → RL agent → actuators. Dashed line = waypoint target feed.</div>
+</div>
+
+<!-- Use Case + Requirement (compact combined) -->
+<div class="svg-wrap">
+<svg viewBox="0 0 820 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<text x="200" y="22" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">«uc» Use Case Diagram</text>
+<text x="630" y="22" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">«req» Requirements</text>
+<!-- Use Cases Left Side -->
+<rect x="10" y="35" width="390" height="255" rx="8" fill="#0d1120" stroke="#1f2d47"/>
+<!-- Actor: Operator -->
+<circle cx="50" cy="100" r="14" fill="none" stroke="#10d880" stroke-width="1.5"/>
+<line x1="50" y1="114" x2="50" y2="142" stroke="#10d880" stroke-width="1.5"/>
+<line x1="30" y1="126" x2="70" y2="126" stroke="#10d880" stroke-width="1.5"/>
+<line x1="50" y1="142" x2="35" y2="165" stroke="#10d880" stroke-width="1.5"/>
+<line x1="50" y1="142" x2="65" y2="165" stroke="#10d880" stroke-width="1.5"/>
+<text x="50" y="182" fill="#10d880" font-size="9" text-anchor="middle">Operator</text>
+<!-- Actor: Environment -->
+<circle cx="370" cy="100" r="14" fill="none" stroke="#f43f5e" stroke-width="1.5"/>
+<line x1="370" y1="114" x2="370" y2="142" stroke="#f43f5e" stroke-width="1.5"/>
+<line x1="350" y1="126" x2="390" y2="126" stroke="#f43f5e" stroke-width="1.5"/>
+<line x1="370" y1="142" x2="355" y2="165" stroke="#f43f5e" stroke-width="1.5"/>
+<line x1="370" y1="142" x2="385" y2="165" stroke="#f43f5e" stroke-width="1.5"/>
+<text x="370" y="182" fill="#f43f5e" font-size="9" text-anchor="middle">Environment</text>
+<!-- UCs -->
+<ellipse cx="210" cy="70" rx="80" ry="20" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+<text x="210" y="74" fill="#00d4ff" font-size="10" text-anchor="middle">Navigate to WP</text>
+<ellipse cx="210" cy="130" rx="75" ry="18" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/>
+<text x="210" y="134" fill="#8b5cf6" font-size="9" text-anchor="middle">Maintain Depth</text>
+<ellipse cx="210" cy="175" rx="80" ry="18" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/>
+<text x="210" y="179" fill="#8b5cf6" font-size="9" text-anchor="middle">Maintain Bearing</text>
+<ellipse cx="210" cy="225" rx="80" ry="18" fill="#161e30" stroke="#f43f5e" stroke-width="1"/>
+<text x="210" y="229" fill="#f43f5e" font-size="9" text-anchor="middle">Emergency Surface</text>
+<line x1="70" y1="100" x2="130" y2="70" stroke="#94a3b8" stroke-width="1"/>
+<line x1="70" y1="120" x2="130" y2="225" stroke="#94a3b8" stroke-width="1"/>
+<line x1="350" y1="110" x2="285" y2="130" stroke="#94a3b8" stroke-width="1"/>
+<line x1="350" y1="120" x2="290" y2="175" stroke="#94a3b8" stroke-width="1"/>
+<text x="210" y="100" fill="#4f6480" font-size="8" text-anchor="middle">«include»</text>
+<line x1="210" y1="90" x2="210" y2="112" stroke="#4f6480" stroke-width="1" stroke-dasharray="3"/>
+<text x="210" y="155" fill="#4f6480" font-size="8" text-anchor="middle">«include»</text>
+<line x1="210" y1="148" x2="210" y2="157" stroke="#4f6480" stroke-width="1" stroke-dasharray="3"/>
+<text x="210" y="260" fill="#94a3b8" font-size="9" text-anchor="middle">4 use cases, 2 actors</text>
+<!-- Requirements Right Side -->
+<rect x="420" y="35" width="390" height="255" rx="8" fill="#0d1120" stroke="#1f2d47"/>
+<rect x="530" y="50" width="180" height="36" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+<text x="620" y="65" fill="#00d4ff" font-size="9" text-anchor="middle" font-weight="600">REQ-SYS-001</text>
+<text x="620" y="78" fill="#94a3b8" font-size="8" text-anchor="middle">Autonomous waypoint nav</text>
+<rect x="440" y="110" width="150" height="32" rx="5" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/>
+<text x="515" y="124" fill="#8b5cf6" font-size="8" text-anchor="middle">REQ-NAV-001: Brg ≤5°</text>
+<text x="515" y="136" fill="#4f6480" font-size="7" text-anchor="middle">Bearing accuracy</text>
+<rect x="440" y="155" width="150" height="32" rx="5" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/>
+<text x="515" y="169" fill="#8b5cf6" font-size="8" text-anchor="middle">REQ-NAV-002: Dep ≤0.5m</text>
+<text x="515" y="181" fill="#4f6480" font-size="7" text-anchor="middle">Depth accuracy</text>
+<rect x="640" y="110" width="150" height="32" rx="5" fill="#161e30" stroke="#f43f5e" stroke-width="1"/>
+<text x="715" y="124" fill="#f43f5e" font-size="8" text-anchor="middle">REQ-SAF-001</text>
+<text x="715" y="136" fill="#4f6480" font-size="7" text-anchor="middle">Emerg surface ≤30s</text>
+<rect x="440" y="210" width="150" height="32" rx="5" fill="#161e30" stroke="#10d880" stroke-width="1"/>
+<text x="515" y="224" fill="#10d880" font-size="8" text-anchor="middle">REQ-CTRL-001</text>
+<text x="515" y="236" fill="#4f6480" font-size="7" text-anchor="middle">Control loop ≥50Hz</text>
+<rect x="640" y="210" width="150" height="32" rx="5" fill="#161e30" stroke="#4f6480" stroke-width="1"/>
+<text x="715" y="224" fill="#94a3b8" font-size="8" text-anchor="middle">REQ-PWR-001</text>
+<text x="715" y="236" fill="#4f6480" font-size="7" text-anchor="middle">Battery ≥2 hours</text>
+<line x1="580" y1="86" x2="515" y2="110" stroke="#8b5cf6" stroke-width="1" marker-end="url(#arr-f)"/>
+<line x1="620" y1="86" x2="620" y2="102" stroke="#8b5cf6" stroke-width="1"/>
+<line x1="620" y1="102" x2="515" y2="155" stroke="#8b5cf6" stroke-width="1" marker-end="url(#arr-f)"/>
+<line x1="660" y1="86" x2="715" y2="110" stroke="#f43f5e" stroke-width="1" marker-end="url(#arr-f)"/>
+<text x="545" y="102" fill="#4f6480" font-size="7">«deriveReqt»</text>
+<line x1="515" y1="142" x2="515" y2="210" stroke="#10d880" stroke-width="1" stroke-dasharray="3" marker-end="url(#arr-f)"/>
+<text x="525" y="195" fill="#4f6480" font-size="7">«satisfy»</text>
+<line x1="715" y1="142" x2="715" y2="210" stroke="#4f6480" stroke-width="1" stroke-dasharray="3"/>
+<text x="725" y="195" fill="#4f6480" font-size="7">«verify»</text>
+<text x="615" y="270" fill="#94a3b8" font-size="9" text-anchor="middle">6 requirements, full traceability</text>
+</svg>
+<div class="svg-caption">Figure 3 — (Left) Use Case Diagram with 4 use cases and 2 actors. (Right) Requirement Diagram tracing REQ-SYS-001 down to sub-requirements via «deriveReqt», «satisfy», and «verify» relationships.</div>
+</div>
+</section>
+
+<!-- ══ Q2 — RL Functional Architecture ══ -->
+<section class="section" id="s4">
+<h2 class="st"><span class="section-num v">Q2</span>RL Agent Functional Architecture</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Architecture</th><th>Agent-Env Boundary</th><th>Observation Model</th><th>Action Model</th></tr>
+<tr><td>OpenAI Gymnasium<a href="#ref-5" class="cite">[5]</a></td><td>Env.step(action) → obs, reward, done</td><td>Flat vector or image</td><td>Discrete or Box continuous</td></tr>
+<tr><td>ROS + Gazebo RL loop</td><td>ROS topics for obs/action</td><td>Sensor topic subscriptions</td><td>Motor command topics</td></tr>
+<tr><td>Custom Actor-Critic<a href="#ref-2" class="cite">[2]</a></td><td>Direct function call</td><td>State vector</td><td>Continuous torque/force</td></tr>
+<tr><td>Hierarchical RL (HRL)</td><td>Multi-level: manager/worker</td><td>Goals + raw state</td><td>Subgoal + primitive action</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>Gymnasium API:</strong> Industry-standard interface with <code>reset()</code>, <code>step(action)</code>, <code>render()</code>. Enforces clean separation between agent and environment. Widely supported by all major RL libraries (Stable Baselines3, RLlib, CleanRL).</p>
+<p><strong>ROS + Gazebo:</strong> Necessary for real-time deployment but adds significant infrastructure complexity during the design phase; better suited for Q10 integration.</p>
+<p><strong>Custom Actor-Critic:</strong> Maximally flexible but lacks standardization, making it harder to swap algorithms or benchmark.</p>
+<p><strong>HRL:</strong> Could decompose depth/bearing into sub-tasks, but adds training complexity for a system with only 3 DOF.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Gymnasium-style API</strong> — Provides the cleanest agent-environment boundary. The environment wraps the UUV physics, exposing a continuous observation vector (fused sensor state) and a continuous action vector (left motor PWM, right motor PWM, pump command). This pattern enables seamless transition from simulation (Q8) to ROS deployment (Q10)<a href="#ref-5" class="cite">[5]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning</h3>
+<p>The architecture separates into five modules: <strong>SensorPreprocessor</strong> (raw → fused state), <strong>UUVEnvironment</strong> (Gymnasium interface), <strong>RLAgent</strong> (actor + critic networks), <strong>ReplayBuffer</strong> (transition storage), and <strong>TrainingLoop</strong> (orchestration). Data flows as: Raw Sensors → SensorPreprocessor → observation → RLAgent → action → UUVEnvironment → (new obs, reward) → ReplayBuffer → RLAgent (training).</p>
+
+<h3 class="sub">④ Functional Architecture Diagram</h3>
+<div class="svg-wrap">
+<svg viewBox="0 0 820 400" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<defs>
+<marker id="ar1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker>
+<marker id="ar2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/></marker>
+<marker id="ar3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#10d880"/></marker>
+<marker id="ar4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8b5cf6"/></marker>
+</defs>
+<text x="410" y="22" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">Functional Architecture — RL Agent + Environment</text>
+<!-- Environment boundary -->
+<rect x="10" y="35" width="500" height="350" rx="12" fill="none" stroke="#1f2d47" stroke-width="2" stroke-dasharray="8"/>
+<text x="25" y="55" fill="#4f6480" font-size="10" font-weight="600">ENVIRONMENT</text>
+<!-- Agent boundary -->
+<rect x="520" y="35" width="290" height="350" rx="12" fill="none" stroke="#00d4ff" stroke-width="2" stroke-dasharray="8"/>
+<text x="535" y="55" fill="#00d4ff" font-size="10" font-weight="600">RL AGENT</text>
+<!-- Physical World -->
+<rect x="30" y="70" width="150" height="70" rx="8" fill="#161e30" stroke="#f43f5e" stroke-width="1.5"/>
+<text x="105" y="95" fill="#f43f5e" font-size="11" text-anchor="middle" font-weight="600">UUV Physics</text>
+<text x="105" y="112" fill="#4f6480" font-size="9" text-anchor="middle">3-DOF dynamics</text>
+<text x="105" y="126" fill="#4f6480" font-size="9" text-anchor="middle">+ disturbances</text>
+<!-- Sensors -->
+<rect x="30" y="170" width="150" height="55" rx="8" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="105" y="192" fill="#8b5cf6" font-size="11" text-anchor="middle" font-weight="600">Sensor Suite</text>
+<text x="105" y="210" fill="#4f6480" font-size="9" text-anchor="middle">IMU + Mag + Press</text>
+<!-- Sensor Fusion -->
+<rect x="230" y="110" width="150" height="60" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="305" y="135" fill="#f59e0b" font-size="11" text-anchor="middle" font-weight="600">Sensor Fusion</text>
+<text x="305" y="152" fill="#4f6480" font-size="9" text-anchor="middle">Compl. filter → obs(12D)</text>
+<!-- Actuators -->
+<rect x="30" y="260" width="150" height="55" rx="8" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="105" y="282" fill="#10d880" font-size="11" text-anchor="middle" font-weight="600">Actuators</text>
+<text x="105" y="300" fill="#4f6480" font-size="9" text-anchor="middle">Motors + Pump</text>
+<!-- Reward Comp -->
+<rect x="230" y="250" width="150" height="55" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="305" y="272" fill="#f59e0b" font-size="11" text-anchor="middle" font-weight="600">Reward Engine</text>
+<text x="305" y="290" fill="#4f6480" font-size="9" text-anchor="middle">Multi-obj. shaped</text>
+<!-- Waypoint Manager -->
+<rect x="230" y="335" width="150" height="40" rx="8" fill="#161e30" stroke="#4f6480" stroke-width="1"/>
+<text x="305" y="360" fill="#94a3b8" font-size="10" text-anchor="middle">Waypoint Manager</text>
+<!-- Actor -->
+<rect x="545" y="80" width="240" height="65" rx="8" fill="#161e30" stroke="#00d4ff" stroke-width="2"/>
+<text x="665" y="105" fill="#00d4ff" font-size="12" text-anchor="middle" font-weight="700">Actor π(s;φ)</text>
+<text x="665" y="125" fill="#94a3b8" font-size="9" text-anchor="middle">2×256 ReLU → 3D tanh output</text>
+<!-- Critic -->
+<rect x="545" y="165" width="240" height="55" rx="8" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="665" y="188" fill="#8b5cf6" font-size="11" text-anchor="middle" font-weight="600">Twin Critics Q₁, Q₂</text>
+<text x="665" y="205" fill="#4f6480" font-size="9" text-anchor="middle">2×256 ReLU → scalar Q</text>
+<!-- Replay Buffer -->
+<rect x="545" y="245" width="240" height="50" rx="8" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="665" y="268" fill="#10d880" font-size="11" text-anchor="middle" font-weight="600">Replay Buffer</text>
+<text x="665" y="283" fill="#4f6480" font-size="9" text-anchor="middle">FIFO 100k transitions</text>
+<!-- Training Loop -->
+<rect x="545" y="315" width="240" height="40" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1"/>
+<text x="665" y="340" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="600">Training Loop (gradient updates)</text>
+<!-- Arrows -->
+<line x1="105" y1="140" x2="105" y2="170" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#ar4)"/>
+<line x1="180" y1="195" x2="230" y2="145" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#ar4)"/>
+<text x="195" y="162" fill="#8b5cf6" font-size="8">raw_data</text>
+<line x1="380" y1="130" x2="545" y2="105" stroke="#f59e0b" stroke-width="2" marker-end="url(#ar2)"/>
+<text x="445" y="110" fill="#f59e0b" font-size="9" font-weight="600">obs(12D)</text>
+<line x1="545" y1="125" x2="380" y2="270" stroke="#10d880" stroke-width="2" marker-end="url(#ar3)"/>
+<text x="445" y="200" fill="#10d880" font-size="9" font-weight="600">action(3D)</text>
+<line x1="230" y1="275" x2="180" y2="280" stroke="#10d880" stroke-width="1.5" marker-end="url(#ar3)"/>
+<line x1="380" y1="265" x2="545" y2="265" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ar2)"/>
+<text x="455" y="258" fill="#f59e0b" font-size="8">reward</text>
+<line x1="665" y1="295" x2="665" y2="315" stroke="#f59e0b" stroke-width="1" marker-end="url(#ar2)"/>
+<line x1="665" y1="220" x2="665" y2="245" stroke="#10d880" stroke-width="1" marker-end="url(#ar3)"/>
+</svg>
+<div class="svg-caption">Figure 4 — Functional Architecture. Left: Environment boundary (physics, sensors, fusion, reward). Right: RL Agent (actor, twin critics, replay buffer, training loop). Bold arrows = main data loop.</div>
+</div>
+
+<div class="analysis"><div class="analysis-title">📊 Architecture Summary</div><ul>
+<li>5 functional modules with clear data-flow boundaries matching the Gymnasium API contract: <code>step(action) → obs, reward, done, truncated, info</code>.</li>
+<li>Observation path: 10 raw sensor values → complementary filter → 12D fused vector including error terms and their derivatives.</li>
+<li>Action path: 3D vector [u_L, u_R, u_P] from actor tanh output, executed on H-bridge PWM drivers and pump relay.</li>
+<li>Replay buffer enables off-policy learning (TD3), storing 100k transitions as (s, a, r, s', done) tuples.</li>
+<li>Waypoint manager publishes current target (bearing, depth) which the reward engine and sensor fusion both reference.</li>
+</ul></div>
+</section>
+<!-- ══ Q3 — Variable Space Definition ════ -->
+<section class="section" id="s5">
+<h2 class="st"><span class="section-num v">Q3</span>Variable Space Definition</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Model</th><th>State Representation</th><th>Action Space</th><th>Assumptions</th></tr>
+<tr><td>Raw sensor vector</td><td>All raw sensor readings concatenated</td><td>Continuous PWM + pump</td><td>Agent learns all processing</td></tr>
+<tr><td>Fused navigation state<a href="#ref-4" class="cite">[4]</a></td><td>Bearing, depth, rates, errors from setpoint</td><td>Continuous</td><td>Requires sensor fusion</td></tr>
+<tr><td>Image-based (CNN input)</td><td>2D sensor history matrix</td><td>Discrete or continuous</td><td>High compute; suits vision tasks</td></tr>
+<tr><td>Hybrid state + error</td><td>Fused state + integral/derivative of error terms</td><td>Continuous</td><td>PID-inspired augmentation</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>Raw sensor:</strong> 15-dimensional raw vector (3-axis accel + 3 gyro + 3 mag + 1 pressure + angular rates). Requires the RL agent to learn sensor fusion internally — wasteful given well-understood complementary/Kalman filters.</p>
+<p><strong>Fused navigation state:</strong> Compact after sensor fusion — bearing, bearing error, heading rate, depth, depth error, depth rate, forward speed, pitch, roll. More sample-efficient since the agent focuses on control, not perception.</p>
+<p><strong>Image-based:</strong> Completely unnecessary — we have low-dimensional sensor data, not camera feeds. Would massively increase training time.</p>
+<p><strong>Hybrid state + error:</strong> Augments fused state with integral and derivative of tracking errors, giving the agent direct access to PID-like signals — most information-rich without excessive dimensionality.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Hybrid fused state + error terms</strong> — 12-dimensional observation: [bearing_error, depth_error, heading_rate, depth_rate, pitch, roll, forward_speed, ∫e_ψ, ∫e_z, d_wp, ė_ψ, ė_z]. Action space is 3D: [left_motor PWM ∈ [-1,1], right_motor PWM ∈ [-1,1], pump_command ∈ {-1, 0, 1}]<a href="#ref-5" class="cite">[5]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning — Observation Space</h3>
+<div class="formula">Observation: o = [e_ψ, e_z, ψ̇, ż, θ, φ, v_x, ∫e_ψ dt, ∫e_z dt, d_wp, ė_ψ, ė_z] ∈ ℝ¹²</div>
+<div class="formula">Action: a = [u_L, u_R, u_P] ∈ [-1,1]² × {-1, 0, 1}</div>
+
+<div class="tw"><table>
+<tr><th>Parameter</th><th>Symbol</th><th>Range</th><th>Units</th><th>Justification</th></tr>
+<tr><td>Bearing error</td><td>e_ψ</td><td>[-π, π]</td><td>rad</td><td>Signed angular error to target bearing</td></tr>
+<tr><td>Depth error</td><td>e_z</td><td>[-50, 50]</td><td>m</td><td>Max operating depth ~50 m for 50 kg UUV</td></tr>
+<tr><td>Heading rate</td><td>ψ̇</td><td>[-2, 2]</td><td>rad/s</td><td>Gyroscope z-axis reading</td></tr>
+<tr><td>Depth rate</td><td>ż</td><td>[-2, 2]</td><td>m/s</td><td>Pressure time derivative</td></tr>
+<tr><td>Pitch</td><td>θ</td><td>[-π/2, π/2]</td><td>rad</td><td>From accelerometer + gyro fusion</td></tr>
+<tr><td>Roll</td><td>φ</td><td>[-π/2, π/2]</td><td>rad</td><td>From accelerometer + gyro fusion</td></tr>
+<tr><td>Forward speed</td><td>v_x</td><td>[0, 3]</td><td>m/s</td><td>Accelerometer dead-reckoning (∫a_x·dt with high-pass drift correction)</td></tr>
+<tr><td>Integral bearing error</td><td>∫e_ψ dt</td><td>[-10, 10]</td><td>rad·s</td><td>Clamped integrator for steady-state correction</td></tr>
+<tr><td>Integral depth error</td><td>∫e_z dt</td><td>[-50, 50]</td><td>m·s</td><td>Clamped integrator for steady-state correction</td></tr>
+<tr><td>Distance to waypoint</td><td>d_wp</td><td>[0, 1000]</td><td>m</td><td>Dead reckoning estimate</td></tr>
+<tr><td>Bearing error derivative</td><td>ė_ψ</td><td>[-5, 5]</td><td>rad/s</td><td>Finite difference of e_ψ</td></tr>
+<tr><td>Depth error derivative</td><td>ė_z</td><td>[-5, 5]</td><td>m/s</td><td>Finite difference of e_z</td></tr>
+</table></div>
+
+<h3 class="sub">④ Discussion</h3>
+<p>The observation vector is designed to provide the RL agent with a PID-like information set: the error terms give proportional signals, the derivatives give rate-of-change (derivative signals), and the integral terms provide accumulated error for steady-state correction. This allows the RL agent to <em>discover</em> nonlinear combinations of these signals that outperform classical PID tuning, while not burdening it with raw sensor fusion.</p>
+<p>The action space mixes continuous (motor PWM) and discrete (pump). For the TD3 algorithm (Q6), we treat the pump as a continuous variable in [-1, 1] and apply rounding to {-1, 0, 1} at execution time with hysteresis thresholds at ±0.33. This avoids the complexity of hybrid action space algorithms while preserving differentiability for policy gradient updates.</p>
+<p>All observation dimensions are normalized to [-1, 1] before feeding the neural network, using the known physical bounds listed in the parameter table. This normalization is critical for stable gradient-based training — without it, dimensions with large ranges (e.g., d_wp ∈ [0, 1000]) would dominate the loss gradients over small-range dimensions (e.g., ψ̇ ∈ [-2, 2]).</p>
+</section>
+
+<!-- ══ Q4 — Sensor Data Processing ══════ -->
+<section class="section" id="s6">
+<h2 class="st"><span class="section-num v">Q4</span>Sensor Data Processing</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Algorithm</th><th>Prior Knowledge</th><th>Cost</th><th>Online</th><th>Accuracy</th></tr>
+<tr><td>Complementary Filter</td><td>Low — single α</td><td>O(1)</td><td>Yes</td><td>Good for attitude</td></tr>
+<tr><td>Extended Kalman Filter<a href="#ref-4" class="cite">[4]</a></td><td>Medium — Q, R matrices</td><td>O(n³)</td><td>Yes</td><td>Excellent with tuning</td></tr>
+<tr><td>Unscented Kalman Filter</td><td>Medium — covariances</td><td>~3× EKF</td><td>Yes</td><td>Better nonlinear</td></tr>
+<tr><td>Madgwick AHRS<a href="#ref-4" class="cite">[4]</a></td><td>Low — single β</td><td>O(1)</td><td>Yes</td><td>Very good attitude</td></tr>
+<tr><td>Particle Filter</td><td>High — distribution</td><td>O(N particles)</td><td>Yes</td><td>Best multimodal</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>Complementary Filter:</strong> Combines gyro integration (high-frequency) with accelerometer/magnetometer correction (low-frequency) using a single parameter α. Sufficient for attitude estimation on a resource-constrained embedded system. The RL agent can compensate for residual sensor noise through its learned policy.</p>
+<p><strong>EKF:</strong> Gold standard for navigation, but requires careful noise covariance tuning — the matrices Q and R are difficult to set correctly for unknown underwater disturbances.</p>
+<p><strong>UKF:</strong> Better for highly nonlinear systems but ~3× more expensive per step — marginal benefit for this 12-state system.</p>
+<p><strong>Madgwick AHRS:</strong> Purpose-built for IMU+magnetometer fusion with a single tuning parameter. Does not estimate position/velocity though.</p>
+<p><strong>Particle Filter:</strong> Computationally prohibitive for real-time embedded control at high sample rates.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Complementary Filter for attitude + direct pressure for depth</strong> — Best complexity-accuracy trade-off for embedded deployment (Q9). Attitude (pitch, roll, heading) fused from gyro + accel + mag with α = 0.98; depth from pressure with low-pass filter; heading rate from gyro z-axis. Feeds the 12D observation defined in Q3<a href="#ref-4" class="cite">[4]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning</h3>
+<div class="formula">Complementary Filter:  θ̂(t) = α · (θ̂(t-1) + ω·Δt) + (1-α) · θ_accel</div>
+<div class="formula">Tilt-Compensated Heading:  ψ = atan2(m_y·cos(φ) - m_z·sin(φ),  m_x·cos(θ) + m_y·sin(θ)·sin(φ) + m_z·sin(θ)·cos(φ))</div>
+<div class="formula">Depth from Pressure:  z = (P - P_atm) / (ρ · g),   ρ=1025 kg/m³, g=9.81 m/s²</div>
+
+<div class="tw"><table>
+<tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
+<tr><td>Complementary filter weight</td><td>α</td><td>0.98</td><td>98% gyro trust — IMU sample rate ≫ drift rate</td></tr>
+<tr><td>Low-pass cutoff (depth)</td><td>f_c</td><td>5 Hz</td><td>Removes pressure sensor noise above Nyquist/10</td></tr>
+<tr><td>Seawater density</td><td>ρ</td><td>1025 kg/m³</td><td>Standard seawater at 15°C</td></tr>
+<tr><td>Atmospheric pressure</td><td>P_atm</td><td>101325 Pa</td><td>Sea-level standard</td></tr>
+<tr><td>Sample period</td><td>Δt</td><td>0.01 s</td><td>100 Hz typical MEMS IMU rate</td></tr>
+</table></div>
+
+<h3 class="sub">④ Data Processing Pipeline</h3>
+<div class="svg-wrap">
+<svg viewBox="0 0 820 260" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<defs><marker id="arp" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker></defs>
+<text x="410" y="20" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">Sensor Processing Pipeline (4 stages)</text>
+<!-- Stage 1 -->
+<rect x="15" y="40" width="130" height="80" rx="8" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="80" y="60" fill="#8b5cf6" font-size="10" text-anchor="middle" font-weight="600">① Raw Acq.</text>
+<text x="80" y="78" fill="#4f6480" font-size="8" text-anchor="middle">accel(3) @ N_max Hz</text>
+<text x="80" y="90" fill="#4f6480" font-size="8" text-anchor="middle">gyro(3) @ N_max Hz</text>
+<text x="80" y="102" fill="#4f6480" font-size="8" text-anchor="middle">mag(3) + press(1)</text>
+<!-- Stage 2 -->
+<rect x="185" y="40" width="160" height="80" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="265" y="60" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="600">② Attitude Fusion</text>
+<text x="265" y="78" fill="#4f6480" font-size="8" text-anchor="middle">Compl. filter (α=0.98)</text>
+<text x="265" y="90" fill="#4f6480" font-size="8" text-anchor="middle">→ pitch θ, roll φ</text>
+<text x="265" y="102" fill="#4f6480" font-size="8" text-anchor="middle">Tilt-comp heading → ψ</text>
+<!-- Stage 3 -->
+<rect x="385" y="40" width="160" height="80" rx="8" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="465" y="60" fill="#10d880" font-size="10" text-anchor="middle" font-weight="600">③ Depth Comp.</text>
+<text x="465" y="78" fill="#4f6480" font-size="8" text-anchor="middle">z=(P-P_atm)/(ρ·g)</text>
+<text x="465" y="90" fill="#4f6480" font-size="8" text-anchor="middle">Low-pass filter (5Hz)</text>
+<text x="465" y="102" fill="#4f6480" font-size="8" text-anchor="middle">→ depth z, rate ż</text>
+<!-- Stage 4 -->
+<rect x="585" y="40" width="220" height="80" rx="8" fill="#161e30" stroke="#00d4ff" stroke-width="2"/>
+<text x="695" y="60" fill="#00d4ff" font-size="10" text-anchor="middle" font-weight="700">④ Obs. Assembly</text>
+<text x="695" y="78" fill="#4f6480" font-size="8" text-anchor="middle">e_ψ = ψ_target - ψ</text>
+<text x="695" y="90" fill="#4f6480" font-size="8" text-anchor="middle">e_z = z_target - z</text>
+<text x="695" y="102" fill="#4f6480" font-size="8" text-anchor="middle">+ ∫errors + d/dt errors → 12D</text>
+<!-- Arrows -->
+<line x1="145" y1="80" x2="185" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arp)"/>
+<line x1="345" y1="80" x2="385" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arp)"/>
+<line x1="545" y1="80" x2="585" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arp)"/>
+<!-- Output arrow -->
+<rect x="585" y="145" width="220" height="35" rx="6" fill="#00d4ff" fill-opacity="0.1" stroke="#00d4ff" stroke-width="1.5"/>
+<text x="695" y="167" fill="#00d4ff" font-size="11" text-anchor="middle" font-weight="700">obs_vector(12D) → RL Agent</text>
+<line x1="695" y1="120" x2="695" y2="145" stroke="#00d4ff" stroke-width="2" marker-end="url(#arp)"/>
+<!-- Target input -->
+<rect x="585" y="200" width="140" height="30" rx="6" fill="#161e30" stroke="#4f6480" stroke-width="1"/>
+<text x="655" y="220" fill="#4f6480" font-size="9" text-anchor="middle">Waypoint (ψ_t, z_t)</text>
+<line x1="655" y1="200" x2="695" y2="120" stroke="#4f6480" stroke-width="1" stroke-dasharray="3"/>
+</svg>
+<div class="svg-caption">Figure 5 — Data processing pipeline. Four stages from raw acquisition to 12D observation vector, running at 100 Hz.</div>
+</div>
+<p>The pipeline is modular — each stage is a separate function enabling unit testing and future replacement (e.g., swapping complementary filter for EKF without changing downstream stages). The critical design decision is placing sensor fusion <em>outside</em> the RL agent: this gives the agent pre-processed, semantically meaningful inputs rather than raw noise, dramatically improving sample efficiency during training.</p>
+</section>
+
+<!-- ══ Q5 — Reward Strategy ═════════════ -->
+<section class="section" id="s7">
+<h2 class="st"><span class="section-num v">Q5</span>Reward Strategy &amp; Function</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Model</th><th>Complexity</th><th>Effectiveness</th><th>Assumptions</th></tr>
+<tr><td>Sparse binary reward</td><td>Very Low</td><td>Poor — delayed signal</td><td>Only terminal success/fail</td></tr>
+<tr><td>Dense shaped reward<a href="#ref-5" class="cite">[5]</a></td><td>Medium</td><td>Good — continuous feedback</td><td>Requires domain shaping knowledge</td></tr>
+<tr><td>Multi-objective weighted sum</td><td>Medium</td><td>Good with tuned weights</td><td>Linear combination of objectives</td></tr>
+<tr><td>Hindsight Experience Replay</td><td>High</td><td>Excellent for sparse</td><td>Goal-conditioned policy required</td></tr>
+<tr><td>Potential-based shaping<a href="#ref-5" class="cite">[5]</a></td><td>Medium</td><td>Preserves optimal policy</td><td>Potential function design needed</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>Sparse binary:</strong> +1 at waypoint arrival, 0 otherwise. With trajectories spanning hundreds of steps, the agent receives almost no learning signal — extremely slow convergence.</p>
+<p><strong>Dense shaped reward:</strong> Proportional to state improvement at every step. Critical for continuous control where immediate feedback on bearing/depth errors is essential.</p>
+<p><strong>Multi-objective weighted sum:</strong> Natural fit for our problem with explicit trade-offs between bearing tracking, depth tracking, energy, and time.</p>
+<p><strong>HER:</strong> Powerful for sparse goal-reaching but unnecessary when dense shaping is straightforward.</p>
+<p><strong>Potential-based shaping:</strong> Guarantees the shaped reward preserves optimal policies — a theoretical safeguard against reward hacking.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum with potential-based shaping</strong> — The error terms use shaping: R_shaped = γ·Φ(s') - Φ(s), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. Combined with energy penalty and terminal bonuses, this provides dense feedback while preserving optimality<a href="#ref-5" class="cite">[5]</a><a href="#ref-3" class="cite">[3]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning</h3>
+<div class="formula">R(s, a, s') = w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp − w₄·‖a‖² − w₅·Δt + R_bonus</div>
+<div class="formula">where  Δx = x(t) − x(t+1)   (positive when error decreases)</div>
+<div class="formula">R_bonus = +100 if d_wp &lt; 5m (arrival),  −50 if |e_z| &gt; 50m or |θ| &gt; 60°</div>
+
+<div class="tw"><table>
+<tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
+<tr><td>Bearing weight</td><td>w₁</td><td>3.0</td><td>Primary navigation objective</td></tr>
+<tr><td>Depth weight</td><td>w₂</td><td>2.0</td><td>Secondary safety objective</td></tr>
+<tr><td>Distance weight</td><td>w₃</td><td>1.0</td><td>Encourages forward progress</td></tr>
+<tr><td>Energy penalty</td><td>w₄</td><td>0.05</td><td>Prevents actuator saturation</td></tr>
+<tr><td>Time penalty</td><td>w₅</td><td>0.01</td><td>Encourages time minimization</td></tr>
+<tr><td>Discount factor</td><td>γ</td><td>0.99</td><td>Long-horizon planning for waypoint nav</td></tr>
+</table></div>
+
+<h3 class="sub">④ Reward Strategy Discussion</h3>
+<div class="svg-wrap">
+<svg viewBox="0 0 820 220" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<text x="410" y="20" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">Reward Function Architecture</text>
+<!-- Inputs -->
+<rect x="15" y="50" width="110" height="30" rx="5" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/><text x="70" y="70" fill="#8b5cf6" font-size="9" text-anchor="middle">Δ|e_ψ| (bearing)</text>
+<rect x="15" y="90" width="110" height="30" rx="5" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/><text x="70" y="110" fill="#8b5cf6" font-size="9" text-anchor="middle">Δ|e_z| (depth)</text>
+<rect x="15" y="130" width="110" height="30" rx="5" fill="#161e30" stroke="#8b5cf6" stroke-width="1"/><text x="70" y="150" fill="#8b5cf6" font-size="9" text-anchor="middle">Δd_wp (dist)</text>
+<rect x="15" y="170" width="110" height="30" rx="5" fill="#161e30" stroke="#f43f5e" stroke-width="1"/><text x="70" y="190" fill="#f43f5e" font-size="9" text-anchor="middle">‖a‖² (energy)</text>
+<!-- Weights -->
+<rect x="170" y="50" width="55" height="30" rx="5" fill="#10d880" fill-opacity="0.15" stroke="#10d880" stroke-width="1"/><text x="197" y="70" fill="#10d880" font-size="10" text-anchor="middle" font-weight="700">×3.0</text>
+<rect x="170" y="90" width="55" height="30" rx="5" fill="#10d880" fill-opacity="0.15" stroke="#10d880" stroke-width="1"/><text x="197" y="110" fill="#10d880" font-size="10" text-anchor="middle" font-weight="700">×2.0</text>
+<rect x="170" y="130" width="55" height="30" rx="5" fill="#10d880" fill-opacity="0.15" stroke="#10d880" stroke-width="1"/><text x="197" y="150" fill="#10d880" font-size="10" text-anchor="middle" font-weight="700">×1.0</text>
+<rect x="170" y="170" width="55" height="30" rx="5" fill="#f43f5e" fill-opacity="0.15" stroke="#f43f5e" stroke-width="1"/><text x="197" y="190" fill="#f43f5e" font-size="10" text-anchor="middle" font-weight="700">×0.05</text>
+<!-- Summation -->
+<circle cx="310" cy="125" r="25" fill="#161e30" stroke="#00d4ff" stroke-width="2"/><text x="310" y="131" fill="#00d4ff" font-size="18" text-anchor="middle">Σ</text>
+<line x1="125" y1="65" x2="170" y2="65" stroke="#94a3b8" stroke-width="1"/><line x1="225" y1="65" x2="285" y2="115" stroke="#94a3b8" stroke-width="1"/>
+<line x1="125" y1="105" x2="170" y2="105" stroke="#94a3b8" stroke-width="1"/><line x1="225" y1="105" x2="285" y2="120" stroke="#94a3b8" stroke-width="1"/>
+<line x1="125" y1="145" x2="170" y2="145" stroke="#94a3b8" stroke-width="1"/><line x1="225" y1="145" x2="285" y2="130" stroke="#94a3b8" stroke-width="1"/>
+<line x1="125" y1="185" x2="170" y2="185" stroke="#94a3b8" stroke-width="1"/><line x1="225" y1="185" x2="285" y2="140" stroke="#94a3b8" stroke-width="1"/>
+<!-- Bonus block -->
+<rect x="370" y="50" width="130" height="60" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="435" y="70" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="600">Terminal Bonus</text>
+<text x="435" y="86" fill="#4f6480" font-size="8" text-anchor="middle">arrival: +100</text>
+<text x="435" y="98" fill="#4f6480" font-size="8" text-anchor="middle">safety viol: −50</text>
+<!-- Time penalty -->
+<rect x="370" y="135" width="130" height="30" rx="5" fill="#161e30" stroke="#4f6480" stroke-width="1"/>
+<text x="435" y="155" fill="#4f6480" font-size="9" text-anchor="middle">−w₅·Δt (time)</text>
+<!-- Final sum -->
+<circle cx="560" cy="105" r="20" fill="#161e30" stroke="#00d4ff" stroke-width="2"/><text x="560" y="111" fill="#00d4ff" font-size="14" text-anchor="middle">+</text>
+<line x1="335" y1="125" x2="540" y2="105" stroke="#00d4ff" stroke-width="1.5"/>
+<line x1="500" y1="80" x2="540" y2="100" stroke="#f59e0b" stroke-width="1"/>
+<line x1="500" y1="150" x2="540" y2="110" stroke="#4f6480" stroke-width="1"/>
+<!-- Output -->
+<rect x="620" y="85" width="180" height="40" rx="8" fill="#00d4ff" fill-opacity="0.1" stroke="#00d4ff" stroke-width="2"/>
+<text x="710" y="110" fill="#00d4ff" font-size="12" text-anchor="middle" font-weight="700">R_total → Agent</text>
+<line x1="580" y1="105" x2="620" y2="105" stroke="#00d4ff" stroke-width="2"/>
+</svg>
+<div class="svg-caption">Figure 6 — Reward function architecture. Weighted sum of error improvements + terminal bonus + time penalty = total scalar reward.</div>
+</div>
+<p>The weight hierarchy (w₁=3.0 > w₂=2.0 > w₃=1.0) encodes the priority: bearing accuracy is more critical than depth accuracy (the vehicle can adjust depth more easily than heading in currents), and both are more important than forward speed. The energy penalty (w₄=0.05) is intentionally small — it should discourage actuator saturation but not prevent aggressive maneuvers during course corrections. The time penalty (w₅=0.01) creates a constant negative baseline that encourages the agent to reach waypoints quickly rather than hover in a low-error state.</p>
+<p>The potential-based shaping guarantee (from Ng et al., 1999) ensures that the optimal policy under the shaped reward R' is identical to the optimal policy under the true task reward R — preventing pathological behaviors where the agent exploits the shaping signal instead of genuinely solving the task. This is particularly important during the early stages of training when the policy is far from optimal.</p>
+</section>
+<!-- ══ Q6 — RL Algorithm ═════════════════ -->
+<section class="section" id="s8">
+<h2 class="st"><span class="section-num v">Q6</span>RL Algorithm — Pseudocode &amp; Keras</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Algorithm</th><th>Prior Knowledge</th><th>On/Off Policy</th><th>Action Space</th><th>Sample Efficiency</th></tr>
+<tr><td>DQN<a href="#ref-1" class="cite">[1]</a></td><td>None</td><td>Off-policy</td><td>Discrete only</td><td>Moderate</td></tr>
+<tr><td>DDPG<a href="#ref-2" class="cite">[2]</a></td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Good</td></tr>
+<tr><td>TD3 (Twin Delayed DDPG)</td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Very good</td></tr>
+<tr><td>PPO<a href="#ref-3" class="cite">[3]</a></td><td>None</td><td>On-policy</td><td>Both</td><td>Moderate</td></tr>
+<tr><td>SAC (Soft Actor-Critic)</td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Excellent</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>DQN:</strong> Limited to discrete actions. Discretizing PWM into a fine grid creates a combinatorial explosion (e.g., 100 × 100 × 3 = 30,000 discrete actions) — impractical<a href="#ref-1" class="cite">[1]</a>.</p>
+<p><strong>DDPG:</strong> First successful continuous-control deep RL. Known to be brittle: overestimation bias in the Q-function often causes divergence<a href="#ref-2" class="cite">[2]</a>.</p>
+<p><strong>TD3:</strong> Addresses DDPG's issues with twin critics, delayed policy updates, and target policy smoothing. Significantly more stable.</p>
+<p><strong>PPO:</strong> Very stable on-policy training but requires ~10× more samples than off-policy methods. Since UUV simulation is expensive, sample efficiency matters.</p>
+<p><strong>SAC:</strong> Maximum-entropy framework with automatic temperature tuning. Best sample efficiency but adds entropy tuning complexity.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>TD3 (Twin Delayed DDPG)</strong> — Three stability improvements: (1) twin Q-networks reducing overestimation, (2) delayed policy updates (every 2 critic updates), (3) target policy smoothing. Provides the robustness needed for safety-sensitive UUV control. Pump command treated as continuous [-1,1] with rounding at execution<a href="#ref-2" class="cite">[2]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning — TD3 Pseudocode</h3>
+<div class="code-card">
+<div class="code-toolbar"><span class="code-lang">PSEUDOCODE</span><span class="code-file">td3_algorithm.txt</span></div>
+<pre class="code-body" style="color:var(--text)">
+<span class="cmt"># ── TD3: Twin Delayed Deep Deterministic Policy Gradient ──</span>
+
+<span class="kw">1.</span>  Initialize critic networks Q₁(s,a; θ₁), Q₂(s,a; θ₂) with random weights
+<span class="kw">2.</span>  Initialize actor network π(s; φ) with random weights
+<span class="kw">3.</span>  Initialize target networks: θ₁' ← θ₁,  θ₂' ← θ₂,  φ' ← φ
+<span class="kw">4.</span>  Initialize replay buffer B with capacity N = 100,000
+
+<span class="kw">5.</span>  <span class="imp">FOR</span> episode = 1 <span class="imp">TO</span> M:
+<span class="kw">6.</span>      Reset environment → initial state s₀
+<span class="kw">7.</span>      <span class="imp">FOR</span> t = 1 <span class="imp">TO</span> T (max_steps_per_episode):
+
+            <span class="cmt"># ── Exploration ──</span>
+<span class="kw">8.</span>          a = π(s; φ) + ε,    ε ~ 𝒩(0, σ)         <span class="cmt"># Add Gaussian noise</span>
+<span class="kw">9.</span>          a = clip(a, -1, +1)                       <span class="cmt"># Enforce action bounds</span>
+
+            <span class="cmt"># ── Environment interaction ──</span>
+<span class="kw">10.</span>         Execute a → observe r, s', done
+<span class="kw">11.</span>         Store (s, a, r, s', done) in B
+
+            <span class="cmt"># ── Training (if buffer has enough samples) ──</span>
+<span class="kw">12.</span>         Sample mini-batch {(sᵢ, aᵢ, rᵢ, s'ᵢ, dᵢ)} from B
+
+            <span class="cmt"># ── Target computation ──</span>
+<span class="kw">13.</span>         ã' = π(s'; φ') + clip(ε̃, -c, c),   ε̃ ~ 𝒩(0, σ̃)
+<span class="kw">14.</span>         y = r + γ · (1 - d) · min(Q₁'(s', ã'; θ₁'), Q₂'(s', ã'; θ₂'))
+
+            <span class="cmt"># ── Critic update ──</span>
+<span class="kw">15.</span>         Update θ₁ by minimizing:  L₁ = 𝔼[(y − Q₁(s, a; θ₁))²]
+<span class="kw">16.</span>         Update θ₂ by minimizing:  L₂ = 𝔼[(y − Q₂(s, a; θ₂))²]
+
+            <span class="cmt"># ── Delayed actor update (every d steps) ──</span>
+<span class="kw">17.</span>         <span class="imp">IF</span> t <span class="imp">mod</span> d == 0:
+<span class="kw">18.</span>             Update φ by maximizing: J = 𝔼[Q₁(s, π(s; φ); θ₁)]
+<span class="kw">19.</span>             θ₁' ← τ·θ₁ + (1−τ)·θ₁'     <span class="cmt"># Soft update targets</span>
+<span class="kw">20.</span>             θ₂' ← τ·θ₂ + (1−τ)·θ₂'
+<span class="kw">21.</span>             φ'  ← τ·φ  + (1−τ)·φ'
+
+<span class="kw">22.</span>         s ← s'
+<span class="kw">23.</span>         <span class="imp">IF</span> done: <span class="imp">BREAK</span>
+<span class="kw">24.</span>     <span class="imp">END FOR</span>
+<span class="kw">25.</span> <span class="imp">END FOR</span>
+<span class="kw">26.</span> <span class="imp">RETURN</span> trained actor π(s; φ)
+</pre>
+</div>
+
+<h3 class="sub">④ Keras Implementation</h3>
+<p>Complete TD3 implementation in Keras/TensorFlow — a reference for deployment. This code requires <code>tensorflow&ge;2.12</code> and cannot run in the browser, but the architecture and training loop are fully specified.</p>
+<div class="code-card">
+<div class="code-toolbar"><span class="code-lang">PYTHON / KERAS</span><span class="code-file">td3_keras.py · reference implementation</span></div>
+<pre class="code-body" id="code-q6ref"></pre>
+</div>
+
+<p style="margin-top:24px"><strong>Live Demonstration:</strong> Pure-Python TD3 implementation trained on a simplified UUV environment (bearing + depth control). Mirrors the Keras architecture above with twin critics, delayed policy updates, and target smoothing.</p>
+<div class="code-card">
+<div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">td3_demo.py · toy UUV training</span><button class="run-btn" onclick="runScript('q6')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button></div>
+<pre class="code-body" id="code-q6"></pre>
+<div class="out-panel" id="out-q6"><div class="out-hdr"><span class="out-label">Output</span><span class="out-status" id="stat-q6"></span></div><pre class="out-body" id="res-q6"></pre></div>
+</div>
+
+<div class="analysis"><div class="analysis-title">📊 Implementation Notes</div><ul>
+<li>The actor network uses 2 hidden layers of 256 ReLU units and a tanh output layer producing actions in [-1, 1] — a standard architecture for continuous control<a href="#ref-2" class="cite">[2]</a>.</li>
+<li>Twin critics Q₁ and Q₂ receive the concatenation of state and action as input, each producing a scalar Q-value. The minimum of both is used for target computation, reducing overestimation bias.</li>
+<li>Delayed policy update (d=2) means the actor is updated only every 2nd critic update, preventing the actor from exploiting transient critic inaccuracies.</li>
+<li>Soft target update with τ=0.005 ensures slow tracking of the main networks, stabilizing the Bellman targets.</li>
+<li>The replay buffer stores 100,000 transitions — sufficient for ~1000 episodes of 100 steps each, covering diverse state-action pairs.</li>
+</ul></div>
+</section>
+
+<!-- ══ Q7 — Convergence Optimization ════ -->
+<section class="section" id="s9">
+<h2 class="st"><span class="section-num v">Q7</span>Convergence Speed Estimation &amp; Optimization</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Method</th><th>Complexity</th><th>Speedup</th><th>Assumptions</th></tr>
+<tr><td>Learning rate scheduling<a href="#ref-5" class="cite">[5]</a></td><td>Low</td><td>1.5–3×</td><td>Smooth loss landscape</td></tr>
+<tr><td>Prioritized Experience Replay (PER)</td><td>Medium</td><td>2–5×</td><td>TD-error correlates with learning value</td></tr>
+<tr><td>Layer normalization</td><td>Low</td><td>1.5–2×</td><td>Internal covariate shift</td></tr>
+<tr><td>Curriculum learning</td><td>Medium</td><td>3–10×</td><td>Task decomposes into difficulty levels</td></tr>
+<tr><td>Transfer learning</td><td>High</td><td>5–20×</td><td>Source domain exists and is similar</td></tr>
+<tr><td>Parallel rollouts</td><td>Medium</td><td>Linear in #envs</td><td>Environment is parallelizable</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>LR scheduling:</strong> Cosine annealing reduces oscillation near optima. Zero additional memory cost. Essential baseline technique for any deep RL training.</p>
+<p><strong>PER:</strong> Samples transitions with high TD-error more frequently, focusing learning on surprising or difficult experiences. Particularly effective for UUV navigation where most transitions are steady-state cruising but rare events (waypoint approach, disturbance) carry the most learning signal.</p>
+<p><strong>Layer normalization:</strong> Stabilizes gradient magnitudes across diverse observation dimensions (angles in radians vs. depth in meters vs. distance in hundreds of meters). Low-cost improvement.</p>
+<p><strong>Curriculum learning:</strong> Start with easy scenarios (calm water, nearby waypoints) and progressively increase difficulty. Highly effective for navigation tasks where the agent needs basic control before handling disturbances.</p>
+<p><strong>Transfer learning:</strong> Pre-train on simplified dynamics, then fine-tune on high-fidelity physics. High setup cost but significant payoff.</p>
+<p><strong>Parallel rollouts:</strong> Linear speedup in wall-clock time. Easily implemented with vectorized environments in frameworks like Stable Baselines3.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Combined: PER + Curriculum Learning + LR Scheduling</strong> — These three are complementary: PER improves <em>which</em> experiences to learn from, curriculum improves <em>which</em> scenarios to practice, and LR scheduling improves <em>how</em> to update weights. Expected combined speedup: 5–15× over vanilla TD3<a href="#ref-5" class="cite">[5]</a><a href="#ref-3" class="cite">[3]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning</h3>
+<div class="formula">PER Priority:    p_i = |δ_i| + ε,  where δ_i = TD-error for transition i</div>
+<div class="formula">Sampling Prob:   P(i) = p_i^α / Σ_k p_k^α,    α=0.6</div>
+<div class="formula">IS Weight:       w_i = (N · P(i))^(-β) / max_j(w_j),    β: 0.4 → 1.0</div>
+<div class="formula">Cosine LR:       η(t) = η_min + 0.5·(η_max − η_min)·(1 + cos(π·t/T))</div>
+
+<h3 class="sub">④ Discussion</h3>
+<p><strong>Prioritized Experience Replay</strong> replaces uniform sampling in the replay buffer with probability-weighted sampling based on TD-error magnitude. Transitions where the critic's prediction was most wrong (high |δ|) are sampled more frequently, focusing gradient updates on the most informative experiences. The importance sampling (IS) weights compensate for the bias introduced by non-uniform sampling, with the correction factor β annealing from 0.4 to 1.0 over training.</p>
+<p><strong>Curriculum learning</strong> structures training into four progressive stages: (1) <em>Calm baseline</em> — no current, nearby waypoint at 20 m, heading error < 30°; (2) <em>Mild disturbance</em> — 0.2 m/s current, 50 m waypoint; (3) <em>Moderate challenge</em> — 0.5 m/s current, 100 m waypoint, depth changes; (4) <em>Full difficulty</em> — random disturbances up to 1.0 m/s, multi-waypoint sequences. The agent must achieve a threshold performance (e.g., average reward > 80% of maximum) at each stage before advancing. This prevents catastrophic forgetting by ensuring fundamental control skills are solidified before adding complexity.</p>
+<p><strong>Cosine learning rate scheduling</strong> with η_max = 3×10⁻⁴ and η_min = 1×10⁻⁵ over the full training horizon provides large initial steps for exploration and small final steps for fine-tuning. The cosine shape avoids the sharp transitions of step-decay schedules.</p>
+<p><strong>Convergence estimation:</strong> We fit an exponential model R(t) = R_∞ − (R_∞ − R₀)·exp(−t/τ) to the smoothed reward trajectory. The time constant τ characterizes convergence speed, and we declare convergence when the running average exceeds 95% of R_∞ for 100 consecutive episodes. Based on similar UUV control problems in the literature, we estimate τ ≈ 250–400 episodes with the combined approach versus τ ≈ 800–1200 episodes for vanilla TD3 — a 3–5× improvement.</p>
+</section>
+
+<!-- ══ Q8 — Training & Evaluation ═══════ -->
+<section class="section" id="s10">
+<h2 class="st"><span class="section-num v">Q8</span>Training &amp; Evaluation Methodology</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Platform</th><th>Simulation Type</th><th>Physics Fidelity</th><th>Scalability</th><th>Learning Curve</th></tr>
+<tr><td>Gazebo + UUV Simulator<a href="#ref-6" class="cite">[6]</a></td><td>Physics-based (ODE/Bullet)</td><td>High — hydrodynamics</td><td>Single instance</td><td>Steep</td></tr>
+<tr><td>Custom Python simulator</td><td>Simplified dynamics</td><td>Low-Medium</td><td>Highly parallelizable</td><td>Low</td></tr>
+<tr><td>Isaac Gym (NVIDIA)</td><td>GPU-accelerated physics</td><td>High</td><td>Thousands parallel</td><td>Medium</td></tr>
+<tr><td>Unity ML-Agents</td><td>Game engine physics</td><td>Medium</td><td>Multiple instances</td><td>Medium</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>Gazebo + UUV Simulator:</strong> Highest fidelity with realistic hydrodynamic forces, buoyancy, and current models. The <code>uuv_simulator</code> ROS package provides ready-made vehicle models. Runs near real-time — impractical for millions of training steps.</p>
+<p><strong>Custom Python simulator:</strong> Simplified 3-DOF dynamics running 1000× faster than real-time. Ideal for rapid prototyping and policy pre-training.</p>
+<p><strong>Isaac Gym:</strong> GPU-accelerated parallel simulation — could train in hours. Requires NVIDIA GPU and significant setup.</p>
+<p><strong>Unity ML-Agents:</strong> Good visual debugging but physics not tuned for underwater dynamics without custom buoyancy/drag.</p>
+<div class="chosen"><div class="chosen-label">PHASE 1</div><p><strong>Custom Python simulator</strong> for rapid prototyping and initial policy training (millions of steps in minutes).</p></div>
+<div class="chosen"><div class="chosen-label">PHASE 2</div><p><strong>Gazebo + UUV Simulator</strong> for fine-tuning and validation with realistic hydrodynamics before real-world deployment<a href="#ref-6" class="cite">[6]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning</h3>
+<p>The training methodology follows a sim-to-real transfer pipeline: train fast in low-fidelity, fine-tune in high-fidelity, deploy on hardware. Four standardized evaluation scenarios validate the policy at each stage:</p>
+
+<h3 class="sub">④ Training &amp; Evaluation Pipeline</h3>
+<div class="svg-wrap">
+<svg viewBox="0 0 820 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<defs><marker id="atr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker></defs>
+<text x="410" y="22" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">Training &amp; Evaluation Pipeline</text>
+<!-- Phase 1 -->
+<rect x="15" y="45" width="240" height="120" rx="10" fill="#161e30" stroke="#10d880" stroke-width="2"/>
+<text x="135" y="68" fill="#10d880" font-size="12" text-anchor="middle" font-weight="700">PHASE 1: Python Sim</text>
+<text x="135" y="88" fill="#94a3b8" font-size="9" text-anchor="middle">Simplified 3-DOF dynamics</text>
+<text x="135" y="103" fill="#94a3b8" font-size="9" text-anchor="middle">1000× real-time speed</text>
+<text x="135" y="118" fill="#94a3b8" font-size="9" text-anchor="middle">~2M steps, curriculum stages 1-4</text>
+<text x="135" y="138" fill="#94a3b8" font-size="9" text-anchor="middle">Domain randomization: drag, mass</text>
+<text x="135" y="153" fill="#10d880" font-size="9" text-anchor="middle" font-weight="600">Output: pre-trained policy</text>
+<!-- Arrow -->
+<line x1="255" y1="105" x2="290" y2="105" stroke="#00d4ff" stroke-width="2" marker-end="url(#atr)"/>
+<!-- Phase 2 -->
+<rect x="290" y="45" width="240" height="120" rx="10" fill="#161e30" stroke="#f59e0b" stroke-width="2"/>
+<text x="410" y="68" fill="#f59e0b" font-size="12" text-anchor="middle" font-weight="700">PHASE 2: Gazebo Sim</text>
+<text x="410" y="88" fill="#94a3b8" font-size="9" text-anchor="middle">Full hydrodynamic model</text>
+<text x="410" y="103" fill="#94a3b8" font-size="9" text-anchor="middle">Real-time physics (ODE/Bullet)</text>
+<text x="410" y="118" fill="#94a3b8" font-size="9" text-anchor="middle">~50k steps, fine-tuning only</text>
+<text x="410" y="138" fill="#94a3b8" font-size="9" text-anchor="middle">Realistic sensor noise models</text>
+<text x="410" y="153" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="600">Output: validated policy</text>
+<!-- Arrow -->
+<line x1="530" y1="105" x2="565" y2="105" stroke="#00d4ff" stroke-width="2" marker-end="url(#atr)"/>
+<!-- Phase 3 -->
+<rect x="565" y="45" width="240" height="120" rx="10" fill="#161e30" stroke="#00d4ff" stroke-width="2"/>
+<text x="685" y="68" fill="#00d4ff" font-size="12" text-anchor="middle" font-weight="700">PHASE 3: Hardware</text>
+<text x="685" y="88" fill="#94a3b8" font-size="9" text-anchor="middle">STM32H7 + real UUV</text>
+<text x="685" y="103" fill="#94a3b8" font-size="9" text-anchor="middle">STM32Cube.AI INT8 at 100 Hz</text>
+<text x="685" y="118" fill="#94a3b8" font-size="9" text-anchor="middle">Pool testing → open water</text>
+<text x="685" y="138" fill="#94a3b8" font-size="9" text-anchor="middle">Safety monitor active (Q10)</text>
+<text x="685" y="153" fill="#00d4ff" font-size="9" text-anchor="middle" font-weight="600">Output: deployed system</text>
+<!-- Evaluation Scenarios -->
+<rect x="15" y="190" width="790" height="100" rx="10" fill="#0d1120" stroke="#1f2d47" stroke-width="1.5"/>
+<text x="410" y="212" fill="#fff" font-size="11" text-anchor="middle" font-weight="700">Standardized Evaluation Scenarios (applied at each phase)</text>
+<text x="105" y="238" fill="#10d880" font-size="10" text-anchor="middle" font-weight="600">S1: Calm Baseline</text>
+<text x="105" y="255" fill="#4f6480" font-size="8" text-anchor="middle">No current, 20m wp</text>
+<text x="105" y="268" fill="#4f6480" font-size="8" text-anchor="middle">Metrics: RMSE, time</text>
+<text x="305" y="238" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="600">S2: Cross-Current</text>
+<text x="305" y="255" fill="#4f6480" font-size="8" text-anchor="middle">0.5 m/s lateral, 100m wp</text>
+<text x="305" y="268" fill="#4f6480" font-size="8" text-anchor="middle">Metrics: RMSE, energy</text>
+<text x="510" y="238" fill="#f43f5e" font-size="10" text-anchor="middle" font-weight="600">S3: Sensor Failure</text>
+<text x="510" y="255" fill="#4f6480" font-size="8" text-anchor="middle">Mag dropout 5s-10s</text>
+<text x="510" y="268" fill="#4f6480" font-size="8" text-anchor="middle">Metrics: recovery time</text>
+<text x="710" y="238" fill="#8b5cf6" font-size="10" text-anchor="middle" font-weight="600">S4: Multi-WP Stress</text>
+<text x="710" y="255" fill="#4f6480" font-size="8" text-anchor="middle">5 waypoints, random</text>
+<text x="710" y="268" fill="#4f6480" font-size="8" text-anchor="middle">Metrics: success rate</text>
+</svg>
+<div class="svg-caption">Figure 7 — Three-phase training pipeline with sim-to-real transfer. Four evaluation scenarios are applied at every phase to ensure consistent benchmarking.</div>
+</div>
+
+<p><strong>Domain randomization</strong> in Phase 1 varies drag coefficients (±30%), vehicle mass (±10%), sensor noise levels (±50%), and current profiles across episodes. This forces the policy to be robust to modeling uncertainty, bridging the sim-to-real gap when transferring to Gazebo (Phase 2) and hardware (Phase 3).</p>
+<p><strong>Evaluation metrics</strong> at each phase include: bearing RMSE (target < 5°), depth RMSE (target < 0.5 m), time to waypoint, energy consumed, pump switch count (indicator of control smoothness), and success rate (% of waypoints reached). Phase 2 acceptance criteria: all S1-S4 metrics must be within 20% of Phase 1 values, confirming successful transfer.</p>
+
+<h3 class="sub">Recommended Additional Test Scenarios</h3>
+<p><strong>Thermal Stratification:</strong> Simulate a thermocline at 15 m causing density changes — measure depth RMSE above vs. below the thermocline and pump activity rate.</p>
+<p><strong>Communication Blackout:</strong> Test waypoint holding when no new beacon is received for 60 s — measure position drift and energy during loiter.</p>
+<p><strong>Progressive Motor Degradation:</strong> Reduce one motor's thrust by 30% over an episode — measure bearing RMSE increase rate and adaptive differential thrust.</p>
+</section>
+<!-- ══ Q9 — Embedded Platform ═════════════ -->
+<section class="section" id="s11">
+<h2 class="st"><span class="section-num v">Q9</span>Embedded Platform Selection</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Platform</th><th>Compute</th><th>Power (W)</th><th>NN Support</th><th>ROS Compat.</th><th>Price</th></tr>
+<tr><td>STM32H7 MCU (Cortex-M7)</td><td>~480 MHz, FPU, opt. DSP</td><td>0.5–1.5</td><td>STM32Cube.AI (INT8/FP32)</td><td>micro-ROS</td><td>~$15–25</td></tr>
+<tr><td>STM32N6 MCU (NPU)</td><td>Cortex-M55 + Ethos-U65 NPU</td><td>0.8–2</td><td>INT8/INT16 accelerated</td><td>micro-ROS</td><td>~$30–50</td></tr>
+<tr><td>FPGA + NPU co-processor</td><td>Configurable fabric</td><td>1–10</td><td>Custom quantized layers</td><td>Via soft-CPU or bridge</td><td>$50–300</td></tr>
+<tr><td>DSP processor (e.g., TI C6678)</td><td>Multi-core DSP, VLIW</td><td>5–15</td><td>Custom fixed-point NN</td><td>Limited</td><td>$50–150</td></tr>
+<tr><td>NVIDIA Jetson Nano</td><td>128 CUDA, 0.47 TOPS</td><td>5–10</td><td>TensorRT FP16/INT8</td><td>Full ROS 2</td><td>~$150</td></tr>
+<tr><td>Raspberry Pi 5</td><td>Cortex-A76, no GPU accel</td><td>3–7</td><td>TFLite (CPU only)</td><td>ROS 2</td><td>~$75</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>STM32H7 MCU:</strong> Ultra-low power (< 1.5 W) with an FPU capable of running quantized neural networks (INT8 via STM32Cube.AI or TensorFlow Lite Micro). A 2-layer, 256-unit actor network quantized to INT8 requires approximately 150 KB of flash and can execute in < 1 ms on the Cortex-M7 at 480 MHz, easily meeting the 100 Hz control loop. The key advantage is <strong>deterministic real-time execution</strong> — no OS jitter from Linux. With micro-ROS, it integrates into the ROS 2 ecosystem (Q10). The STM32H7 also includes hardware DSP instructions (CMSIS-DSP) for efficient sensor fusion (Q4).</p>
+<p><strong>STM32N6 with NPU:</strong> The newer STM32 line with an integrated Ethos-U65 NPU accelerates INT8/INT16 inference by 10–50× over software execution. If the actor network needs to grow beyond 2 layers (e.g., for more complex environments), this provides headroom without increasing power.</p>
+<p><strong>FPGA + NPU co-processor:</strong> Maximum flexibility for custom quantized layer implementations. Useful when: (a) the RL agent requires a non-standard neural layer not supported by off-the-shelf hardware; (b) the quantized network needs custom bit-widths (e.g., 4-bit weights); (c) additional acceleration is needed for sensor fusion DSP alongside NN inference. However, development time is significantly higher (HDL design, timing closure).</p>
+<p><strong>DSP processor:</strong> Excellent for fixed-point arithmetic and sensor processing (FFT, filtering), but lacks dedicated NN acceleration. Could serve as a co-processor for sensor fusion while the MCU runs the NN, but adds board complexity.</p>
+<p><strong>Jetson Nano:</strong> Powerful GPU inference but draws 5–10 W — a significant fraction of the UUV's power budget (100 Wh battery = 10 hours at 10 W vs. 66+ hours at 1.5 W). Overkill for a small 2-layer actor network. The Linux OS also introduces non-deterministic latency spikes.</p>
+<p><strong>Raspberry Pi 5:</strong> No hardware acceleration for NN inference. CPU-only TFLite is slower and more power-hungry than the STM32 solution for equivalent network sizes.</p>
+
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>STM32H7 MCU with INT8 quantized neural network</strong> — The optimal trade-off for this 50 kg UUV application. The 2-layer, 256-unit TD3 actor network quantized to INT8 fits in < 200 KB flash and executes in < 1 ms, meeting the 100 Hz requirement with 90% margin. Power draw of ~1 W maximizes battery endurance. STM32Cube.AI handles the Keras-to-C conversion automatically. Hardware DSP instructions handle complementary filter computations (Q4). micro-ROS provides ROS 2 integration (Q10). <strong>If FP16 support is needed</strong>, the STM32H7's FPU handles FP32 natively; for dedicated FP16, the newer STM32N6 with Ethos-U65 is the upgrade path. <strong>If the network grows</strong> or requires custom quantized layers, an FPGA co-processor (e.g., Lattice iCE40 or Xilinx Artix) can be added as a NN accelerator alongside the STM32 host<a href="#ref-6" class="cite">[6]</a>.</p></div>
+
+<h3 class="sub">③ Solution Planning — Decision Matrix</h3>
+<div class="tw"><table>
+<tr><th>Criterion (weight)</th><th>STM32H7</th><th>STM32N6+NPU</th><th>FPGA+NPU</th><th>DSP</th><th>Jetson Nano</th><th>RPi 5</th></tr>
+<tr><td>Inference speed (0.25)</td><td>4 — INT8 < 1ms</td><td>5 — NPU accel</td><td>5 — custom</td><td>3 — manual</td><td>5 — GPU</td><td>2 — CPU</td></tr>
+<tr><td>Power efficiency (0.30)</td><td>5 — ~1W</td><td>5 — ~1.5W</td><td>3 — 3-10W</td><td>2 — 5-15W</td><td>2 — 5-10W</td><td>3 — 3-7W</td></tr>
+<tr><td>Real-time guarantee (0.15)</td><td>5 — bare metal</td><td>5 — bare metal</td><td>5 — HW timing</td><td>4 — RTOS</td><td>2 — Linux</td><td>2 — Linux</td></tr>
+<tr><td>ROS compatibility (0.15)</td><td>4 — micro-ROS</td><td>4 — micro-ROS</td><td>2 — custom bridge</td><td>2 — limited</td><td>5 — full ROS 2</td><td>5 — full ROS 2</td></tr>
+<tr><td>Dev ecosystem (0.10)</td><td>4 — Cube.AI</td><td>3 — newer, less docs</td><td>2 — HDL expertise</td><td>3 — TI tools</td><td>5 — extensive</td><td>4 — broad</td></tr>
+<tr><td>Cost (0.05)</td><td>5 — $20</td><td>4 — $40</td><td>2 — $100+</td><td>3 — $80</td><td>3 — $150</td><td>4 — $75</td></tr>
+<tr><td><strong>Weighted Score</strong></td><td><strong>4.55</strong></td><td><strong>4.35</strong></td><td><strong>3.35</strong></td><td><strong>2.70</strong></td><td><strong>3.25</strong></td><td><strong>2.90</strong></td></tr>
+</table></div>
+
+<h3 class="sub">④ Discussion — Architecture Options</h3>
+<p><strong>Baseline configuration (recommended):</strong> A single STM32H7 runs both sensor fusion and RL inference. The Cortex-M7 at 480 MHz with FPU executes the complementary filter at < 50 μs per iteration and the INT8 actor network at < 1 ms, leaving ample margin within the 10 ms control period. STM32Cube.AI converts the Keras model (Q6) to optimized C code with INT8 quantization, typically achieving < 5% accuracy loss versus FP32.</p>
+<p><strong>Enhanced configuration (for growth):</strong> STM32H7 + FPGA co-processor. The FPGA handles NN inference for larger or custom-quantized networks (e.g., 4-bit weights for minimal flash usage), while the STM32 handles sensor I/O, communication, and safety monitoring. Communication via SPI at 40 MHz provides < 100 μs transfer latency. This option is warranted when: the network architecture evolves beyond what STM32Cube.AI supports, inference latency must be < 100 μs for higher control rates, or custom quantization schemes (mixed precision, ternary weights) are needed.</p>
+<p><strong>DSP co-processor option:</strong> If the sensor fusion pipeline grows to include more sophisticated algorithms (e.g., EKF with 15+ states, or FFT-based vibration analysis for motor diagnostics), a dedicated DSP (e.g., TI TMS320C5535 at < 0.5 W) can offload these computations from the STM32, freeing CPU cycles for NN inference. This is a modular upgrade that doesn't change the base architecture.</p>
+</section>
+
+<!-- ══ Q10 — ROS Integration ════════════ -->
+<section class="section" id="s12">
+<h2 class="st"><span class="section-num v">Q10</span>ROS-Compliant Implementation Plan</h2>
+
+<h3 class="sub">① State of the Art</h3>
+<div class="tw"><table>
+<tr><th>Technique</th><th>ROS Version</th><th>Communication</th><th>Real-Time</th></tr>
+<tr><td>ROS 1 Noetic<a href="#ref-6" class="cite">[6]</a></td><td>ROS 1</td><td>TCP/XML-RPC</td><td>No (best-effort)</td></tr>
+<tr><td>ROS 2 Humble/Iron</td><td>ROS 2</td><td>DDS pub/sub</td><td>Yes (with RT kernel)</td></tr>
+<tr><td>MOOS-IvP</td><td>N/A</td><td>MOOS DB</td><td>Partial</td></tr>
+<tr><td>micro-ROS</td><td>ROS 2 subset</td><td>DDS-XRCE (serial/UDP)</td><td>Yes (bare metal)</td></tr>
+</table></div>
+
+<h3 class="sub">② Comparative Analysis &amp; Selection</h3>
+<p><strong>ROS 1 Noetic:</strong> End-of-life in 2025. Centralized roscore is a single point of failure — unacceptable for autonomous underwater operation.</p>
+<p><strong>ROS 2 Humble:</strong> DDS middleware provides QoS policies, real-time support, and no central coordinator. Active long-term support.</p>
+<p><strong>MOOS-IvP:</strong> Purpose-built for marine autonomy but smaller ecosystem and limited ML integration.</p>
+<p><strong>micro-ROS:</strong> ROS 2 subset for microcontrollers — essential for integrating the STM32H7 (Q9) into the ROS 2 graph. Uses DDS-XRCE agent on a companion computer or directly over serial/UDP.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>ROS 2 Humble + micro-ROS</strong> — micro-ROS on the STM32H7 handles real-time sensor acquisition, fusion, and RL inference; a micro-ROS agent on a companion device (or Ethernet-connected ground station) bridges to the full ROS 2 graph for logging, monitoring, and mission management<a href="#ref-6" class="cite">[6]</a>.</p></div>
+
+<h3 class="sub">③ ROS 2 Node Architecture</h3>
+<div class="svg-wrap">
+<svg viewBox="0 0 820 280" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
+<defs><marker id="art" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker></defs>
+<text x="410" y="20" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">ROS 2 Node Graph — UUV Navigation System</text>
+<!-- STM32 boundary -->
+<rect x="10" y="35" width="520" height="230" rx="10" fill="none" stroke="#10d880" stroke-width="2" stroke-dasharray="6"/>
+<text x="25" y="52" fill="#10d880" font-size="9" font-weight="600">STM32H7 (micro-ROS, bare metal, real-time)</text>
+<!-- Companion boundary -->
+<rect x="545" y="35" width="265" height="230" rx="10" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6"/>
+<text x="560" y="52" fill="#f59e0b" font-size="9" font-weight="600">Companion / Ground Station (ROS 2)</text>
+<!-- Sensor Driver -->
+<rect x="25" y="65" width="135" height="50" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="92" y="85" fill="#8b5cf6" font-size="9" text-anchor="middle" font-weight="600">sensor_driver</text>
+<text x="92" y="100" fill="#4f6480" font-size="8" text-anchor="middle">I2C/SPI → raw topics</text>
+<!-- Sensor Fusion -->
+<rect x="190" y="65" width="135" height="50" rx="6" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="257" y="85" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="600">sensor_fusion</text>
+<text x="257" y="100" fill="#4f6480" font-size="8" text-anchor="middle">Compl. filter → 12D obs</text>
+<!-- RL Agent -->
+<rect x="355" y="65" width="155" height="50" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="2"/>
+<text x="432" y="85" fill="#00d4ff" font-size="9" text-anchor="middle" font-weight="700">rl_agent</text>
+<text x="432" y="100" fill="#4f6480" font-size="8" text-anchor="middle">INT8 TD3 actor → 3D act</text>
+<!-- Motor Driver -->
+<rect x="25" y="140" width="135" height="45" rx="6" fill="#161e30" stroke="#10d880" stroke-width="1.5"/>
+<text x="92" y="160" fill="#10d880" font-size="9" text-anchor="middle" font-weight="600">motor_driver</text>
+<text x="92" y="175" fill="#4f6480" font-size="8" text-anchor="middle">PWM output via GPIO</text>
+<!-- Pump Controller -->
+<rect x="190" y="140" width="135" height="45" rx="6" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="257" y="160" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="600">pump_controller</text>
+<text x="257" y="175" fill="#4f6480" font-size="8" text-anchor="middle">Relay control</text>
+<!-- Safety Monitor -->
+<rect x="355" y="140" width="155" height="45" rx="6" fill="#161e30" stroke="#f43f5e" stroke-width="1.5"/>
+<text x="432" y="160" fill="#f43f5e" font-size="9" text-anchor="middle" font-weight="600">safety_monitor</text>
+<text x="432" y="175" fill="#4f6480" font-size="8" text-anchor="middle">Depth/pitch → emerg surf</text>
+<!-- micro-ROS Agent -->
+<rect x="200" y="210" width="170" height="40" rx="6" fill="#161e30" stroke="#4f6480" stroke-width="1.5"/>
+<text x="285" y="235" fill="#94a3b8" font-size="9" text-anchor="middle" font-weight="600">micro-ROS Agent (DDS-XRCE)</text>
+<!-- Companion nodes -->
+<rect x="560" y="65" width="135" height="45" rx="6" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="627" y="85" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="600">nav_manager</text>
+<text x="627" y="100" fill="#4f6480" font-size="8" text-anchor="middle">Waypoint sequencing</text>
+<rect x="560" y="125" width="135" height="45" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="627" y="145" fill="#8b5cf6" font-size="9" text-anchor="middle" font-weight="600">data_logger</text>
+<text x="627" y="160" fill="#4f6480" font-size="8" text-anchor="middle">rosbag2 recording</text>
+<rect x="560" y="185" width="135" height="45" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="627" y="205" fill="#8b5cf6" font-size="9" text-anchor="middle" font-weight="600">mission_control</text>
+<text x="627" y="220" fill="#4f6480" font-size="8" text-anchor="middle">Operator interface</text>
+<!-- Arrows internal -->
+<line x1="160" y1="90" x2="190" y2="90" stroke="#94a3b8" stroke-width="1" marker-end="url(#art)"/>
+<line x1="325" y1="90" x2="355" y2="90" stroke="#94a3b8" stroke-width="1" marker-end="url(#art)"/>
+<line x1="432" y1="115" x2="100" y2="140" stroke="#10d880" stroke-width="1" marker-end="url(#art)"/>
+<line x1="432" y1="115" x2="260" y2="140" stroke="#f59e0b" stroke-width="1" marker-end="url(#art)"/>
+<!-- Bridge arrow -->
+<line x1="370" y1="230" x2="560" y2="100" stroke="#4f6480" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#art)"/>
+<text x="470" y="170" fill="#4f6480" font-size="8">serial/UDP</text>
+</svg>
+<div class="svg-caption">Figure 8 — ROS 2 node graph. Left: STM32H7 runs real-time nodes via micro-ROS. Right: companion/ground station runs mission management and logging. Bridge via DDS-XRCE over serial or UDP.</div>
+</div>
+
+<h3 class="sub">④ Implementation Plan</h3>
+
+<p>The following 10-step plan takes the system from workspace creation to operational deployment:</p>
+
+<div class="tw"><table>
+<tr><th>Step</th><th>Action</th><th>Details</th><th>Deliverable</th></tr>
+<tr><td><strong>1</strong></td><td>Create ROS 2 workspace</td><td><code>mkdir -p uuv_ws/src && cd uuv_ws && colcon build</code>. Set up for ROS 2 Humble on the companion device. Install micro-ROS build system for STM32.</td><td>Empty workspace building cleanly</td></tr>
+<tr><td><strong>2</strong></td><td>Define custom messages</td><td>Create <code>uuv_msgs</code> package with: <code>FusedState.msg</code> (12 floats), <code>MotorCommand.msg</code> (2 floats), <code>PumpCommand.msg</code> (int8), <code>WaypointTarget.msg</code> (bearing, depth), <code>SafetyStatus.msg</code> (enum + depth + pitch).</td><td>Message definitions compiling on both host and micro-ROS</td></tr>
+<tr><td><strong>3</strong></td><td>Implement sensor drivers</td><td>STM32 firmware: I2C driver for IMU (e.g., ICM-42688), magnetometer (LIS3MDL), pressure sensor (MS5837). Publish raw data to <code>/sensors/*</code> topics at 100 Hz via micro-ROS.</td><td>Raw sensor data visible on host via <code>ros2 topic echo</code></td></tr>
+<tr><td><strong>4</strong></td><td>Implement sensor fusion node</td><td>Port complementary filter (Q4) to STM32 C code using CMSIS-DSP for optimized trig operations. Subscribe to raw sensor topics, publish <code>/state/fused</code> at 100 Hz.</td><td>12D fused observation verified against Python reference</td></tr>
+<tr><td><strong>5</strong></td><td>Convert &amp; deploy RL model</td><td>Export Keras model (Q6) to TFLite, then quantize to INT8 using STM32Cube.AI. Flash the C-generated model to STM32H7. The <code>rl_agent</code> node subscribes to <code>/state/fused</code> and publishes <code>/control/motors</code> + <code>/control/pump</code>.</td><td>Inference running < 1 ms, action outputs verified against Keras reference</td></tr>
+<tr><td><strong>6</strong></td><td>Implement actuator drivers</td><td>STM32 hardware timers for PWM generation (motors). GPIO relay driver for pump. Subscribe to control topics. Include slew-rate limiting and dead-zone compensation.</td><td>Motors responding to commanded PWM, pump switching correctly</td></tr>
+<tr><td><strong>7</strong></td><td>Implement safety monitor</td><td>Independent watchdog on STM32: monitors depth (< 50 m), pitch (< 60°), roll (< 60°), and communication timeout (5 s). Emergency surface = pump full OUT + motors stop. Uses RELIABLE QoS on <code>/safety/status</code>.</td><td>Emergency surface triggered correctly in fault-injection tests</td></tr>
+<tr><td><strong>8</strong></td><td>Implement navigation manager</td><td>Companion-side ROS 2 node: loads waypoint list from YAML config, publishes current <code>/navigation/target</code>, detects waypoint arrival (d_wp < 5 m), advances to next waypoint.</td><td>Correct waypoint sequencing verified in simulation</td></tr>
+<tr><td><strong>9</strong></td><td>Create launch &amp; config</td><td><code>uuv_bringup</code> package with launch file starting all nodes, parameter YAML (filter gains, reward weights, safety thresholds), and QoS profiles (RELIABLE for safety, BEST_EFFORT for sensors).</td><td>Full system starts with single <code>ros2 launch</code> command</td></tr>
+<tr><td><strong>10</strong></td><td>Integration testing</td><td>Hardware-in-the-loop (HIL): STM32 connected to Gazebo via micro-ROS agent, running Phase 2 evaluation scenarios (Q8: S1-S4). Record rosbag2 for offline analysis. Validate against acceptance criteria before pool testing.</td><td>All 4 scenarios pass with metrics within 20% of simulation</td></tr>
+</table></div>
+
+<p><strong>QoS configuration summary:</strong> Sensor topics use BEST_EFFORT / VOLATILE / KEEP_LAST(1) — dropped messages are acceptable since new data arrives every 10 ms. Control topics use RELIABLE / VOLATILE / KEEP_LAST(5) — ensuring motor commands are delivered. Safety uses RELIABLE / TRANSIENT_LOCAL / KEEP_LAST(10) — late-joining subscribers receive the latest safety status immediately.</p>
+<p><strong>Timing budget</strong> (within 10 ms control period): sensor read = 0.5 ms, complementary filter = 0.1 ms, micro-ROS publish/subscribe = 0.5 ms, RL inference = 1.0 ms, actuator write = 0.2 ms, safety check = 0.1 ms. Total = 2.4 ms — leaving 7.6 ms of margin (76%) for scheduling jitter and future growth.</p>
+</section>
+<!-- ══ AI DISCLOSURE ═════════════════════ -->
+<section class="section" id="s13">
+<h2 class="st"><span class="section-num a">AI</span>AI Usage Disclosure</h2>
+<p>This report was generated with the assistance of <strong>Claude Sonnet 4</strong> by <strong>Anthropic</strong>. The AI was used as a technical co-author to produce structured engineering analysis, diagrams, code generation, and report formatting under human direction and review.</p>
+
+<div class="prompt-box v1">
+<div class="prompt-box-label">Version 1 — Original Problem Prompt</div>
+<p>Create a single-file interactive HTML technical report for an RL agent managing motor drivers and ballast pump of an underwater drone. 10 questions covering SysML model, RL architecture, variable spaces, sensor processing, reward design, algorithm implementation (Keras), convergence, training/evaluation, embedded platform, and ROS integration.</p>
+</div>
+
+<div class="prompt-box v3">
+<div class="prompt-box-label">Version 2 — Revision Feedback</div>
+<p>Revisions: Remove Python implementations from Q1–Q5, Q7–Q10. Replace with SysML SVG figures, block diagrams, and detailed discussion. Q6 should show Keras implementation. Q9 should include FPGA NPU and DSP platforms, and recommend STM32 with quantized neural network. Q10 should be an implementation plan, not code. Fix CSS for main tag, nav-logo, and top bar styles. Fix section numbering.</p>
+</div>
+
+<h3 class="sub">AI Contribution vs Human Responsibility</h3>
+<div class="tw"><table>
+<tr><th>Aspect</th><th>AI Contribution</th><th>Human Responsibility</th></tr>
+<tr><td>Problem structuring</td><td>Organized 10 questions into typed categories with methodology</td><td>Original problem definition, constraints, sensor specifications</td></tr>
+<tr><td>State-of-the-art survey</td><td>Identified relevant algorithms, papers, and comparison criteria</td><td>Verification of citations, currency of information</td></tr>
+<tr><td>Technique selection</td><td>Comparative analysis and justified CHOSEN recommendations</td><td>Validation against real-world marine engineering experience</td></tr>
+<tr><td>Code generation</td><td>TD3 Keras implementation with architecture and hyperparameters</td><td>Testing, debugging, validation against physical models</td></tr>
+<tr><td>Diagram generation</td><td>SVG diagrams for SysML, architecture, pipeline, and ROS graph</td><td>Review of diagram accuracy and completeness</td></tr>
+<tr><td>Bibliography</td><td>Identified and formatted relevant academic references</td><td>Independent verification of all citations before academic use</td></tr>
+<tr><td>Report writing</td><td>Full prose, tables, analysis boxes, and formatting</td><td>Technical review, domain expertise validation, final approval</td></tr>
+</table></div>
+
+<h3 class="sub">Limitations &amp; Caveats</h3>
+<p>• The Keras code is illustrative — it must be validated, tested with real sensor data, and hardened before any real-world UUV deployment.</p>
+<p>• Mathematical models (dynamics, reward functions, convergence estimates) are simplified and omit real-world factors such as nonlinear hydrodynamic coupling, sensor calibration errors, and actuator backlash.</p>
+<p>• AI knowledge has a training cutoff date; recent updates to ROS 2, STM32 firmware, or RL algorithm papers may not be reflected.</p>
+<p>• Bibliography entries must be independently verified before inclusion in academic submissions.</p>
+<p>• The reward function weights (Q5) are initial estimates requiring systematic hyperparameter optimization on the actual UUV platform.</p>
+<p>• Platform selection (Q9) assumes typical STM32H7 availability and pricing; supply chain conditions may alter the recommendation.</p>
+</section>
+
+<!-- ══ CONCLUSION ════════════════════════ -->
+<section class="section" id="s14">
+<h2 class="st"><span class="section-num g">14</span>Conclusion</h2>
+
+<h3 class="sub">Summary Table</h3>
+<div class="tw"><table>
+<tr><th>Q#</th><th>Topic</th><th>Chosen Approach</th><th>Key Result</th></tr>
+<tr><td>1</td><td>SysML Model</td><td>SysML 1.6 (BDD + IBD + UC + REQ)</td><td>6 blocks, 4 diagram types, 6 requirements traced</td></tr>
+<tr><td>2</td><td>RL Architecture</td><td>Gymnasium-style API</td><td>5-module architecture with clean agent-env boundary</td></tr>
+<tr><td>3</td><td>Variable Space</td><td>Hybrid fused state + error</td><td>12D observation, 3D action (2 continuous + 1 discrete)</td></tr>
+<tr><td>4</td><td>Sensor Processing</td><td>Complementary filter + pressure</td><td>4-stage pipeline at 100 Hz, α=0.98</td></tr>
+<tr><td>5</td><td>Reward Strategy</td><td>Multi-obj. + potential shaping</td><td>5-term weighted reward preserving optimality</td></tr>
+<tr><td>6</td><td>RL Algorithm</td><td>TD3 (Twin Delayed DDPG)</td><td>Keras implementation: twin critics + delayed updates</td></tr>
+<tr><td>7</td><td>Convergence</td><td>PER + Curriculum + LR Schedule</td><td>Estimated 3–5× speedup over vanilla TD3</td></tr>
+<tr><td>8</td><td>Training &amp; Eval</td><td>Python sim → Gazebo transfer</td><td>3-phase pipeline, 4 evaluation scenarios</td></tr>
+<tr><td>9</td><td>Platform</td><td>STM32H7 + INT8 quantized NN</td><td>Score 4.55/5, &lt;1ms inference at ~1W</td></tr>
+<tr><td>10</td><td>ROS Integration</td><td>ROS 2 Humble + micro-ROS</td><td>10-step deployment plan, 7 nodes, 2.4ms timing budget</td></tr>
+</table></div>
+
+<p>This report presents a complete engineering design for a reinforcement learning navigation controller for a 50 kg underwater unmanned vehicle. The TD3 algorithm (Q6) is well-suited to the continuous action space required for PWM motor control, and its twin-critic architecture provides the training stability needed for a safety-sensitive underwater platform. The key architectural insight is the separation of sensor fusion from the RL policy (Q4): by providing a pre-processed 12D observation vector containing PID-like error signals, the agent can focus on learning nonlinear control strategies rather than wasting capacity on signal processing.</p>
+
+<p>The platform selection of STM32H7 with INT8 quantization (Q9) is perhaps the most impactful design decision for real-world viability. At ~1W power draw versus 5-10W for GPU-based alternatives, the MCU approach extends battery endurance from ~10 hours to over 60 hours — transforming the UUV from a short-mission demonstrator into a practical long-endurance autonomous platform. The micro-ROS integration (Q10) ensures that this power efficiency comes without sacrificing the ROS 2 ecosystem benefits of standardized communication, logging, and tooling. Combined with the three-phase training pipeline (Q8) that progressively transfers from fast Python simulation to high-fidelity Gazebo to hardware, the complete system provides a practical, cost-effective path from algorithm design to operational underwater navigation.</p>
+</section>
+
+<!-- ══ BIBLIOGRAPHY ══════════════════════ -->
+<section class="section" id="s15">
+<h2 class="st"><span class="section-num">15</span>Bibliography</h2>
+<p>The following references are cited throughout this report. Click any inline citation [N] to jump to its entry below.</p>
+
+<div class="bib-item" id="ref-1">
+<div class="bib-num"><a href="#ref-1" class="bib-link">[1]</a></div>
+<div class="bib-text"><em>V. Mnih, K. Kavukcuoglu, D. Silver, et al.</em>, "Human-level control through deep reinforcement learning," <em>Nature</em>, vol. 518, no. 7540, pp. 529–533, 2015. doi: <a href="https://doi.org/10.1038/nature14236" target="_blank" class="bib-link">10.1038/nature14236</a></div>
+</div>
+<div class="bib-item" id="ref-2">
+<div class="bib-num"><a href="#ref-2" class="bib-link">[2]</a></div>
+<div class="bib-text"><em>T. P. Lillicrap, J. J. Hunt, A. Pritzel, N. Heess, T. Erez, Y. Tassa, D. Silver, D. Wierstra</em>, "Continuous control with deep reinforcement learning," <em>Proc. ICLR</em>, 2016. arXiv: <a href="https://arxiv.org/abs/1509.02971" target="_blank" class="bib-link">1509.02971</a></div>
+</div>
+<div class="bib-item" id="ref-3">
+<div class="bib-num"><a href="#ref-3" class="bib-link">[3]</a></div>
+<div class="bib-text"><em>J. Schulman, F. Wolski, P. Dhariwal, A. Radford, O. Klimov</em>, "Proximal Policy Optimization Algorithms," <em>arXiv preprint</em>, 2017. arXiv: <a href="https://arxiv.org/abs/1707.06347" target="_blank" class="bib-link">1707.06347</a></div>
+</div>
+<div class="bib-item" id="ref-4">
+<div class="bib-num"><a href="#ref-4" class="bib-link">[4]</a></div>
+<div class="bib-text"><em>T. I. Fossen</em>, "Handbook of Marine Craft Hydrodynamics and Motion Control," <em>John Wiley &amp; Sons</em>, 2011. doi: <a href="https://doi.org/10.1002/9781119994138" target="_blank" class="bib-link">10.1002/9781119994138</a></div>
+</div>
+<div class="bib-item" id="ref-5">
+<div class="bib-num"><a href="#ref-5" class="bib-link">[5]</a></div>
+<div class="bib-text"><em>R. S. Sutton, A. G. Barto</em>, "Reinforcement Learning: An Introduction," 2nd ed., <em>MIT Press</em>, 2018. <a href="http://incompleteideas.net/book/the-book-2nd.html" target="_blank" class="bib-link">incompleteideas.net</a></div>
+</div>
+<div class="bib-item" id="ref-6">
+<div class="bib-num"><a href="#ref-6" class="bib-link">[6]</a></div>
+<div class="bib-text"><em>M. Quigley, K. Conley, B. Gerkey, J. Faust, T. Foote, J. Leibs, R. Wheeler, A. Y. Ng</em>, "ROS: an open-source Robot Operating System," <em>ICRA Workshop on Open Source Software</em>, 2009. <a href="https://www.ros.org" target="_blank" class="bib-link">ros.org</a></div>
+</div>
+</section>
+
+</div><!-- end main -->
+<!-- ══ PYTHON SCRIPT: Q6 Keras Reference (display only) ═══════ -->
+<script type="text/x-python" id="src-q6ref">
+# ── Keras TD3 Implementation ────────────────────────────────────
+# Requires: pip install tensorflow>=2.12
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+import numpy as np
+from collections import deque
+import random
+
+# ── Hyperparameters ──────────────────────────────────────────────
+OBS_DIM = 12          # Observation space dimension
+ACT_DIM = 3           # Action space dimension
+HIDDEN = 256          # Hidden layer size
+GAMMA = 0.99          # Discount factor
+TAU = 0.005           # Soft update coefficient
+LR_ACTOR = 3e-4       # Actor learning rate
+LR_CRITIC = 3e-4      # Critic learning rate
+BUFFER_SIZE = 100000   # Replay buffer capacity
+BATCH_SIZE = 64       # Mini-batch size
+POLICY_DELAY = 2      # Delayed policy update frequency
+NOISE_STD = 0.1       # Exploration noise std
+TARGET_NOISE = 0.2    # Target policy smoothing noise
+NOISE_CLIP = 0.5      # Target noise clip range
+
+
+# ── Actor Network ────────────────────────────────────────────────
+def build_actor(obs_dim, act_dim, hidden=256):
+    """Build the deterministic policy network.
+    Maps observation (12D) to action (3D) via tanh output."""
+    inputs = layers.Input(shape=(obs_dim,))
+    x = layers.Dense(hidden, activation="relu",
+                     kernel_initializer="he_uniform")(inputs)
+    x = layers.LayerNormalization()(x)
+    x = layers.Dense(hidden, activation="relu",
+                     kernel_initializer="he_uniform")(x)
+    x = layers.LayerNormalization()(x)
+    # tanh output bounds actions to [-1, 1]
+    outputs = layers.Dense(act_dim, activation="tanh",
+                           kernel_initializer="glorot_uniform")(x)
+    return keras.Model(inputs, outputs, name="actor")
+
+
+# ── Critic Network ───────────────────────────────────────────────
+def build_critic(obs_dim, act_dim, hidden=256):
+    """Build Q-value network.
+    Maps (observation, action) concatenation to scalar Q-value."""
+    obs_input = layers.Input(shape=(obs_dim,))
+    act_input = layers.Input(shape=(act_dim,))
+    x = layers.Concatenate()([obs_input, act_input])
+    x = layers.Dense(hidden, activation="relu",
+                     kernel_initializer="he_uniform")(x)
+    x = layers.LayerNormalization()(x)
+    x = layers.Dense(hidden, activation="relu",
+                     kernel_initializer="he_uniform")(x)
+    x = layers.LayerNormalization()(x)
+    q_value = layers.Dense(1, kernel_initializer="glorot_uniform")(x)
+    return keras.Model([obs_input, act_input], q_value, name="critic")
+
+
+# ── Replay Buffer ────────────────────────────────────────────────
+class ReplayBuffer:
+    """FIFO experience replay buffer for off-policy learning."""
+    def __init__(self, capacity=BUFFER_SIZE):
+        self.buffer = deque(maxlen=capacity)
+
+    def store(self, state, action, reward, next_state, done):
+        self.buffer.append((state, action, reward, next_state, done))
+
+    def sample(self, batch_size=BATCH_SIZE):
+        batch = random.sample(self.buffer, batch_size)
+        states  = np.array([t[0] for t in batch], dtype=np.float32)
+        actions = np.array([t[1] for t in batch], dtype=np.float32)
+        rewards = np.array([t[2] for t in batch], dtype=np.float32)
+        next_st = np.array([t[3] for t in batch], dtype=np.float32)
+        dones   = np.array([t[4] for t in batch], dtype=np.float32)
+        return states, actions, rewards, next_st, dones
+
+    def __len__(self):
+        return len(self.buffer)
+
+
+# ── TD3 Agent ────────────────────────────────────────────────────
+class TD3Agent:
+    """Twin Delayed DDPG agent with Keras networks."""
+
+    def __init__(self):
+        # Main networks
+        self.actor = build_actor(OBS_DIM, ACT_DIM, HIDDEN)
+        self.critic1 = build_critic(OBS_DIM, ACT_DIM, HIDDEN)
+        self.critic2 = build_critic(OBS_DIM, ACT_DIM, HIDDEN)
+
+        # Target networks (initialized as copies)
+        self.actor_target = build_actor(OBS_DIM, ACT_DIM, HIDDEN)
+        self.critic1_target = build_critic(OBS_DIM, ACT_DIM, HIDDEN)
+        self.critic2_target = build_critic(OBS_DIM, ACT_DIM, HIDDEN)
+        self.actor_target.set_weights(self.actor.get_weights())
+        self.critic1_target.set_weights(self.critic1.get_weights())
+        self.critic2_target.set_weights(self.critic2.get_weights())
+
+        # Optimizers
+        self.actor_opt = keras.optimizers.Adam(LR_ACTOR)
+        self.critic1_opt = keras.optimizers.Adam(LR_CRITIC)
+        self.critic2_opt = keras.optimizers.Adam(LR_CRITIC)
+
+        # Replay buffer
+        self.buffer = ReplayBuffer()
+        self.train_step_counter = 0
+
+    def select_action(self, state, noise=NOISE_STD):
+        """Select action using actor + exploration noise."""
+        state_tensor = tf.expand_dims(state, 0)
+        action = self.actor(state_tensor, training=False)[0]
+        action = action.numpy()
+        # Add Gaussian exploration noise
+        action += np.random.normal(0, noise, size=ACT_DIM)
+        return np.clip(action, -1.0, 1.0)
+
+    @tf.function
+    def _train_step(self, states, actions, rewards, next_states, dones):
+        """Single training step: update critics + conditionally actor."""
+        # ── Target actions with smoothing noise ──
+        noise = tf.clip_by_value(
+            tf.random.normal(tf.shape(actions), stddev=TARGET_NOISE),
+            -NOISE_CLIP, NOISE_CLIP)
+        next_actions = tf.clip_by_value(
+            self.actor_target(next_states) + noise, -1.0, 1.0)
+
+        # ── Compute target Q (using minimum of twin critics) ──
+        q1_target = self.critic1_target([next_states, next_actions])
+        q2_target = self.critic2_target([next_states, next_actions])
+        q_target = tf.minimum(q1_target, q2_target)
+        y = rewards[:, None] + GAMMA * (1 - dones[:, None]) * q_target
+
+        # ── Update Critic 1 ──
+        with tf.GradientTape() as tape1:
+            q1 = self.critic1([states, actions])
+            loss1 = tf.reduce_mean(tf.square(y - q1))
+        grads1 = tape1.gradient(loss1, self.critic1.trainable_variables)
+        self.critic1_opt.apply_gradients(
+            zip(grads1, self.critic1.trainable_variables))
+
+        # ── Update Critic 2 ──
+        with tf.GradientTape() as tape2:
+            q2 = self.critic2([states, actions])
+            loss2 = tf.reduce_mean(tf.square(y - q2))
+        grads2 = tape2.gradient(loss2, self.critic2.trainable_variables)
+        self.critic2_opt.apply_gradients(
+            zip(grads2, self.critic2.trainable_variables))
+
+        return loss1, loss2
+
+    @tf.function
+    def _update_actor(self, states):
+        """Delayed actor update: maximize Q1(s, pi(s))."""
+        with tf.GradientTape() as tape:
+            actions = self.actor(states)
+            q1 = self.critic1([states, actions])
+            actor_loss = -tf.reduce_mean(q1)
+        grads = tape.gradient(actor_loss, self.actor.trainable_variables)
+        self.actor_opt.apply_gradients(
+            zip(grads, self.actor.trainable_variables))
+        return actor_loss
+
+    def _soft_update(self, target, source):
+        """Polyak averaging: target <- tau*source + (1-tau)*target."""
+        for t_w, s_w in zip(target.weights, source.weights):
+            t_w.assign(TAU * s_w + (1 - TAU) * t_w)
+
+    def train(self):
+        """Sample batch and perform one training iteration."""
+        if len(self.buffer) < BATCH_SIZE:
+            return
+        states, actions, rewards, next_states, dones = \\
+            self.buffer.sample()
+        loss1, loss2 = self._train_step(
+            states, actions, rewards, next_states, dones)
+        self.train_step_counter += 1
+
+        # Delayed policy update
+        if self.train_step_counter % POLICY_DELAY == 0:
+            self._update_actor(states)
+            self._soft_update(self.actor_target, self.actor)
+            self._soft_update(self.critic1_target, self.critic1)
+            self._soft_update(self.critic2_target, self.critic2)
+
+
+# ── Training Loop ────────────────────────────────────────────────
+def train_td3(env, agent, episodes=1000, max_steps=200):
+    """Main training loop for TD3 agent."""
+    rewards_history = []
+    for ep in range(episodes):
+        state = env.reset()
+        ep_reward = 0
+        for step in range(max_steps):
+            action = agent.select_action(state)
+            next_state, reward, done, _, _ = env.step(action)
+            agent.buffer.store(state, action, reward, next_state, done)
+            agent.train()
+            state = next_state
+            ep_reward += reward
+            if done:
+                break
+        rewards_history.append(ep_reward)
+        if (ep + 1) % 50 == 0:
+            avg = np.mean(rewards_history[-50:])
+            print(f"Episode {ep+1}: avg_reward={avg:.2f}")
+    return rewards_history
+</script>
+
+<!-- ══ PYTHON SCRIPT: Q6 TD3 Training Demo ═══════ -->
+<script type="text/x-python" id="src-q6">
+# ── Q6: TD3 Training Demo — Pure Python on Toy UUV ───────────────
+# Implements Twin Delayed DDPG from scratch, training on a simplified
+# UUV environment with bearing and depth control.
+
+import math
+import random
+
+random.seed(42)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  Toy UUV Environment
+# ══════════════════════════════════════════════════════════════════
+
+class UUVEnv:
+    """Simplified UUV: control heading error and depth error.
+    State:  [e_psi, e_z, psi_dot, z_dot]  (normalized to ~[-1,1])
+    Action: [differential_thrust, pump]     (continuous [-1,1])"""
+
+    def __init__(self):
+        self.dt = 0.1
+        self.reset()
+
+    def reset(self):
+        self.e_psi = random.uniform(-math.pi, math.pi)
+        self.e_z = random.uniform(-10.0, 10.0)
+        self.psi_dot = 0.0
+        self.z_dot = 0.0
+        self.steps = 0
+        return self._obs()
+
+    def _obs(self):
+        return [self.e_psi / math.pi,
+                self.e_z / 10.0,
+                self.psi_dot / 2.0,
+                self.z_dot / 2.0]
+
+    def step(self, action):
+        u_h = max(-1.0, min(1.0, action[0]))
+        u_d = max(-1.0, min(1.0, action[1]))
+
+        # First-order dynamics + disturbance
+        self.psi_dot = 0.8 * self.psi_dot + 1.5 * u_h + random.gauss(0, 0.05)
+        self.z_dot = 0.8 * self.z_dot + 1.0 * u_d + random.gauss(0, 0.03)
+        self.e_psi += self.psi_dot * self.dt
+        self.e_z += self.z_dot * self.dt
+
+        # Wrap heading to [-pi, pi], clamp depth
+        self.e_psi = (self.e_psi + math.pi) % (2 * math.pi) - math.pi
+        self.e_z = max(-20.0, min(20.0, self.e_z))
+        self.steps += 1
+
+        r = -abs(self.e_psi) / math.pi - abs(self.e_z) / 10.0
+        r -= 0.01 * (u_h ** 2 + u_d ** 2)
+        if abs(self.e_psi) < 0.1 and abs(self.e_z) < 0.5:
+            r += 1.0
+        done = self.steps >= 60
+        return self._obs(), r, done
+
+
+# ══════════════════════════════════════════════════════════════════
+#  Neural Network (pure Python, single-sample SGD)
+# ══════════════════════════════════════════════════════════════════
+
+class Layer:
+    """Dense layer with forward + backward pass."""
+
+    def __init__(self, inp, out, act='relu'):
+        s = math.sqrt(2.0 / (inp + out))
+        self.W = [[random.gauss(0, s) for _ in range(inp)]
+                   for _ in range(out)]
+        self.b = [0.0] * out
+        self.act = act
+        self.inp, self.out = inp, out
+        self._x = self._z = None
+
+    def fwd(self, x):
+        self._x = x
+        z = []
+        for j in range(self.out):
+            v = self.b[j]
+            for i in range(self.inp):
+                v += self.W[j][i] * x[i]
+            z.append(v)
+        self._z = z
+        if self.act == 'relu':
+            return [max(0.0, v) for v in z]
+        if self.act == 'tanh':
+            return [math.tanh(v) for v in z]
+        return z[:]
+
+    def bwd(self, g, lr):
+        if self.act == 'relu':
+            ga = [g[j] * (1.0 if self._z[j] > 0 else 0.0)
+                  for j in range(self.out)]
+        elif self.act == 'tanh':
+            ga = [g[j] * (1.0 - math.tanh(self._z[j]) ** 2)
+                  for j in range(self.out)]
+        else:
+            ga = g
+        gi = [sum(self.W[j][i] * ga[j] for j in range(self.out))
+              for i in range(self.inp)]
+        for j in range(self.out):
+            for i in range(self.inp):
+                self.W[j][i] -= lr * ga[j] * self._x[i]
+            self.b[j] -= lr * ga[j]
+        return gi
+
+
+class Net:
+    """Multi-layer perceptron."""
+
+    def __init__(self, dims, acts):
+        self.layers = [Layer(dims[i], dims[i + 1], acts[i])
+                       for i in range(len(acts))]
+
+    def fwd(self, x):
+        for la in self.layers:
+            x = la.fwd(x)
+        return x
+
+    def bwd(self, g, lr):
+        for la in reversed(self.layers):
+            g = la.bwd(g, lr)
+
+    def params(self):
+        p = []
+        for la in self.layers:
+            for row in la.W:
+                p.extend(row)
+            p.extend(la.b)
+        return p
+
+    def load(self, p):
+        i = 0
+        for la in self.layers:
+            for j in range(la.out):
+                for k in range(la.inp):
+                    la.W[j][k] = p[i]; i += 1
+            for j in range(la.out):
+                la.b[j] = p[i]; i += 1
+
+    def soft_update(self, src, tau):
+        sp, tp = src.params(), self.params()
+        self.load([tau * s + (1 - tau) * t for s, t in zip(sp, tp)])
+
+
+# ══════════════════════════════════════════════════════════════════
+#  TD3 Agent
+# ══════════════════════════════════════════════════════════════════
+
+OBS_DIM = 4
+ACT_DIM = 2
+HIDDEN = 24
+GAMMA = 0.99
+TAU = 0.005
+LR_ACTOR = 5e-4
+LR_CRITIC = 1e-3
+NOISE_STD = 0.2
+TGT_NOISE = 0.2
+NOISE_CLIP = 0.5
+POLICY_DELAY = 2
+BUF_CAP = 4000
+WARMUP = 128
+
+# Networks
+actor = Net([OBS_DIM, HIDDEN, HIDDEN, ACT_DIM],
+            ['relu', 'relu', 'tanh'])
+critic1 = Net([OBS_DIM + ACT_DIM, HIDDEN, HIDDEN, 1],
+              ['relu', 'relu', 'linear'])
+critic2 = Net([OBS_DIM + ACT_DIM, HIDDEN, HIDDEN, 1],
+              ['relu', 'relu', 'linear'])
+
+# Target networks (copies)
+actor_tgt = Net([OBS_DIM, HIDDEN, HIDDEN, ACT_DIM],
+                ['relu', 'relu', 'tanh'])
+c1_tgt = Net([OBS_DIM + ACT_DIM, HIDDEN, HIDDEN, 1],
+             ['relu', 'relu', 'linear'])
+c2_tgt = Net([OBS_DIM + ACT_DIM, HIDDEN, HIDDEN, 1],
+             ['relu', 'relu', 'linear'])
+actor_tgt.load(actor.params())
+c1_tgt.load(critic1.params())
+c2_tgt.load(critic2.params())
+
+# Replay buffer
+buf = []
+
+
+def buf_add(s, a, r, ns, d):
+    if len(buf) >= BUF_CAP:
+        buf.pop(0)
+    buf.append((s[:], a[:], r, ns[:], d))
+
+
+# ══════════════════════════════════════════════════════════════════
+#  Training Loop
+# ══════════════════════════════════════════════════════════════════
+
+env = UUVEnv()
+EPISODES = 80
+MAX_STEPS = 60
+train_steps = 0
+rewards_hist = []
+
+print("=" * 62)
+print("  TD3 Training on Toy UUV Environment")
+print("  State:  [e_psi, e_z, psi_dot, z_dot]")
+print("  Action: [differential_thrust, pump_cmd]")
+print("  Networks: actor 4->24->24->2, critics (4+2)->24->24->1")
+print("=" * 62)
+
+for ep in range(EPISODES):
+    s = env.reset()
+    ep_reward = 0.0
+
+    for t in range(MAX_STEPS):
+        # Action selection with exploration noise
+        a = actor.fwd(s)
+        a = [max(-1.0, min(1.0, a[i] + random.gauss(0, NOISE_STD)))
+             for i in range(ACT_DIM)]
+
+        ns, r, done = env.step(a)
+        buf_add(s, a, r, ns, done)
+        ep_reward += r
+        s = ns
+
+        # Train (single-sample SGD, every other step)
+        if len(buf) >= WARMUP and t % 2 == 0:
+            train_steps += 1
+            sb, ab, rb, nsb, db = random.choice(buf)
+
+            # Target action with smoothing noise
+            a_t = actor_tgt.fwd(nsb)
+            a_t = [max(-1.0, min(1.0,
+                    a_t[i] + max(-NOISE_CLIP, min(NOISE_CLIP,
+                    random.gauss(0, TGT_NOISE)))))
+                   for i in range(ACT_DIM)]
+
+            # Target Q = min of twin critics
+            q1_t = c1_tgt.fwd(nsb + a_t)[0]
+            q2_t = c2_tgt.fwd(nsb + a_t)[0]
+            y = rb + GAMMA * (0.0 if db else 1.0) * min(q1_t, q2_t)
+
+            # Update critic 1
+            q1 = critic1.fwd(sb + ab)[0]
+            critic1.bwd([2.0 * (q1 - y)], LR_CRITIC)
+
+            # Update critic 2
+            q2 = critic2.fwd(sb + ab)[0]
+            critic2.bwd([2.0 * (q2 - y)], LR_CRITIC)
+
+            # Delayed actor update
+            if train_steps % POLICY_DELAY == 0:
+                a_cur = actor.fwd(sb)
+                q_val = critic1.fwd(sb + a_cur)[0]
+
+                # dQ/da via finite differences
+                eps_fd = 1e-3
+                grad_a = []
+                for i in range(ACT_DIM):
+                    a_p = a_cur[:]
+                    a_p[i] += eps_fd
+                    q_p = critic1.fwd(sb + a_p)[0]
+                    grad_a.append((q_p - q_val) / eps_fd)
+
+                # Backprop through actor (maximize Q → negate gradient)
+                actor.bwd([-g for g in grad_a], LR_ACTOR)
+
+                # Soft update all targets
+                actor_tgt.soft_update(actor, TAU)
+                c1_tgt.soft_update(critic1, TAU)
+                c2_tgt.soft_update(critic2, TAU)
+
+        if done:
+            break
+
+    rewards_hist.append(ep_reward)
+    if (ep + 1) % 10 == 0:
+        avg = sum(rewards_hist[-10:]) / 10
+        best = max(rewards_hist[-10:])
+        print(f"  Ep {ep + 1:3d}  |  avg(10) = {avg:7.2f}"
+              f"  |  best = {best:6.2f}")
+
+
+# ══════════════════════════════════════════════════════════════════
+#  Evaluation (no exploration noise)
+# ══════════════════════════════════════════════════════════════════
+
+print(f"\n{'─' * 62}")
+print("  Evaluation — 5 episodes, no exploration noise:")
+eval_r = []
+for ep in range(5):
+    s = env.reset()
+    total = 0.0
+    for _ in range(MAX_STEPS):
+        a = actor.fwd(s)
+        ns, r, done = env.step(a)
+        total += r
+        s = ns
+        if done:
+            break
+    eval_r.append(total)
+    print(f"    Eval {ep + 1}:  reward = {total:7.2f}"
+          f"  |e_psi| = {abs(env.e_psi):.3f} rad"
+          f"  |e_z| = {abs(env.e_z):.2f} m")
+
+avg_eval = sum(eval_r) / len(eval_r)
+print(f"\n  Eval average reward: {avg_eval:.2f}")
+
+# ── Training curve (ASCII) ──
+print(f"\n{'─' * 62}")
+print("  Training Curve (reward per episode):")
+w = 50
+mn = min(rewards_hist)
+mx = max(rewards_hist)
+rng = mx - mn if mx > mn else 1.0
+for i in range(0, len(rewards_hist), 4):
+    chunk = rewards_hist[i:i + 4]
+    v = sum(chunk) / len(chunk)
+    bar_len = int((v - mn) / rng * w)
+    print(f"  {i + 1:3d}-{i + len(chunk):3d} |{'█' * bar_len}"
+          f"{'░' * (w - bar_len)}| {v:6.1f}")
+
+print(f"{'=' * 62}")
+print("  TD3 training complete. Twin critics + delayed updates")
+print("  stabilize learning on this continuous-action UUV task.")
+print(f"{'=' * 62}")
+</script>
+
+<!-- ══ JAVASCRIPT ═══════════════════════ -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+// ── Script Registry ─────────────────────────────────
+const SCRIPTS = {};
+document.querySelectorAll('script[type="text/x-python"]').forEach(el => {
+  const key = el.id.replace('src-', '');
+  SCRIPTS[key] = el.textContent;
+});
+
+// ── Syntax Highlighter ──────────────────────────────
+const KW = new Set(['def','class','if','elif','else','for','while','return','True','False',
+  'None','and','or','not','in','is','pass','break','continue','yield',
+  'global','nonlocal','assert','async','await','print','lambda']);
+const IMP = new Set(['import','from','raise','try','except','finally','with','as','del']);
+function highlight(code){
+  let out='',i=0;const n=code.length;
+  while(i<n){
+    if(code[i]==='#'){let e=code.indexOf('\n',i);if(e===-1)e=n;out+='<span class="cmt">'+esc(code.slice(i,e))+'</span>';i=e;continue}
+    if((code.slice(i,i+3)==='"""'||code.slice(i,i+3)==="'''")||('fbrFBR'.includes(code[i])&&i+1<n&&(code[i+1]==='"'||code[i+1]==="'")&&(code.slice(i+1,i+4)==='"""'||code.slice(i+1,i+4)==="'''"))){
+      let pf='';if('fbrFBR'.includes(code[i])&&(code[i+1]==='"'||code[i+1]==="'")){pf=code[i];i++}
+      let q3=code.slice(i,i+3);if(q3==='"""'||q3==="'''"){let e=code.indexOf(q3,i+3);if(e===-1)e=n-3;out+='<span class="str">'+esc(pf+code.slice(i,e+3))+'</span>';i=e+3;continue}}
+    if(code[i]==='"'||code[i]==="'"||('fbrFBR'.includes(code[i])&&i+1<n&&(code[i+1]==='"'||code[i+1]==="'"))){
+      let pf='',si=i;if('fbrFBR'.includes(code[i])&&(code[i+1]==='"'||code[i+1]==="'")){pf=code[i];si=i+1}
+      let q=code[si],e=si+1;while(e<n&&code[e]!==q){if(code[e]==='\\')e++;e++}if(e<n)e++;
+      out+='<span class="str">'+esc(code.slice(i,e))+'</span>';i=e;continue}
+    if(code[i]==='@'&&(i===0||code[i-1]==='\n'||code[i-1]===' ')){let e=i+1;while(e<n&&/[a-zA-Z0-9_.]/.test(code[e]))e++;out+='<span class="dec">'+esc(code.slice(i,e))+'</span>';i=e;continue}
+    if(/[0-9]/.test(code[i])&&(i===0||!/[a-zA-Z_]/.test(code[i-1]))){let e=i;while(e<n&&/[0-9.eExX_a-fA-F]/.test(code[e]))e++;out+='<span class="num">'+esc(code.slice(i,e))+'</span>';i=e;continue}
+    if(/[a-zA-Z_]/.test(code[i])){let e=i;while(e<n&&/[a-zA-Z0-9_]/.test(code[e]))e++;let w=code.slice(i,e);
+      if(KW.has(w))out+='<span class="kw">'+w+'</span>';
+      else if(IMP.has(w))out+='<span class="imp">'+w+'</span>';
+      else if(w==='self'||w==='cls')out+='<span class="slf">'+w+'</span>';
+      else if(w[0]===w[0].toUpperCase()&&w[0]!==w[0].toLowerCase())out+='<span class="cls">'+w+'</span>';
+      else out+=esc(w);i=e;continue}
+    out+=esc(code[i]);i++}
+  return out}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// ── Apply Highlighting ──────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  for(const key of Object.keys(SCRIPTS)){
+    const el=document.getElementById('code-'+key);
+    if(el)el.innerHTML=highlight(SCRIPTS[key])}
+  initScrollSpy()});
+
+// ── Pyodide ─────────────────────────────────────────
+let pyodide=null;
+const loadFill=document.getElementById('loadFill');
+const loader=document.getElementById('loader');
+async function initPyodide(){
+  try{
+    if(loadFill)loadFill.style.width='30%';
+    pyodide=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',stdout:()=>{},stderr:()=>{}});
+    if(loadFill)loadFill.style.width='100%';
+    setTimeout(()=>{
+      if(loader)loader.classList.add('done');
+      const badge=document.getElementById('runtime-badge'),txt=document.getElementById('badge-text');
+      if(badge)badge.classList.remove('loading');
+      if(txt)txt.textContent='Python 3.12 · Pyodide · Ready'},400);
+  }catch(e){
+    console.error('Pyodide load error:',e);
+    if(loadFill){loadFill.style.width='100%';loadFill.style.background='var(--red)'}
+    if(loader)setTimeout(()=>loader.classList.add('done'),1500);
+    const txt=document.getElementById('badge-text');
+    if(txt)txt.textContent='Python · Load Error'}}
+initPyodide();
+let lp=0;const li=setInterval(()=>{if(pyodide||lp>=90){clearInterval(li);return}lp+=Math.random()*8;if(loadFill)loadFill.style.width=Math.min(lp,90)+'%'},300);
+
+// ── Run Script ──────────────────────────────────────
+function showOutput(name,text,isError){
+  const p=document.getElementById('out-'+name),b=document.getElementById('res-'+name),s=document.getElementById('stat-'+name);
+  if(p)p.classList.add('show');
+  if(b){b.textContent=text;b.className='out-body '+(isError?'err':'ok')}
+  if(s){s.textContent=isError?'✕ Error':'✓ OK';s.className='out-status '+(isError?'err':'ok')}}
+async function runScript(name){
+  if(!pyodide){alert('Python is still loading. Please wait.');return}
+  const btn=event.currentTarget;btn.classList.add('running');btn.disabled=true;
+  const s=document.getElementById('stat-'+name);if(s){s.textContent='⟳ running…';s.className='out-status run'}
+  const p=document.getElementById('out-'+name);if(p)p.classList.add('show');
+  await new Promise(r=>setTimeout(r,50));
+  pyodide.runPython('import sys\nfrom io import StringIO\n_capture_buf=StringIO()\nsys.stdout=_capture_buf');
+  try{pyodide.runPython(SCRIPTS[name])}catch(pyErr){
+    pyodide.runPython('sys.stdout=sys.__stdout__');
+    const partial=pyodide.runPython('_capture_buf.getvalue()');
+    showOutput(name,(partial||'')+'\n--- Python Error ---\n'+pyErr.message,true);
+    btn.classList.remove('running');btn.disabled=false;return}
+  pyodide.runPython('sys.stdout=sys.__stdout__');
+  const output=pyodide.runPython('_capture_buf.getvalue()');
+  showOutput(name,output,false);btn.classList.remove('running');btn.disabled=false}
+
+// ── Scroll Spy ──────────────────────────────────────
+function initScrollSpy(){
+  const sections=document.querySelectorAll('.section[id]');
+  const navItems=document.querySelectorAll('.nav-item[href]');
+  const observer=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const href='#'+entry.target.id;
+        navItems.forEach(item=>{item.classList.toggle('active',item.getAttribute('href')===href)})}})},
+  {rootMargin:'-20% 0px -70% 0px'});
+  sections.forEach(s=>observer.observe(s))}
+</script>
+</body>
+</html>
