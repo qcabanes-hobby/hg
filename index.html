@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HG — Interactive Technical Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg2:#0d1120;--surface:#161e30;--border:#1f2d47;--border2:#2a3d5c;--cyan:#00d4ff;--cyan-dim:#00d4ff18;--violet:#8b5cf6;--violet-dim:#8b5cf618;--green:#10d880;--green-dim:#10d88018;--amber:#f59e0b;--amber-dim:#f59e0b18;--text:#e2e8f0;--text2:#94a3b8;--text3:#4f6480;--mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;--display:'Syne',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7;min-height:100vh}
+
+/* Topbar */
+#topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#07090fdd;backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 32px;z-index:100;gap:16px}
+.title-bar{font-family:var(--display);font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:.05em;flex:1}
+.title-bar span{color:var(--text2);font-weight:400}
+.badge{display:flex;align-items:center;gap:7px;background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:20px;padding:4px 14px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan)}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* Layout */
+.page{max-width:960px;margin:0 auto;padding:calc(56px + 64px) 32px 80px}
+
+/* Hero */
+.hero{margin-bottom:64px;padding-bottom:44px;border-bottom:1px solid var(--border)}
+.hero-tag{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.hero-tag::before{content:'';width:32px;height:1px;background:var(--cyan)}
+.hero h1{font-family:var(--display);font-size:clamp(32px,5vw,48px);font-weight:800;line-height:1.15;margin-bottom:18px;background:linear-gradient(135deg,#fff 0%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:15px;color:var(--text2);max-width:600px;line-height:1.65;margin-bottom:28px}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta span::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cyan)}
+
+/* Report cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:24px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:32px;transition:all .25s;display:flex;flex-direction:column;gap:16px;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s;border-radius:12px}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card:hover::before{opacity:1}
+.card.c-cyan::before{background:linear-gradient(135deg,var(--cyan-dim),transparent 60%)}
+.card.c-violet::before{background:linear-gradient(135deg,var(--violet-dim),transparent 60%)}
+.card.c-green::before{background:linear-gradient(135deg,var(--green-dim),transparent 60%)}
+.card.c-amber::before{background:linear-gradient(135deg,var(--amber-dim),transparent 60%)}
+
+.card-num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:3px 10px;border-radius:6px;width:fit-content;position:relative;z-index:1}
+.card-num.cyan{color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan)}
+.card-num.violet{color:var(--violet);background:var(--violet-dim);border:1px solid var(--violet)}
+.card-num.green{color:var(--green);background:var(--green-dim);border:1px solid var(--green)}
+.card-num.amber{color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber)}
+
+.card-title{font-family:var(--display);font-size:20px;font-weight:700;color:#fff;line-height:1.3;position:relative;z-index:1}
+.card-desc{font-size:14px;color:var(--text2);line-height:1.6;position:relative;z-index:1;flex:1}
+.card-tags{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}
+.tag{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--text3)}
+.card-footer{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;padding-top:8px;border-top:1px solid var(--border)}
+.card-runtime{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.card-arrow{font-size:18px;color:var(--text3);transition:transform .2s}
+.card:hover .card-arrow{transform:translateX(4px);color:var(--cyan)}
+
+/* Footer */
+.footer{margin-top:64px;padding-top:32px;border-top:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:12px;color:var(--text3)}
+
+@media(max-width:520px){
+  .grid{grid-template-columns:1fr}
+  .page{padding-left:16px;padding-right:16px}
+  #topbar{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="title-bar">HG <span>/ Interactive Technical Reports</span></div>
+  <div class="badge"><span class="dot"></span>4 Reports</div>
+</header>
+
+<div class="page">
+
+  <section class="hero">
+    <div class="hero-tag">Report Collection</div>
+    <h1>Interactive Technical<br>Reports</h1>
+    <p class="hero-sub">Standalone single-file HTML reports with embedded simulations, runnable Python (via Pyodide/WebAssembly), and structured methodology. No server required.</p>
+    <div class="hero-meta">
+      <span>Self-contained HTML</span>
+      <span>Pyodide / WebAssembly</span>
+      <span>Dark theme</span>
+      <span>4-step methodology</span>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <a href="reports/mesh_network.html" class="card c-cyan">
+      <div class="card-num cyan">01</div>
+      <div class="card-title">Mesh Network Routing Algorithm</div>
+      <div class="card-desc">Graph modelling, neighbourhood discovery, minimum-hop routing, node FSM behaviour, and discrete-event simulation for an AODV-inspired IEEE 802.15.4 mesh network.</div>
+      <div class="card-tags">
+        <span class="tag">AODV</span>
+        <span class="tag">IEEE 802.15.4</span>
+        <span class="tag">Graph Theory</span>
+        <span class="tag">FSM</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-runtime">Python 3.12 / Pyodide</span>
+        <span class="card-arrow">&rarr;</span>
+      </div>
+    </a>
+
+    <a href="reports/uw_ofdm_modem_.html" class="card c-violet">
+      <div class="card-num violet">02</div>
+      <div class="card-title">Underwater Acoustic OFDM Modem</div>
+      <div class="card-desc">Analog front-end, OFDM signal processing, digital control, RTOS architecture, firmware design, simulation, testing, and certification for a 10 kbps underwater acoustic communication system.</div>
+      <div class="card-tags">
+        <span class="tag">OFDM</span>
+        <span class="tag">QPSK</span>
+        <span class="tag">Acoustics</span>
+        <span class="tag">Embedded</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-runtime">HTML / Static Report</span>
+        <span class="card-arrow">&rarr;</span>
+      </div>
+    </a>
+
+    <a href="reports/uuv_rl_navigation.html" class="card c-green">
+      <div class="card-num green">03</div>
+      <div class="card-title">UUV Reinforcement Learning Navigation</div>
+      <div class="card-desc">Model-free depth and bearing control of a 50 kg UUV using differential thrust motors and ballast pump, with IMU and pressure sensor feedback via TD3 reinforcement learning.</div>
+      <div class="card-tags">
+        <span class="tag">RL / TD3</span>
+        <span class="tag">Marine Control</span>
+        <span class="tag">STM32H7</span>
+        <span class="tag">IMU</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-runtime">Python 3.12 / Pyodide</span>
+        <span class="card-arrow">&rarr;</span>
+      </div>
+    </a>
+
+    <a href="reports/squid_magnetometry.html" class="card c-amber">
+      <div class="card-num amber">04</div>
+      <div class="card-title">SQUID &amp; Quantum Magnetometry</div>
+      <div class="card-desc">Superconducting Quantum Interference Devices — equivalent models, transfer functions, performance analysis, industrial fabrication techniques, and cryostat design for long-duration operation.</div>
+      <div class="card-tags">
+        <span class="tag">Superconductivity</span>
+        <span class="tag">Josephson Junctions</span>
+        <span class="tag">Cryogenics</span>
+        <span class="tag">Precision Measurement</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-runtime">Python 3.12 / Pyodide</span>
+        <span class="card-arrow">&rarr;</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">HG Interactive Technical Reports</div>
+
+</div>
+
+</body>
+</html>
