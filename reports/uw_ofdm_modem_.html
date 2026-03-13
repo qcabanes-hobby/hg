@@ -169,9 +169,9 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <a class="nav-item" href="#s12"><span class="nav-num">Q10</span><span class="nav-dot"></span>Test Plan & Gantt</a>
 <a class="nav-item" href="#s13"><span class="nav-num">Q11</span><span class="nav-dot"></span>Certification</a>
 </div><div class="nav-group"><div class="nav-group-label">Appendix</div>
-<a class="nav-item" href="#s14"><span class="nav-num">14</span><span class="nav-dot"></span>AI Disclosure</a>
-<a class="nav-item" href="#s15"><span class="nav-num">15</span><span class="nav-dot"></span>Conclusion</a>
-<a class="nav-item" href="#s16"><span class="nav-num">16</span><span class="nav-dot"></span>Bibliography</a>
+<a class="nav-item" href="#s14"><span class="nav-num">12</span><span class="nav-dot"></span>AI Disclosure</a>
+<a class="nav-item" href="#s15"><span class="nav-num">13</span><span class="nav-dot"></span>Conclusion</a>
+<a class="nav-item" href="#s16"><span class="nav-num">14</span><span class="nav-dot"></span>Bibliography</a>
 </div></nav>
 <header id="topbar">
   <div class="title-bar">UW OFDM MODEM <span>— Technical Report v2</span></div>
@@ -197,10 +197,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </div>
 </section>
 
-<div class="section" id="abstract">
+<section class="section" id="abstract">
 <div class="section-header"><span class="section-num">01</span><h2 class="st">Abstract</h2></div>
 <p>This report presents the complete design of an underwater acoustic OFDM modem operating in the 20-40 kHz band with a 20 kHz bandwidth, targeting a net data rate of 10 kbps at 100 W transmit power and &minus;100 dBm(A) receiver sensitivity. The design covers eleven key engineering questions: analog bandpass filter design with Butterworth topology, OFDM parameter optimization with 64-point FFT and cyclic prefix, QPSK modulation selection justified by BER performance and spectral efficiency in the underwater channel, piezoelectric transducer RLC modelling with closed-loop digital PI power control, SysML system architecture, platform selection including MCU-only, MCU+FPGA, and co-design options, real-time operating system choice including FreeRTOS and the Embassy async Rust alternative, complete C firmware skeleton with task architecture, simulation and validation strategy, V-model project planning with Gantt schedule, and regulatory certification requirements.</p>
-</div>
+</section>
 
 <section class="section" id="acronyms">
 <div class="section-header"><span class="section-num">01b</span><h2 class="st">Acronyms &amp; Abbreviations</h2></div>
@@ -265,7 +265,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </table></div>
 </section>
 
-<div class="section" id="s1">
+<section class="section" id="s1">
 <div class="section-header"><span class="section-num">02</span><h2 class="st">Problem Statement</h2></div>
 <p>Design a complete underwater acoustic modem capable of reliable digital communication in shallow-to-medium water environments (depth &le; 300 m, range 0.5-5 km). The system must meet the following top-level specifications:</p>
 <div class="tw"><table>
@@ -279,10 +279,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <tr><td>Depth Rating</td><td>300 m (IP68)</td><td>Shallow-water operations</td></tr>
 </table></div>
 <p>The modem must be implemented on a resource-constrained embedded platform, operate in real-time, and comply with applicable maritime and EMC certifications.</p>
-</div>
+</section>
 
-<div class="section" id="s2">
-<div class="section-header"><span class="section-num v">03</span><h2 class="st">Methodology</h2></div>
+<section class="section" id="s2">
+<div class="section-header"><span class="section-num">03</span><h2 class="st">Methodology</h2></div>
 <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
 <div class="meth-grid">
   <div class="meth-card"><div class="meth-num">&#9312;</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey existing techniques with a comparison table. Include inline citations to foundational references from IEEE J. Oceanic Engineering and related publications.</div></div>
@@ -293,13 +293,13 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </div>
 
 <div class="section" id="s3">
-<div class="section-header"><span class="section-num">Q1</span><h2 class="st">Analog Filter Design</h2></div>
+<div class="section-header"><span class="section-num v">Q1</span><h2 class="st">Analog Filter Design</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>The following filter topologies are candidates for the OFDM modem analog front-end bandpass filter. Each topology is well-established in signal processing literature <a href="#ref-4" class="cite">[4]</a> <a href="#ref-14" class="cite">[14]</a>:</p>
 <div class="tw"><table>
 <tr><th>Topology</th><th>Passband Response</th><th>Roll-off</th><th>Group Delay</th><th>Suitability for OFDM</th></tr>
-<tr><td>Butterworth</td><td>Maximally flat (0 dB ripple)</td><td>Moderate (&minus;20n dB/dec)</td><td>Moderate variation</td><td>Excellent &mdash; uniform subcarrier gain</td></tr>
+<tr><td>Butterworth</td><td>Maximally flat (0 dB ripple)</td><td>Moderate (&minus;20 dB/dec per pole)</td><td>Moderate variation</td><td>Excellent &mdash; uniform subcarrier gain</td></tr>
 <tr><td>Chebyshev Type I</td><td>Equiripple (&gt; 0.5 dB)</td><td>Sharp</td><td>Larger variation</td><td>Poor &mdash; unequal subcarrier attenuation</td></tr>
 <tr><td>Bessel</td><td>Monotonic, gentle roll-off</td><td>Slowest</td><td>Flattest (linear phase)</td><td>Insufficient stopband rejection</td></tr>
 <tr><td>Elliptic (Cauer)</td><td>Equiripple passband + stopband</td><td>Sharpest per order</td><td>Large variation</td><td>Poor &mdash; ripple degrades wideband OFDM</td></tr>
@@ -2798,7 +2798,7 @@ L 74.396955 398.75335
 <li><strong>Passband flatness:</strong> The Tx BPF must maintain &le; 0.5 dB magnitude variation across the 20&ndash;40 kHz passband. Any passband ripple causes unequal subcarrier amplitudes, degrading the Error Vector Magnitude (EVM) and increasing BER. The Butterworth topology guarantees maximally flat response, achieving this target inherently.</li>
 <li><strong>Stopband attenuation:</strong> &ge; 24 dB at 10 kHz (lower stopband) and &ge; 24 dB at 80 kHz (upper stopband). This suppresses DAC quantization noise, clock spurs, and out-of-band harmonics from the power amplifier, preventing spectral regrowth into adjacent bands and ensuring regulatory compliance.</li>
 <li><strong>Group delay variation:</strong> &lt; 5 &mu;s across the passband. Excessive group delay variation causes inter-symbol interference (ISI) that the cyclic prefix cannot absorb. The 4th-order Butterworth achieves ~3 &mu;s variation, well within the 800 &mu;s CP margin.</li>
-<li><strong>Roll-off rate:</strong> The 4th-order BPF provides &minus;80 dB/decade roll-off, which is sufficient for the Tx path because the power amplifier provides additional spectral shaping and out-of-band suppression.</li>
+<li><strong>Roll-off rate:</strong> The 4th-order BPF (4 poles, 2 per transition band) provides &minus;40 dB/decade roll-off per transition, which is sufficient for the Tx path because the power amplifier provides additional spectral shaping and out-of-band suppression.</li>
 </ul>
 
 <h4 class="subsub">Receiver (Rx) Stage Constraints</h4>
@@ -2807,7 +2807,7 @@ L 74.396955 398.75335
 <li><strong>Stopband attenuation:</strong> &ge; 36 dB at 10 kHz and &ge; 36 dB at 80 kHz. The receiver must reject the full ambient noise spectrum (turbulence noise below 10 kHz, thermal noise above 100 kHz) to prevent aliasing into the ADC and to protect the low-noise amplifier from saturation by strong out-of-band interferers.</li>
 <li><strong>Noise figure contribution:</strong> The Rx BPF must contribute &lt; 0.5 dB to the overall receiver noise figure. This is achieved by placing the BPF after the LNA (which sets the system noise figure) and using low-loss active filter topologies (Sallen-Key with OPA1612).</li>
 <li><strong>Group delay variation:</strong> &lt; 8 &mu;s across the passband. The 6th-order Butterworth achieves ~6 &mu;s variation, still within the CP budget.</li>
-<li><strong>Roll-off rate:</strong> The 6th-order BPF provides &minus;120 dB/decade, yielding &gt; 50 dB rejection at 5 kHz and 80 kHz, necessary for the high dynamic range required in the Rx path.</li>
+<li><strong>Roll-off rate:</strong> The 6th-order BPF (6 poles, 3 per transition band) provides &minus;60 dB/decade per transition, yielding &gt; 50 dB rejection at 5 kHz and 80 kHz, necessary for the high dynamic range required in the Rx path.</li>
 </ul>
 
 <h3 class="sub">Harmonic Distortion Constraints on Amplifier Stages</h3>
@@ -2866,7 +2866,7 @@ L 74.396955 398.75335
 <p>The FFT size balances three factors: (i) more subcarriers improve spectral efficiency and channel equalization granularity; (ii) longer symbols increase vulnerability to time-varying Doppler shifts <a href="#ref-1" class="cite">[1]</a> <a href="#ref-16" class="cite">[16]</a>; (iii) O(N log N) complexity must fit the real-time budget. With 20 kHz bandwidth, each subcarrier occupies &Delta;f = 20,000/64 = <strong>312.5 Hz</strong>, wide enough to remain approximately flat-fading per subcarrier (coherence bandwidth of shallow water channels: 1-10 kHz <a href="#ref-10" class="cite">[10]</a>).</p>
 
 <h4 class="subsub">b) Symbol Duration and Cyclic Prefix</h4>
-<p>Useful symbol duration: T<sub>u</sub> = 1/&Delta;f = <strong>3.2 ms</strong>. The CP must exceed maximum channel delay spread. For shallow water at 1-5 km range, multipath delay spread is typically 2-20 ms <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a> <a href="#ref-16" class="cite">[16]</a>.</p>
+<p>Useful symbol duration: T<sub>u</sub> = 1/&Delta;f = <strong>3.2 ms</strong>. The CP must exceed maximum channel delay spread. For shallow water at 1-5 km range, multipath delay spread ranges from 0.5 ms (short range, benign geometry) to 20 ms (long range, surface-reflected paths) <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a> <a href="#ref-16" class="cite">[16]</a>.</p>
 <p>We choose <strong>CP = 25%</strong> (16 samples), giving T<sub>CP</sub> = 16/20,000 = <strong>0.8 ms</strong>. Total: T<sub>sym</sub> = 3.2 + 0.8 = <strong>4.0 ms</strong>.</p>
 <div class="warn">
 <div class="label">Design trade-off</div>
@@ -2877,13 +2877,13 @@ L 74.396955 398.75335
 <p>312.5 Hz spacing is a deliberate compromise. Narrower spacing (e.g., 78 Hz with N=256) would suffer from Doppler-induced ICI. Relative Doppler: v/c &asymp; 3/1500 = 2&times;10<sup>&minus;3</sup>, causing ~60 Hz offset at 30 kHz &mdash; nearly 20% of a 312.5 Hz subcarrier <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>. Wider spacing provides Doppler margin.</p>
 
 <h4 class="subsub">d) Noise Model</h4>
-<p>Ambient noise PSD is the sum of four components <a href="#ref-7" class="cite">[7]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
+<p>Ambient noise PSD is the sum of four components (all in dB re &mu;Pa&sup2;/Hz, <strong>f in kHz</strong>) <a href="#ref-7" class="cite">[7]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
 <div class="formula">
 N(f) = N<sub>turb</sub>(f) + N<sub>ship</sub>(f) + N<sub>wind</sub>(f) + N<sub>thermal</sub>(f)<br>
-Turbulence: 17 &minus; 30&middot;log&#8321;&#8320;(f) dB re &mu;Pa&sup2;/Hz<br>
+Turbulence: 17 &minus; 30&middot;log&#8321;&#8320;(f)<br>
 Shipping (s=0.5): 40 + 20&middot;(s&minus;0.5) + 26&middot;log&#8321;&#8320;(f) &minus; 60&middot;log&#8321;&#8320;(f+0.03)<br>
 Wind (w=10 m/s): 50 + 7.5&middot;&radic;w + 20&middot;log&#8321;&#8320;(f) &minus; 40&middot;log&#8321;&#8320;(f+0.4)<br>
-Thermal: &minus;15 + 20&middot;log&#8321;&#8320;(f) dB re &mu;Pa&sup2;/Hz
+Thermal: &minus;15 + 20&middot;log&#8321;&#8320;(f)
 </div>
 <p>In the 20-40 kHz band, wind-driven surface noise dominates, with typical aggregate PSD of 40-50 dB re &mu;Pa&sup2;/Hz.</p>
 
@@ -2895,13 +2895,14 @@ R<sub>raw</sub> = N<sub>data</sub> &times; b &times; (1/T<sub>sym</sub>) = 48 &t
 R<sub>coded</sub> = 24,000 &times; 0.5 = 12 kbps (rate-1/2 FEC)<br>
 R<sub>net</sub> &asymp; 12 &times; 0.85 = <strong>10.2 kbps</strong> (net, after protocol overhead)
 </div>
-<p>This meets the 10 kbps target. The rate-1/2 convolutional code provides ~5 dB coding gain, reducing required E<sub>b</sub>/N<sub>0</sub> from ~10.5 dB to ~5.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
+<p>This meets the 10 kbps target. The rate-1/2 convolutional code (constraint length K=7) provides ~3 dB coding gain at BER = 10<sup>&minus;4</sup>, reducing required E<sub>b</sub>/N<sub>0</sub> from 8.4 dB (uncoded QPSK) to ~5.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
 
 <h4 class="subsub">f) Sound Speed Profile</h4>
 <p>Sound speed computed via Mackenzie equation <a href="#ref-9" class="cite">[9]</a>:</p>
 <div class="formula">
 c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup>&minus;4</sup>&middot;T&sup3;<br>
-&nbsp; + (1.340 &minus; 0.01025&middot;T)&middot;(S &minus; 35) + 1.675&times;10<sup>&minus;2</sup>&middot;D &minus; 7.139&times;10<sup>&minus;6</sup>&middot;D&sup3;
+&nbsp; + (1.340 &minus; 0.01025&middot;T)&middot;(S &minus; 35)<br>
+&nbsp; + 1.630&times;10<sup>&minus;2</sup>&middot;D + 1.675&times;10<sup>&minus;7</sup>&middot;D&sup2; &minus; 7.139&times;10<sup>&minus;13</sup>&middot;T&middot;D&sup3;
 </div>
 <p>For typical conditions (T=15&deg;C, S=35 psu, D=50 m): c &asymp; 1507 m/s. The sound speed profile governs ray bending and multipath structure, directly impacting delay spread and CP requirements.</p>
 
@@ -2912,7 +2913,7 @@ c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup
 </div>
 
 <div class="section" id="s5">
-<div class="section-header"><span class="section-num g">Q3</span><h2 class="st">Modulation Scheme Selection</h2></div>
+<div class="section-header"><span class="section-num v">Q3</span><h2 class="st">Modulation Scheme Selection</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>The following modulation schemes are candidates for underwater acoustic OFDM communication. The table below compares their key performance metrics <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>:</p>
@@ -2978,7 +2979,7 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 </div>
 
 <div class="section" id="s6">
-<div class="section-header"><span class="section-num a">Q4</span><h2 class="st">Transducer RLC Model &amp; Digital Control Loop</h2></div>
+<div class="section-header"><span class="section-num v">Q4</span><h2 class="st">Transducer RLC Model &amp; Digital Control Loop</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>Several equivalent circuit models exist for representing piezoelectric transducer behavior in underwater acoustic systems <a href="#ref-4" class="cite">[4]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
@@ -8761,7 +8762,7 @@ z
 </div>
 
 <div class="section" id="s7">
-<div class="section-header"><span class="section-num">Q5</span><h2 class="st">SysML System Architecture</h2></div>
+<div class="section-header"><span class="section-num v">Q5</span><h2 class="st">SysML System Architecture</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>Several system modelling approaches are used in embedded systems engineering for architecture documentation and analysis:</p>
@@ -14638,9 +14639,29 @@ z
 
 <h3 class="sub">&#9315; Platform Integration</h3>
 
+<h4 class="subsub">STM32H743 Hardware Integration</h4>
+<p>The STM32H743VIT6 MCU interfaces with the analog front-end as follows:</p>
+<ul>
+<li><strong>ADC (16-bit, 3.6 MSPS):</strong> Configured in dual-interleaved mode, sampling the Rx BPF output at 500 kHz. DMA half/complete interrupts trigger ping-pong buffer swaps, feeding baseband samples to the OFDM demodulator after digital downconversion and decimation (factor 25, from 500 kHz to 20 kHz OFDM baseband rate).</li>
+<li><strong>DAC (12-bit, 1 MSPS):</strong> Drives the Tx signal chain. The OFDM modulator output at 20 kHz baseband rate is interpolated (factor 25) and digitally upconverted to the 20&ndash;40 kHz passband before DAC output. DMA circular mode ensures continuous streaming.</li>
+<li><strong>Timer TIM1:</strong> Generates the 500 kHz sampling clock for ADC/DAC synchronization. Timer TIM2 provides the 10 kHz interrupt for the PI power control loop.</li>
+<li><strong>UART2 (RS-485):</strong> Host interface at 115200 baud with DMA Rx for zero-copy AT-command reception.</li>
+<li><strong>GPIO:</strong> PA enable, Tx/Rx switching relay, LED indicators, and external watchdog strobe.</li>
+</ul>
+
+<h4 class="subsub">Power Budget</h4>
+<div class="tw"><table>
+<tr><th>Subsystem</th><th>Typical Power</th><th>Notes</th></tr>
+<tr><td>MCU (Cortex-M7 @ 480 MHz)</td><td>~350 mW</td><td>Active DSP mode</td></tr>
+<tr><td>ADC/DAC peripherals</td><td>~50 mW</td><td>Continuous sampling</td></tr>
+<tr><td>LNA + Rx BPF</td><td>~80 mW</td><td>OPA1612 stages</td></tr>
+<tr><td>PA (Class-AB, 100 W acoustic)</td><td>~150 W peak</td><td>Duty-cycled, ~20% average</td></tr>
+<tr><td>Misc (regulators, relay, LEDs)</td><td>~20 mW</td><td>Quiescent</td></tr>
+</table></div>
+<p>In receive-only mode, total system consumption is approximately 500 mW. During transmission, the PA dominates at up to 150 W peak, but average power depends on the transmit duty cycle.</p>
 
 <div class="section" id="s9">
-<div class="section-header"><span class="section-num g">Q7</span><h2 class="st">RTOS Selection &amp; Bare Metal Alternatives</h2></div>
+<div class="section-header"><span class="section-num v">Q7</span><h2 class="st">RTOS Selection &amp; Bare Metal Alternatives</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>Two primary approaches are evaluated for the modem real-time software architecture:</p>
@@ -14653,7 +14674,7 @@ z
 <h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
 
 <h4 class="subsub">Option A: FreeRTOS</h4>
-<p><strong>FreeRTOS</strong> (v10.5+) is the most widely deployed RTOS in embedded systems, with native STM32 integration via STM32CubeIDE, extensive documentation, and a mature ecosystem <a href="#ref-15" class="cite">[15]</a>.</p>
+<p><strong>FreeRTOS</strong> (v10.5+) is the most widely deployed RTOS in embedded systems, with native STM32 integration via STM32CubeIDE, extensive documentation, and a mature ecosystem.</p>
 
 <h4 class="subsub">Task Architecture</h4>
 <div class="tw"><table>
@@ -14689,7 +14710,7 @@ z
 </div>
 
 <div class="section" id="s10">
-<div class="section-header"><span class="section-num a">Q8</span><h2 class="st">C Firmware Skeleton</h2></div>
+<div class="section-header"><span class="section-num v">Q8</span><h2 class="st">C Firmware Skeleton</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>Several firmware development approaches are used for real-time embedded DSP systems:</p>
@@ -15106,7 +15127,9 @@ z
 <span class="kw2">#include</span> &lt;string.h&gt;
 
 <span class="cmt">/* ── System Parameters ─────────────────────────────────────── */</span>
-<span class="kw2">#define</span> MODEM_FS_HZ <span class="num">500000U</span> <span class="cmt">/* ADC/DAC sample rate */</span>
+<span class="kw2">#define</span> MODEM_FS_HZ <span class="num">500000U</span> <span class="cmt">/* ADC/DAC hardware sample rate */</span>
+<span class="kw2">#define</span> MODEM_BW_HZ <span class="num">20000U</span> <span class="cmt">/* OFDM baseband rate (after decim.) */</span>
+<span class="kw2">#define</span> MODEM_DECIM (MODEM_FS_HZ / MODEM_BW_HZ) <span class="cmt">/* = 25 */</span>
 <span class="kw2">#define</span> MODEM_CTRL_HZ <span class="num">10000U</span> <span class="cmt">/* PI control loop rate */</span>
 <span class="kw2">#define</span> OFDM_NFFT <span class="num">64U</span>
 <span class="kw2">#define</span> OFDM_NCP <span class="num">16U</span> <span class="cmt">/* CP length = 25% of NFFT */</span>
@@ -15222,21 +15245,29 @@ z
  <span class="cls">int16_t</span> freq_Q[OFDM_NFFT] = {<span class="num">0</span>};
  <span class="cls">uint16_t</span> bpos = <span class="num">0</span>;
 
- <span class="cmt">/* Map bits → QPSK on data subcarriers */</span>
- <span class="kw">for</span> (<span class="cls">uint16_t</span> k = <span class="num">1</span>; k &lt; OFDM_NFFT / <span class="num">2</span>; k++) {
- <span class="kw">bool</span> is_pilot = <span class="kw">false</span>;
- <span class="kw">for</span> (<span class="cls">uint8_t</span> p = <span class="num">0</span>; p &lt; OFDM_NPILOT; p++)
- <span class="kw">if</span> (pilot_idx[p] == k) { is_pilot = <span class="kw">true</span>; <span class="kw">break</span>; }
+ <span class="cmt">/* 802.11a-style subcarrier indices:
+ * Positive: 1-26, Negative: 38-63, Null/guard: 0, 27-37
+ * Pilots at {7, 21, 43, 57} */</span>
+ <span class="kw">static</span> <span class="kw">const</span> <span class="cls">uint8_t</span> data_map[] = {
+ <span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>, <span class="num">8</span>,<span class="num">9</span>,<span class="num">10</span>,<span class="num">11</span>,<span class="num">12</span>,<span class="num">13</span>,<span class="num">14</span>,<span class="num">15</span>,<span class="num">16</span>,<span class="num">17</span>,<span class="num">18</span>,<span class="num">19</span>,<span class="num">20</span>,
+ <span class="num">22</span>,<span class="num">23</span>,<span class="num">24</span>,<span class="num">25</span>,<span class="num">26</span>,
+ <span class="num">38</span>,<span class="num">39</span>,<span class="num">40</span>,<span class="num">41</span>,<span class="num">42</span>, <span class="num">44</span>,<span class="num">45</span>,<span class="num">46</span>,<span class="num">47</span>,<span class="num">48</span>,<span class="num">49</span>,<span class="num">50</span>,<span class="num">51</span>,<span class="num">52</span>,<span class="num">53</span>,<span class="num">54</span>,<span class="num">55</span>,<span class="num">56</span>,
+ <span class="num">58</span>,<span class="num">59</span>,<span class="num">60</span>,<span class="num">61</span>,<span class="num">62</span>,<span class="num">63</span>
+ }; <span class="cmt">/* 48 data subcarriers */</span>
 
- <span class="kw">if</span> (is_pilot) {
- freq_I[k] = <span class="num">32767</span>; <span class="cmt">/* pilot = +1 */</span>
- freq_Q[k] = <span class="num">0</span>;
- } <span class="kw">else</span> <span class="kw">if</span> (bpos + BITS_PER_SYM &lt;= nbits) {
+ <span class="cmt">/* Insert pilots */</span>
+ <span class="kw">for</span> (<span class="cls">uint8_t</span> p = <span class="num">0</span>; p &lt; OFDM_NPILOT; p++) {
+ freq_I[pilot_idx[p]] = <span class="num">32767</span>; <span class="cmt">/* pilot = +1 */</span>
+ freq_Q[pilot_idx[p]] = <span class="num">0</span>;
+ }
+
+ <span class="cmt">/* Map bits → QPSK on data subcarriers */</span>
+ <span class="kw">for</span> (<span class="cls">uint16_t</span> d = <span class="num">0</span>; d &lt; OFDM_NDATA &amp;&amp; bpos + BITS_PER_SYM &lt;= nbits; d++) {
+ <span class="cls">uint8_t</span> k = data_map[d];
  <span class="cls">uint8_t</span> sym = (bits[bpos/<span class="num">8</span>] &gt;&gt; (bpos % <span class="num">8</span>)) &amp; <span class="num">0x03</span>;
  freq_I[k] = qpsk_I[sym];
  freq_Q[k] = qpsk_Q[sym];
  bpos += BITS_PER_SYM;
- }
  }
 
  <span class="cmt">/* IFFT (radix-2 DIT) → time-domain */</span>
@@ -15263,15 +15294,23 @@ z
 
  <span class="deco">bsp_fft_q15</span>(time_I, time_Q, freq_I, freq_Q, OFDM_NFFT);
 
- <span class="cmt">/* QPSK demap: hard decision */</span>
+ <span class="cmt">/* Data subcarrier map (same as modulator) */</span>
+ <span class="kw">static</span> <span class="kw">const</span> <span class="cls">uint8_t</span> data_map[] = {
+ <span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>, <span class="num">8</span>,<span class="num">9</span>,<span class="num">10</span>,<span class="num">11</span>,<span class="num">12</span>,<span class="num">13</span>,<span class="num">14</span>,<span class="num">15</span>,<span class="num">16</span>,<span class="num">17</span>,<span class="num">18</span>,<span class="num">19</span>,<span class="num">20</span>,
+ <span class="num">22</span>,<span class="num">23</span>,<span class="num">24</span>,<span class="num">25</span>,<span class="num">26</span>,
+ <span class="num">38</span>,<span class="num">39</span>,<span class="num">40</span>,<span class="num">41</span>,<span class="num">42</span>, <span class="num">44</span>,<span class="num">45</span>,<span class="num">46</span>,<span class="num">47</span>,<span class="num">48</span>,<span class="num">49</span>,<span class="num">50</span>,<span class="num">51</span>,<span class="num">52</span>,<span class="num">53</span>,<span class="num">54</span>,<span class="num">55</span>,<span class="num">56</span>,
+ <span class="num">58</span>,<span class="num">59</span>,<span class="num">60</span>,<span class="num">61</span>,<span class="num">62</span>,<span class="num">63</span>
+ };
+
+ <span class="cmt">/* TODO: pilot-based channel estimation &amp; equalization
+ * (zero-forcing or MMSE) should be applied here before
+ * hard-decision demapping for production firmware. */</span>
+
+ <span class="cmt">/* QPSK demap: hard decision on data subcarriers */</span>
  <span class="cls">uint16_t</span> bpos = <span class="num">0</span>;
  <span class="deco">memset</span>(bits, <span class="num">0</span>, max_bits / <span class="num">8</span> + <span class="num">1</span>);
- <span class="kw">for</span> (<span class="cls">uint16_t</span> k = <span class="num">1</span>; k &lt; OFDM_NFFT / <span class="num">2</span> &amp;&amp; bpos + <span class="num">2</span> &lt;= max_bits; k++) {
- <span class="kw">bool</span> is_pilot = <span class="kw">false</span>;
- <span class="kw">for</span> (<span class="cls">uint8_t</span> p = <span class="num">0</span>; p &lt; OFDM_NPILOT; p++)
- <span class="kw">if</span> (pilot_idx[p] == k) { is_pilot = <span class="kw">true</span>; <span class="kw">break</span>; }
- <span class="kw">if</span> (is_pilot) <span class="kw">continue</span>;
-
+ <span class="kw">for</span> (<span class="cls">uint16_t</span> d = <span class="num">0</span>; d &lt; OFDM_NDATA &amp;&amp; bpos + <span class="num">2</span> &lt;= max_bits; d++) {
+ <span class="cls">uint8_t</span> k = data_map[d];
  <span class="cls">uint8_t</span> sym = ((freq_I[k] &lt; <span class="num">0</span>) ? <span class="num">1</span> : <span class="num">0</span>) | ((freq_Q[k] &lt; <span class="num">0</span>) ? <span class="num">2</span> : <span class="num">0</span>);
  bits[bpos/<span class="num">8</span>] |= (sym &lt;&lt; (bpos % <span class="num">8</span>));
  bpos += <span class="num">2</span>;
@@ -15382,19 +15421,20 @@ z
 
 <span class="kw">static</span> <span class="kw">float</span> <span class="deco">pi_step</span>(<span class="kw">float</span> error)
 {
- <span class="cmt">/* Tustin integrator: I[n] = I[n-1] + (Ts/2)*(e[n] + e[n-1]) */</span>
- integral += (Ts / <span class="num">2.0f</span>) * (error + e_prev) * Ki;
+ <span class="cmt">/* Tustin integrator: I[n] = I[n-1] + (Ki*Ts/2)*(e[n] + e[n-1]) */</span>
+ <span class="kw">float</span> delta_i = (Ts / <span class="num">2.0f</span>) * (error + e_prev) * Ki;
+ integral += delta_i;
  e_prev = error;
 
  <span class="kw">float</span> u = Kp * error + integral;
 
- <span class="cmt">/* Anti-windup: clamp output &amp; freeze integrator */</span>
+ <span class="cmt">/* Anti-windup: clamp output &amp; undo integrator step */</span>
  <span class="kw">if</span> (u &gt; SAT_HIGH) {
  u = SAT_HIGH;
- integral -= (Ts / <span class="num">2.0f</span>) * (error + e_prev) * Ki; <span class="cmt">/* back-calc */</span>
+ integral -= delta_i; <span class="cmt">/* back-calc: undo exact term */</span>
  } <span class="kw">else</span> <span class="kw">if</span> (u &lt; SAT_LOW) {
  u = SAT_LOW;
- integral -= (Ts / <span class="num">2.0f</span>) * (error + e_prev) * Ki;
+ integral -= delta_i;
  }
  <span class="kw">return</span> u;
 }
@@ -15403,7 +15443,10 @@ z
 {
  (<span class="kw">void</span>)arg;
  <span class="cls">TickType_t</span> wake = <span class="deco">xTaskGetTickCount</span>();
- <span class="kw">const</span> <span class="cls">TickType_t</span> period = <span class="deco">pdMS_TO_TICKS</span>(<span class="num">1000</span> / MODEM_CTRL_HZ);
+ <span class="cmt">/* 10 kHz = 0.1 ms period; use configTICK_RATE_HZ ≥ 10 kHz
+ * or, more robustly, a hardware timer ISR. Here we assume
+ * configTICK_RATE_HZ = 10000 so 1 tick = 0.1 ms. */</span>
+ <span class="kw">const</span> <span class="cls">TickType_t</span> period = (<span class="cls">TickType_t</span>)(configTICK_RATE_HZ / MODEM_CTRL_HZ);
 
  <span class="kw">for</span> (;;) {
  <span class="deco">vTaskDelayUntil</span>(&amp;wake, period);
@@ -15632,7 +15675,7 @@ z
 </div>
 
 <div class="section" id="s11">
-<div class="section-header"><span class="section-num">Q9</span><h2 class="st">Simulation &amp; Validation Strategy</h2></div>
+<div class="section-header"><span class="section-num v">Q9</span><h2 class="st">Simulation &amp; Validation Strategy</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>Several simulation approaches are used for validating underwater acoustic modem designs:</p>
@@ -18494,7 +18537,7 @@ z
 </div>
 
 <div class="section" id="s13">
-<div class="section-header"><span class="section-num g">Q11</span><h2 class="st">Certification &amp; Regulatory Compliance</h2></div>
+<div class="section-header"><span class="section-num v">Q11</span><h2 class="st">Certification &amp; Regulatory Compliance</h2></div>
 
 <h3 class="sub">&#9312; State of the Art</h3>
 <p>The following regulatory frameworks apply to underwater acoustic modems deployed in European and international waters:</p>
@@ -18586,7 +18629,7 @@ z
 </div>
 
 <div class="section" id="s14">
-<div class="section-header"><span class="section-num">14</span><h2 class="st">AI Disclosure</h2></div>
+<div class="section-header"><span class="section-num">12</span><h2 class="st">AI Disclosure</h2></div>
 <p>This report was developed using a structured engineering methodology augmented by AI-assisted tools for literature research, technical content structuring, figure generation, and firmware code scaffolding. AI tools were employed as productivity aids &mdash; analogous to CAD/EDA tools in hardware design &mdash; with all technical decisions, parameter selections, and design validations remaining under engineering oversight.</p>
 
 <div class="tw"><table>
@@ -18609,7 +18652,7 @@ z
 </div>
 
 <div class="section" id="s15">
-<div class="section-header"><span class="section-num v">15</span><h2 class="st">Conclusion</h2></div>
+<div class="section-header"><span class="section-num">13</span><h2 class="st">Conclusion</h2></div>
 <p>This report has presented a comprehensive design for an underwater acoustic OFDM modem meeting the specified requirements of 10 kbps net data rate, 100 W transmit power, and &minus;100 dBm(A) receiver sensitivity in the 20-40 kHz band. The key design decisions are:</p>
 <ul>
 <li><strong>Analog front-end:</strong> Butterworth bandpass filters (4th-order Tx, 6th-order Rx) providing maximally flat passband response suitable for OFDM subcarrier uniformity.</li>
@@ -18624,7 +18667,7 @@ z
 <p>The design provides significant margins in computational performance, power budget, and memory utilization, ensuring headroom for future enhancements such as adaptive modulation, higher-order FEC, and multi-element beamforming.</p>
 </div>
 <div class="section" id="s16">
-<div class="section-header"><span class="section-num a">16</span><h2 class="st">Bibliography</h2></div>
+<div class="section-header"><span class="section-num">14</span><h2 class="st">Bibliography</h2></div>
 <p style="color:var(--text2);font-size:14px;margin-bottom:16px">The following references are cited throughout this report. Click any inline citation <a href="#ref-1" class="cite">[n]</a> to jump to its entry below.</p>
 <div>
 <div class="bib-item" id="ref-1">
