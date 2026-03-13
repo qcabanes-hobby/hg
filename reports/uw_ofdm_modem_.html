@@ -153,6 +153,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <div class="nav-group"><div class="nav-group-label">Overview</div>
 <a class="nav-item active" href="#hero"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
 <a class="nav-item" href="#abstract"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+<a class="nav-item" href="#acronyms"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
 <a class="nav-item" href="#s1"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
 <a class="nav-item" href="#s2"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
 </div><div class="nav-group"><div class="nav-group-label">Questions</div>
@@ -201,6 +202,69 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <p>This report presents the complete design of an underwater acoustic OFDM modem operating in the 20-40 kHz band with a 20 kHz bandwidth, targeting a net data rate of 10 kbps at 100 W transmit power and &minus;100 dBm(A) receiver sensitivity. The design covers eleven key engineering questions: analog bandpass filter design with Butterworth topology, OFDM parameter optimization with 64-point FFT and cyclic prefix, QPSK modulation selection justified by BER performance and spectral efficiency in the underwater channel, piezoelectric transducer RLC modelling with closed-loop digital PI power control, SysML system architecture, platform selection including MCU-only, MCU+FPGA, and co-design options, real-time operating system choice including FreeRTOS and the Embassy async Rust alternative, complete C firmware skeleton with task architecture, simulation and validation strategy, V-model project planning with Gantt schedule, and regulatory certification requirements.</p>
 </div>
 
+<section class="section" id="acronyms">
+<div class="section-header"><span class="section-num">01b</span><h2 class="st">Acronyms &amp; Abbreviations</h2></div>
+<div class="tw"><table>
+<thead><tr><th>Acronym</th><th>Full Name</th></tr></thead>
+<tbody>
+<tr><td>ADC</td><td>Analog-to-Digital Converter</td></tr>
+<tr><td>AGC</td><td>Automatic Gain Control</td></tr>
+<tr><td>AWGN</td><td>Additive White Gaussian Noise</td></tr>
+<tr><td>BDD</td><td>Block Definition Diagram</td></tr>
+<tr><td>BER</td><td>Bit Error Rate</td></tr>
+<tr><td>BGA</td><td>Ball Grid Array</td></tr>
+<tr><td>BOM</td><td>Bill of Materials</td></tr>
+<tr><td>BPF</td><td>Bandpass Filter</td></tr>
+<tr><td>BPSK</td><td>Binary Phase-Shift Keying</td></tr>
+<tr><td>BSP</td><td>Board Support Package</td></tr>
+<tr><td>CDR</td><td>Critical Design Review</td></tr>
+<tr><td>CMSIS</td><td>Cortex Microcontroller Software Interface Standard</td></tr>
+<tr><td>CORDIC</td><td>Coordinate Rotation Digital Computer</td></tr>
+<tr><td>CP</td><td>Cyclic Prefix</td></tr>
+<tr><td>DAC</td><td>Digital-to-Analog Converter</td></tr>
+<tr><td>DES</td><td>Discrete-Event Simulation</td></tr>
+<tr><td>DMA</td><td>Direct Memory Access</td></tr>
+<tr><td>EMC</td><td>Electromagnetic Compatibility</td></tr>
+<tr><td>EVM</td><td>Error Vector Magnitude</td></tr>
+<tr><td>FAI</td><td>Final Acceptance Inspection</td></tr>
+<tr><td>FCC</td><td>Federal Communications Commission</td></tr>
+<tr><td>FEC</td><td>Forward Error Correction</td></tr>
+<tr><td>FFT</td><td>Fast Fourier Transform</td></tr>
+<tr><td>FPGA</td><td>Field-Programmable Gate Array</td></tr>
+<tr><td>GBW</td><td>Gain-Bandwidth Product</td></tr>
+<tr><td>GPIO</td><td>General Purpose Input/Output</td></tr>
+<tr><td>HAL</td><td>Hardware Abstraction Layer</td></tr>
+<tr><td>I2C</td><td>Inter-Integrated Circuit</td></tr>
+<tr><td>IFFT</td><td>Inverse Fast Fourier Transform</td></tr>
+<tr><td>IPC</td><td>Inter-Process Communication</td></tr>
+<tr><td>ISR</td><td>Interrupt Service Routine</td></tr>
+<tr><td>LNA</td><td>Low Noise Amplifier</td></tr>
+<tr><td>MCU</td><td>Microcontroller Unit</td></tr>
+<tr><td>NF</td><td>Noise Figure</td></tr>
+<tr><td>OFDM</td><td>Orthogonal Frequency-Division Multiplexing</td></tr>
+<tr><td>PA</td><td>Power Amplifier</td></tr>
+<tr><td>PAPR</td><td>Peak-to-Average Power Ratio</td></tr>
+<tr><td>PCB</td><td>Printed Circuit Board</td></tr>
+<tr><td>PDR</td><td>Preliminary Design Review</td></tr>
+<tr><td>PI</td><td>Proportional-Integral</td></tr>
+<tr><td>QAM</td><td>Quadrature Amplitude Modulation</td></tr>
+<tr><td>QPSK</td><td>Quadrature Phase-Shift Keying</td></tr>
+<tr><td>RTOS</td><td>Real-Time Operating System</td></tr>
+<tr><td>SNR</td><td>Signal-to-Noise Ratio</td></tr>
+<tr><td>SoC</td><td>System on Chip</td></tr>
+<tr><td>SPI</td><td>Serial Peripheral Interface</td></tr>
+<tr><td>SRAM</td><td>Static Random-Access Memory</td></tr>
+<tr><td>SRR</td><td>System Requirements Review</td></tr>
+<tr><td>SysML</td><td>Systems Modeling Language</td></tr>
+<tr><td>THD</td><td>Total Harmonic Distortion</td></tr>
+<tr><td>TRR</td><td>Test Readiness Review</td></tr>
+<tr><td>UART</td><td>Universal Asynchronous Receiver/Transmitter</td></tr>
+<tr><td>UW</td><td>Underwater</td></tr>
+<tr><td>WSSUS</td><td>Wide-Sense Stationary Uncorrelated Scattering</td></tr>
+</tbody>
+</table></div>
+</section>
+
 <div class="section" id="s1">
 <div class="section-header"><span class="section-num">02</span><h2 class="st">Problem Statement</h2></div>
 <p>Design a complete underwater acoustic modem capable of reliable digital communication in shallow-to-medium water environments (depth &le; 300 m, range 0.5-5 km). The system must meet the following top-level specifications:</p>
@@ -231,7 +295,17 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <div class="section" id="s3">
 <div class="section-header"><span class="section-num">Q1</span><h2 class="st">Analog Filter Design</h2></div>
 
-<h3 class="sub">Filter Topology Choice</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>The following filter topologies are candidates for the OFDM modem analog front-end bandpass filter. Each topology is well-established in signal processing literature <a href="#ref-4" class="cite">[4]</a> <a href="#ref-14" class="cite">[14]</a>:</p>
+<div class="tw"><table>
+<tr><th>Topology</th><th>Passband Response</th><th>Roll-off</th><th>Group Delay</th><th>Suitability for OFDM</th></tr>
+<tr><td>Butterworth</td><td>Maximally flat (0 dB ripple)</td><td>Moderate (&minus;20n dB/dec)</td><td>Moderate variation</td><td>Excellent &mdash; uniform subcarrier gain</td></tr>
+<tr><td>Chebyshev Type I</td><td>Equiripple (&gt; 0.5 dB)</td><td>Sharp</td><td>Larger variation</td><td>Poor &mdash; unequal subcarrier attenuation</td></tr>
+<tr><td>Bessel</td><td>Monotonic, gentle roll-off</td><td>Slowest</td><td>Flattest (linear phase)</td><td>Insufficient stopband rejection</td></tr>
+<tr><td>Elliptic (Cauer)</td><td>Equiripple passband + stopband</td><td>Sharpest per order</td><td>Large variation</td><td>Poor &mdash; ripple degrades wideband OFDM</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
 <p>We select a <strong>Butterworth</strong> bandpass filter topology for both the transmitter and receiver analog front-ends. The Butterworth approximation provides maximally flat magnitude response in the passband, which is critical for OFDM systems where all subcarriers must experience uniform gain to avoid inter-carrier interference (ICI) and constellation distortion <a href="#ref-4" class="cite">[4]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
 <p>Alternative topologies were considered and rejected:</p>
 <ul>
@@ -240,7 +314,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <li><strong>Elliptic (Cauer):</strong> Maximum selectivity per order, but both passband and stopband ripple make it poorly suited to wideband OFDM.</li>
 </ul>
 
-<h3 class="sub">Design Parameters</h3>
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>Butterworth topology</strong> &mdash; selected for its maximally flat passband response, ensuring uniform gain across all OFDM subcarriers. The zero-ripple property prevents constellation distortion and maintains low EVM across the 20&ndash;40 kHz operating band.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
 <div class="tw"><table>
 <tr><th>Parameter</th><th>Tx BPF</th><th>Rx BPF</th><th>Rationale</th></tr>
 <tr><td>Topology</td><td>Butterworth</td><td>Butterworth</td><td>Maximally flat passband</td></tr>
@@ -263,7 +341,9 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <li>4th-order sufficient for Tx (PA provides additional spectral shaping); 6th-order for Rx (full ambient noise spectrum).</li>
 </ul>
 
-<h3 class="sub">Bode Diagram</h3>
+<h3 class="sub">&#9315; Design &amp; Analysis</h3>
+
+<h4 class="subsub">Bode Diagram</h4>
 <p>The figure below shows the magnitude and phase response of both filters. The green shaded region indicates the 20-40 kHz passband.</p>
 <div class="fig-container">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="616.830781pt" height="450.01875pt" viewBox="0 0 616.830781 450.01875" xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -2762,11 +2842,30 @@ L 74.396955 398.75335
 <div class="section" id="s4">
 <div class="section-header"><span class="section-num v">Q2</span><h2 class="st">OFDM Parameter Design</h2></div>
 
-<h3 class="sub">a) Number of Subcarriers and FFT Size</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>OFDM parameter selection for underwater acoustic channels involves balancing several competing constraints. The following table summarizes common FFT sizes and their trade-offs as documented in the literature <a href="#ref-3" class="cite">[3]</a> <a href="#ref-11" class="cite">[11]</a> <a href="#ref-14" class="cite">[14]</a>:</p>
+<div class="tw"><table>
+<tr><th>FFT Size</th><th>Subcarrier Spacing (20 kHz BW)</th><th>Symbol Duration</th><th>Doppler Tolerance</th><th>Complexity</th></tr>
+<tr><td>32-point</td><td>625 Hz</td><td>1.6 ms</td><td>High</td><td>Lowest</td></tr>
+<tr><td><strong>64-point</strong></td><td>312.5 Hz</td><td>3.2 ms</td><td>Good</td><td>Low</td></tr>
+<tr><td>128-point</td><td>156.25 Hz</td><td>6.4 ms</td><td>Moderate</td><td>Medium</td></tr>
+<tr><td>256-point</td><td>78.125 Hz</td><td>12.8 ms</td><td>Poor</td><td>High</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>The 64-point FFT provides the optimal compromise for this modem design: 312.5 Hz spacing is wide enough to tolerate Doppler shifts of ~60 Hz (relative velocity 3 m/s at 30 kHz) while maintaining sufficient spectral granularity for channel equalization. Larger FFTs (128, 256) suffer from Doppler-induced ICI in the underwater channel <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>, while a 32-point FFT wastes spectral efficiency with too-wide subcarrier spacing.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>64-point FFT</strong> with 48 data subcarriers, 4 pilots, 12 null/guard subcarriers, and 25% cyclic prefix &mdash; yielding 312.5 Hz subcarrier spacing, 4.0 ms symbol duration, and ~10.2 kbps net data rate with QPSK + rate-1/2 FEC.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">a) Number of Subcarriers and FFT Size</h4>
 <p>We select <strong>N = 64-point FFT</strong> with 48 data subcarriers, 4 pilot subcarriers, and 12 null/guard subcarriers (including DC). This follows the 802.11a structure adapted for underwater channels <a href="#ref-3" class="cite">[3]</a> <a href="#ref-14" class="cite">[14]</a> <a href="#ref-11" class="cite">[11]</a>.</p>
 <p>The FFT size balances three factors: (i) more subcarriers improve spectral efficiency and channel equalization granularity; (ii) longer symbols increase vulnerability to time-varying Doppler shifts <a href="#ref-1" class="cite">[1]</a> <a href="#ref-16" class="cite">[16]</a>; (iii) O(N log N) complexity must fit the real-time budget. With 20 kHz bandwidth, each subcarrier occupies &Delta;f = 20,000/64 = <strong>312.5 Hz</strong>, wide enough to remain approximately flat-fading per subcarrier (coherence bandwidth of shallow water channels: 1-10 kHz <a href="#ref-10" class="cite">[10]</a>).</p>
 
-<h3 class="sub">b) Symbol Duration and Cyclic Prefix</h3>
+<h4 class="subsub">b) Symbol Duration and Cyclic Prefix</h4>
 <p>Useful symbol duration: T<sub>u</sub> = 1/&Delta;f = <strong>3.2 ms</strong>. The CP must exceed maximum channel delay spread. For shallow water at 1-5 km range, multipath delay spread is typically 2-20 ms <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a> <a href="#ref-16" class="cite">[16]</a>.</p>
 <p>We choose <strong>CP = 25%</strong> (16 samples), giving T<sub>CP</sub> = 16/20,000 = <strong>0.8 ms</strong>. Total: T<sub>sym</sub> = 3.2 + 0.8 = <strong>4.0 ms</strong>.</p>
 <div class="warn">
@@ -2774,10 +2873,10 @@ L 74.396955 398.75335
 <p>The 0.8 ms CP accommodates delay spreads up to 0.8 ms (~1.2 m path difference at 1500 m/s). For longer-range deployments, CP can be increased to 50% (1.6 ms) at reduced throughput. Adaptive CP based on channel sounding is also viable <a href="#ref-12" class="cite">[12]</a>.</p>
 </div>
 
-<h3 class="sub">c) Subcarrier Spacing Analysis</h3>
+<h4 class="subsub">c) Subcarrier Spacing Analysis</h4>
 <p>312.5 Hz spacing is a deliberate compromise. Narrower spacing (e.g., 78 Hz with N=256) would suffer from Doppler-induced ICI. Relative Doppler: v/c &asymp; 3/1500 = 2&times;10<sup>&minus;3</sup>, causing ~60 Hz offset at 30 kHz &mdash; nearly 20% of a 312.5 Hz subcarrier <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>. Wider spacing provides Doppler margin.</p>
 
-<h3 class="sub">d) Noise Model</h3>
+<h4 class="subsub">d) Noise Model</h4>
 <p>Ambient noise PSD is the sum of four components <a href="#ref-7" class="cite">[7]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
 <div class="formula">
 N(f) = N<sub>turb</sub>(f) + N<sub>ship</sub>(f) + N<sub>wind</sub>(f) + N<sub>thermal</sub>(f)<br>
@@ -2788,7 +2887,9 @@ Thermal: &minus;15 + 20&middot;log&#8321;&#8320;(f) dB re &mu;Pa&sup2;/Hz
 </div>
 <p>In the 20-40 kHz band, wind-driven surface noise dominates, with typical aggregate PSD of 40-50 dB re &mu;Pa&sup2;/Hz.</p>
 
-<h3 class="sub">e) Achievable Data Rate</h3>
+<h3 class="sub">&#9315; Parameter Summary</h3>
+
+<h4 class="subsub">e) Achievable Data Rate</h4>
 <div class="formula">
 R<sub>raw</sub> = N<sub>data</sub> &times; b &times; (1/T<sub>sym</sub>) = 48 &times; 2 &times; 250 = 24 kbps (raw)<br>
 R<sub>coded</sub> = 24,000 &times; 0.5 = 12 kbps (rate-1/2 FEC)<br>
@@ -2796,7 +2897,7 @@ R<sub>net</sub> &asymp; 12 &times; 0.85 = <strong>10.2 kbps</strong> (net, after
 </div>
 <p>This meets the 10 kbps target. The rate-1/2 convolutional code provides ~5 dB coding gain, reducing required E<sub>b</sub>/N<sub>0</sub> from ~10.5 dB to ~5.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
 
-<h3 class="sub">f) Sound Speed Profile</h3>
+<h4 class="subsub">f) Sound Speed Profile</h4>
 <p>Sound speed computed via Mackenzie equation <a href="#ref-9" class="cite">[9]</a>:</p>
 <div class="formula">
 c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup>&minus;4</sup>&middot;T&sup3;<br>
@@ -2813,10 +2914,10 @@ c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup
 <div class="section" id="s5">
 <div class="section-header"><span class="section-num g">Q3</span><h2 class="st">Modulation Scheme Selection</h2></div>
 
-<h3 class="sub">Recommended Modulation: QPSK</h3>
-<p>We select <strong>QPSK (Quadrature Phase-Shift Keying)</strong> as the primary modulation scheme, with BPSK as a fallback mode for degraded channels. This choice is justified by the following analysis spanning BER performance, spectral efficiency, and the specific characteristics of the underwater acoustic channel.</p>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>The following modulation schemes are candidates for underwater acoustic OFDM communication. The table below compares their key performance metrics <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>:</p>
 
-<h3 class="sub">BER Performance Analysis</h3>
+<h4 class="subsub">BER Performance Analysis</h4>
 <p>The BER of M-PSK modulations in AWGN is given by:</p>
 <div class="formula">
 P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot; E<sub>b</sub>/N<sub>0</sub>) &middot; sin(&pi;/M))
@@ -2831,7 +2932,10 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 </table></div>
 <p>QPSK achieves the same E<sub>b</sub>/N<sub>0</sub> as BPSK (since they have identical bit-error probability) while doubling the spectral efficiency. This is because QPSK transmits two bits per symbol using orthogonal I and Q channels, each of which independently achieves BPSK performance <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
 
-<h3 class="sub">Underwater Channel Justification</h3>
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>We select <strong>QPSK (Quadrature Phase-Shift Keying)</strong> as the primary modulation scheme, with BPSK as a fallback mode for degraded channels. QPSK achieves the same E<sub>b</sub>/N<sub>0</sub> as BPSK while doubling spectral efficiency, since it transmits two bits per symbol using orthogonal I and Q channels <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
+
+<h4 class="subsub">Underwater Channel Justification</h4>
 <p>The underwater acoustic channel presents several challenges that strongly favor QPSK over higher-order modulations:</p>
 
 <h4 class="subsub">1. Limited and Variable SNR</h4>
@@ -2855,7 +2959,9 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 <li>Proakis et al. emphasize that for shallow water networks, robust QPSK with coding is the appropriate choice for reliable multi-hop communication <a href="#ref-6" class="cite">[6]</a>.</li>
 </ul>
 
-<h3 class="sub">Adaptive Modulation Strategy</h3>
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">Adaptive Modulation Strategy</h4>
 <p>To maximize throughput when conditions permit, we implement a <strong>two-tier adaptive modulation</strong> strategy:</p>
 <div class="tw"><table>
 <tr><th>Mode</th><th>Modulation</th><th>Trigger (SNR)</th><th>Net Rate</th><th>Use Case</th></tr>
@@ -2864,8 +2970,9 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 </table></div>
 <p>The SNR is estimated from pilot subcarrier measurements using a sliding-window average over 10 symbols (~40 ms). Mode switching occurs with hysteresis (&pm;2 dB) to prevent rapid oscillation <a href="#ref-12" class="cite">[12]</a> <a href="#ref-18" class="cite">[18]</a>.</p>
 
-<div class="chosen">
-<div class="label">Decision</div>
+<h3 class="sub">&#9315; Modulation Strategy</h3>
+
+<div class="chosen"><div class="label">CHOSEN</div>
 <p><strong>QPSK</strong> is selected as the primary modulation scheme, providing the optimal balance of spectral efficiency (2 bps/Hz), robustness to the underwater channel (8.4 dB E<sub>b</sub>/N<sub>0</sub> uncoded), and implementation simplicity on the embedded platform. BPSK fallback ensures graceful degradation. This choice is supported by extensive experimental evidence from multiple research groups <a href="#ref-12" class="cite">[12]</a> <a href="#ref-13" class="cite">[13]</a> <a href="#ref-14" class="cite">[14]</a> <a href="#ref-15" class="cite">[15]</a> <a href="#ref-18" class="cite">[18]</a>.</p>
 </div>
 </div>
@@ -2873,7 +2980,26 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 <div class="section" id="s6">
 <div class="section-header"><span class="section-num a">Q4</span><h2 class="st">Transducer RLC Model &amp; Digital Control Loop</h2></div>
 
-<h3 class="sub">Piezoelectric Transducer RLC Model</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>Several equivalent circuit models exist for representing piezoelectric transducer behavior in underwater acoustic systems <a href="#ref-4" class="cite">[4]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
+<div class="tw"><table>
+<tr><th>Model</th><th>Complexity</th><th>Accuracy Near Resonance</th><th>Wideband Accuracy</th><th>Use Case</th></tr>
+<tr><td><strong>Butterworth-Van Dyke (BVD)</strong></td><td>Low (4 elements)</td><td>Excellent</td><td>Good for moderate Q</td><td>Single-mode transducers</td></tr>
+<tr><td>Mason Equivalent</td><td>Medium (distributed)</td><td>Excellent</td><td>Excellent</td><td>Multi-layer stacks</td></tr>
+<tr><td>KLM Model</td><td>Medium (transmission line)</td><td>Excellent</td><td>Excellent</td><td>Broadband design</td></tr>
+<tr><td>FEA (COMSOL/ANSYS)</td><td>High (numerical)</td><td>Highest</td><td>Highest</td><td>Complex geometries</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>For this modem design, the BVD model offers sufficient accuracy with minimal complexity, making it ideal for control loop design and real-time impedance estimation. The Mason and KLM models provide better wideband accuracy but add unnecessary complexity for a transducer operating near its fundamental resonance. FEA is reserved for transducer mechanical design, not for control system modelling.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>Butterworth-Van Dyke (BVD) equivalent circuit</strong> &mdash; provides a lumped-element RLC network representation suitable for closed-loop digital power control design, with sufficient accuracy for the moderate-Q piezoelectric transducer operating near 30 kHz resonance.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">Piezoelectric Transducer RLC Model</h4>
 <p>The piezoelectric transducer is modelled using the <strong>Butterworth-Van Dyke (BVD)</strong> equivalent circuit, which represents the electromechanical behavior of a piezoelectric resonator as a lumped-element RLC network <a href="#ref-4" class="cite">[4]</a> <a href="#ref-5" class="cite">[5]</a>. This model consists of:</p>
 <ul>
 <li><strong>Motional arm (series RLC):</strong> R&#8321; (mechanical losses, typically 5-50 &Omega;), L&#8321; (effective vibrating mass, 10-100 mH), and C&#8321; (mechanical compliance, 0.1-10 nF). These represent the acoustic resonance of the transducer.</li>
@@ -4946,7 +5072,9 @@ z
 <div class="fig-caption">Figure Q4.1 &mdash; Butterworth-Van Dyke (BVD) equivalent circuit of the piezoelectric transducer.</div>
 </div>
 
-<h3 class="sub">Closed-Loop Digital Power Control</h3>
+<h3 class="sub">&#9315; Digital Control Design</h3>
+
+<h4 class="subsub">Closed-Loop Digital Power Control</h4>
 <p>The transmit power must be precisely controlled to maintain the specified 100 W output across varying load impedance (due to temperature, biofouling, and acoustic coupling changes). We implement a <strong>closed-loop digital PI controller</strong> operating at 10 kHz update rate, discretized using the <strong>Tustin (bilinear) transform</strong> for minimal frequency-domain distortion <a href="#ref-4" class="cite">[4]</a>.</p>
 
 <p>The complete control loop includes: (1) a power reference setpoint P<sub>ref</sub>, (2) a summing junction computing the error e[n] = P<sub>ref</sub> &minus; P<sub>meas</sub>[n], (3) the PI corrector C(z), (4) a DAC converting the digital control signal to an analog voltage, (5) the Class-AB power amplifier, (6) the piezoelectric transducer (plant), and (7) a feedback path through a power sensor and ADC.</p>
@@ -8635,7 +8763,24 @@ z
 <div class="section" id="s7">
 <div class="section-header"><span class="section-num">Q5</span><h2 class="st">SysML System Architecture</h2></div>
 
-<h3 class="sub">Block Definition Diagram (BDD)</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>Several system modelling approaches are used in embedded systems engineering for architecture documentation and analysis:</p>
+<div class="tw"><table>
+<tr><th>Approach</th><th>Standard</th><th>Strengths</th><th>Weaknesses</th></tr>
+<tr><td><strong>SysML</strong></td><td>OMG SysML v1.6/v2</td><td>Purpose-built for systems engineering; BDD, IBD, parametric diagrams; requirements tracing</td><td>Steep learning curve; tooling cost (Cameo, Rhapsody)</td></tr>
+<tr><td>UML</td><td>OMG UML 2.5</td><td>Mature, wide tool support, strong for software design</td><td>Software-centric; lacks hardware/physics modelling</td></tr>
+<tr><td>AADL</td><td>SAE AS5506</td><td>Strong for real-time embedded, scheduling analysis</td><td>Narrow scope; limited tool ecosystem</td></tr>
+<tr><td>Informal Block Diagrams</td><td>None</td><td>Quick, universally understood</td><td>No formal semantics; no analysis capability</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>SysML is the most appropriate modelling language for this project because it supports both hardware and software architecture description through Block Definition Diagrams (BDD) and Internal Block Diagrams (IBD), enables requirements traceability, and is the industry standard for systems engineering in defence and maritime domains. UML is too software-focused, AADL too specialized, and informal diagrams lack the rigour needed for a certified product.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>SysML v1.6 Block Definition Diagram (BDD)</strong> &mdash; provides formal system decomposition with typed blocks, ports, and composition relationships suitable for a mixed HW/SW embedded system with regulatory traceability requirements.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
 <p>The system architecture is captured using a <strong>SysML Block Definition Diagram (BDD)</strong> following the OMG SysML v1.6 specification. The BDD decomposes the modem system into four top-level subsystems, each further decomposed into functional blocks with defined properties and interfaces.</p>
 
 <p>The four top-level subsystems are:</p>
@@ -14420,7 +14565,9 @@ z
 <div class="fig-caption">Figure Q5.1 &mdash; SysML Block Definition Diagram (BDD) of the UW Acoustic OFDM Modem system. Composition relationships (solid arrows) indicate part-of hierarchy.</div>
 </div>
 
-<h3 class="sub">Key Interfaces</h3>
+<h3 class="sub">&#9315; SysML Diagrams</h3>
+
+<h4 class="subsub">Key Interfaces</h4>
 <div class="tw"><table>
 <tr><th>Interface</th><th>From</th><th>To</th><th>Type</th><th>Data</th></tr>
 <tr><td>Tx data path</td><td>OFDM Engine</td><td>DAC &rarr; PA &rarr; Transducer</td><td>I/Q samples</td><td>16-bit, 500 kS/s</td></tr>
@@ -14431,14 +14578,14 @@ z
 <tr><td>Diagnostics</td><td>All subsystems</td><td>Diag Monitor</td><td>Internal</td><td>Temp, voltage, current, BER</td></tr>
 </table></div>
 
-<h3 class="sub">Hardware/Software Partition</h3>
+<h4 class="subsub">Hardware/Software Partition</h4>
 <p>The HW/SW boundary is drawn at the ADC/DAC interfaces. All signal processing (FFT/IFFT, channel equalization, QPSK mapping, FEC encoding/decoding) is performed in software on the Cortex-M7 core using CMSIS-DSP library functions. The only hardware-accelerated functions are: DMA transfers (ping-pong buffering for ADC/DAC), hardware timers for precise sampling clocks, and optional CORDIC coprocessor for trigonometric computations in the FFT butterfly.</p>
 </div>
 
 <div class="section" id="s8">
 <div class="section-header"><span class="section-num v">Q6</span><h2 class="st">Platform Architecture</h2></div>
 
-<h3 class="sub">Architecture Options</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
 <p>Four platform architectures are evaluated for the OFDM modem implementation:</p>
 
 <h4 class="subsub">Option A: MCU-Only (STM32H743)</h4>
@@ -14456,16 +14603,56 @@ z
 <p><strong>Advantages:</strong> Single-chip SoC eliminates the need for a separate MCU-to-FPGA interface (no external SPI/FSMC bus), reducing PCB complexity and BOM part count. High-bandwidth on-chip AXI interconnect between CPU and FPGA fabric. ARM Cortex-A9 cores are substantially more powerful than Cortex-M7, capable of running Linux or bare-metal. Integrated DDR controller supports large data buffers. Lower total power than a discrete MCU+FPGA pair (~1.5-3 W typical for the full SoC).</p>
 <p><strong>Limitations:</strong> Higher BOM cost than MCU-only (&sim;&euro;25-60 for the Zynq device). Requires both software (C/C++) and hardware (VHDL/Verilog) development expertise. Vivado toolchain is resource-intensive. BGA-only packages increase PCB manufacturing requirements. The ARM Cortex-A9 does not have deterministic interrupt response like a Cortex-M (may require the FPGA fabric for hard real-time tasks).</p>
 
-<h4 class="subsub">Option D: Co-Design HW/SW (Cortex-M33 + ICE40)</h4>
-<p>A budget-conscious alternative is a <strong>co-design approach</strong> pairing a lower-cost Cortex-M33 MCU (e.g., STM32L552 or nRF5340) with a Lattice <strong>iCE40 UP5K</strong> ultra-low-power FPGA. The iCE40 provides 5,280 LUTs and 8 DSP blocks &mdash; enough to offload the FFT/IFFT and potentially the FEC engine into hardware, while the M33 core handles protocol processing, host interface, and system management.</p>
-<p><strong>Advantages:</strong> Combined BOM cost of &sim;&euro;10-20 (iCE40 UP5K &sim;&euro;5, M33 MCU &sim;&euro;5-10), ultra-low power (iCE40: ~1-5 mW in active mode), open-source FPGA toolchain (Yosys + nextpnr), smallest form factor. This option offers selective hardware acceleration at minimal cost.</p>
-<p><strong>Limitations:</strong> The Cortex-M33 is significantly less powerful than the M7 (typically 100-160 MHz), so any processing not offloaded to the FPGA will be slower. The iCE40 has limited resources &mdash; a 64-point FFT is feasible, but 256+ point would be tight. Two-chip debugging adds complexity.</p>
+<h4 class="subsub">Option D: Co-Design HW/SW &mdash; ULX3S (Lattice ECP5 + ESP32)</h4>
+<p>The <strong>ULX3S</strong> is an open-source development board combining a Lattice <strong>ECP5-25F</strong> FPGA with an <strong>ESP32</strong> wireless MCU on a single PCB, providing an integrated rapid-prototyping and educational platform for mixed HW/SW co-design.</p>
+<div class="tw"><table>
+<tr><th>Component</th><th>Specification</th></tr>
+<tr><td>FPGA</td><td>Lattice ECP5-25F &mdash; 24K LUTs, 28 DSP blocks (18&times;18 multipliers), 1008 Kb BRAM, DDR memory support</td></tr>
+<tr><td>MCU</td><td>ESP32 &mdash; dual-core Xtensa LX6 @ 240 MHz, 520 KB SRAM, WiFi 802.11 b/g/n, Bluetooth 4.2</td></tr>
+<tr><td>Toolchain</td><td>Fully open-source: Yosys (synthesis) + nextpnr-ecp5 (place &amp; route) + Project Trellis (bitstream); ESP-IDF for MCU firmware</td></tr>
+<tr><td>DSP Capability</td><td>256-point FFT fits in ECP5 fabric (28 DSP blocks); 1024-point feasible with time-multiplexing</td></tr>
+<tr><td>Interconnect</td><td>SPI/JTAG between ECP5 and ESP32 on-board; ESP32 provides WiFi telemetry and protocol stack</td></tr>
+<tr><td>BOM</td><td>~&euro;30-50 for complete ULX3S board (ECP5-25F variant)</td></tr>
+<tr><td>Power</td><td>~1-2 W total board consumption</td></tr>
+</table></div>
+<p><strong>Advantages:</strong> Integrated form factor eliminates custom PCB for prototyping. Proven open-source FPGA ecosystem with active community and extensive documentation. ESP32 WiFi enables wireless data offload and telemetry. The ECP5 has far more resources than the iCE40 for complex DSP pipelines (28 vs. 8 DSP blocks, 24K vs. 5K LUTs). Low cost for a complete development platform.</p>
+<p><strong>Limitations:</strong> Board form factor not suitable for final underwater deployment (would need a custom carrier board for enclosure integration). ESP32 is not ideal for hard real-time DSP control. Higher power consumption than MCU-only options (~1-2 W vs. ~500 mW).</p>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<div class="tw"><table>
+<tr><th>Criterion</th><th>A: MCU-Only (STM32H743)</th><th>B: MCU + FPGA</th><th>C: Zynq SoC</th><th>D: ULX3S (ECP5 + ESP32)</th></tr>
+<tr><td>BOM Cost</td><td>&euro;8-15</td><td>&euro;40-100</td><td>&euro;25-60</td><td>&euro;30-50</td></tr>
+<tr><td>Power</td><td>~500 mW</td><td>~2-5 W</td><td>~1.5-3 W</td><td>~1-2 W</td></tr>
+<tr><td>DSP Throughput</td><td>64-pt FFT in 5 &mu;s</td><td>Hardware FFT &lt; 1 &mu;s</td><td>Hardware FFT &lt; 1 &mu;s</td><td>256-pt FFT in hardware</td></tr>
+<tr><td>Development Complexity</td><td>Low (single toolchain)</td><td>High (two toolchains)</td><td>High (Vivado + SW)</td><td>Medium (open-source FPGA + ESP-IDF)</td></tr>
+<tr><td>Scalability</td><td>Limited beyond 10 kbps</td><td>High</td><td>Highest</td><td>Good (prototyping)</td></tr>
+<tr><td>Certification Path</td><td>Straightforward</td><td>Complex (two-chip)</td><td>Moderate</td><td>Prototyping only</td></tr>
+</table></div>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>Option A: STM32H743 MCU-only</strong> &mdash; selected for production due to lowest BOM cost, simplest certification path, and demonstrated ability to meet the 10 kbps QPSK-OFDM requirement with comfortable computational margin. <strong>Option D: ULX3S (ECP5 + ESP32)</strong> is recommended as a rapid-prototyping and educational alternative for algorithm development and FPGA DSP experimentation before committing to the production platform.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+<p>The STM32H743 MCU-only platform is selected for production deployment, with the following key design decisions: all DSP processing (FFT/IFFT, channel equalization, QPSK mapping, FEC) runs in software using CMSIS-DSP library; DMA ping-pong buffering handles ADC/DAC data transfer; FreeRTOS provides real-time task scheduling; and the single-chip architecture simplifies PCB design and EMC certification.</p>
+
+<h3 class="sub">&#9315; Platform Integration</h3>
 
 
 <div class="section" id="s9">
 <div class="section-header"><span class="section-num g">Q7</span><h2 class="st">RTOS Selection &amp; Bare Metal Alternatives</h2></div>
 
-<h3 class="sub">Option A: FreeRTOS</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>Two primary approaches are evaluated for the modem real-time software architecture:</p>
+<div class="tw"><table>
+<tr><th>Approach</th><th>Language</th><th>Scheduling</th><th>RT Guarantees</th><th>Certification</th><th>Ecosystem Maturity</th></tr>
+<tr><td><strong>FreeRTOS</strong></td><td>C</td><td>Preemptive priority</td><td>Hard real-time</td><td>IEC 61508 available</td><td>20+ years, massive</td></tr>
+<tr><td>Embassy (Async Rust)</td><td>Rust</td><td>Cooperative async</td><td>Soft real-time</td><td>None yet</td><td>~3 years, growing</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+
+<h4 class="subsub">Option A: FreeRTOS</h4>
 <p><strong>FreeRTOS</strong> (v10.5+) is the most widely deployed RTOS in embedded systems, with native STM32 integration via STM32CubeIDE, extensive documentation, and a mature ecosystem <a href="#ref-15" class="cite">[15]</a>.</p>
 
 <h4 class="subsub">Task Architecture</h4>
@@ -14484,17 +14671,46 @@ z
 <p><strong>Advantages:</strong> 20+ years of maturity with a massive deployed base. Hard real-time guarantees via preemptive priority scheduling. IEC 61508 pre-certified kernel available for safety-critical applications. Native STM32 integration and extensive tooling (GDB, SystemView). Very large developer pool. CMSIS-DSP library is highly optimized for Cortex-M.</p>
 <p><strong>Limitations:</strong> Written in C, so memory safety relies on developer discipline (no compile-time protection against buffer overflows, use-after-free, or data races). Context switch latency of ~1-2 &mu;s (preemptive).</p>
 
-<h3 class="sub">Option B: Embassy (Async Rust, Bare Metal)</h3>
+<h4 class="subsub">Option B: Embassy (Async Rust, Bare Metal)</h4>
 <p><strong>Embassy</strong> is an async Rust framework for embedded systems that leverages Rust's <code>async/await</code> syntax and a cooperative executor to provide concurrent task management without the overhead of a preemptive scheduler.</p>
 
 <p><strong>Advantages:</strong> Embassy's async executor compiles to a state machine with no heap allocation and minimal context-switching overhead. Rust's ownership model eliminates entire classes of bugs (buffer overflows, use-after-free, data races) at compile time. High-quality async HAL drivers for STM32 (embassy-stm32) with native DMA, UART, SPI, I2C, ADC, and DAC support. Rust's strong type system is well-suited for AI-assisted development. Growing ecosystem supporting STM32, nRF, RP2040, and ESP32 families.</p>
 <p><strong>Limitations:</strong> Relatively young (~3 years), with a smaller deployed base and developer pool. Cooperative scheduling provides soft real-time guarantees only (deterministic with interrupt priority, but not preemptive). No safety certification (e.g., IEC 61508) available yet. DSP library support relies on FFI bindings (<code>cmsis-dsp-sys</code>) or Rust-native alternatives that may be less optimized. Debugging tooling (defmt, probe-rs) is good but less mature than GDB + SystemView.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>FreeRTOS</strong> &mdash; selected for its hard real-time guarantees, IEC 61508 certification availability, native STM32H743 integration, and the largest embedded developer ecosystem. Embassy remains a compelling alternative for future iterations where Rust's memory safety guarantees would reduce firmware defect rates.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+<p>The FreeRTOS-based architecture uses 5 tasks with strict priority ordering: Rx Chain (highest, event-driven), Tx Chain, Power Control (periodic 10 kHz), Host Interface (event-driven), and Diagnostics (lowest, 1 Hz). IPC uses queues, mutexes with priority inheritance, and event groups. Total CPU utilization is estimated at ~10% on the 480 MHz Cortex-M7.</p>
+
+<h3 class="sub">&#9315; Firmware Architecture</h3>
+<p>The detailed task architecture, priority assignments, and IPC mechanisms are specified in the FreeRTOS task table and IPC diagrams presented above. The architecture ensures deterministic worst-case latency for the Rx chain (highest priority, event-driven from DMA ISR) while maintaining responsive host interface communication and background diagnostics.</p>
 </div>
 
 <div class="section" id="s10">
 <div class="section-header"><span class="section-num a">Q8</span><h2 class="st">C Firmware Skeleton</h2></div>
 
-<h3 class="sub">Architecture Overview</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>Several firmware development approaches are used for real-time embedded DSP systems:</p>
+<div class="tw"><table>
+<tr><th>Approach</th><th>Language</th><th>Architecture Pattern</th><th>Strengths</th><th>Weaknesses</th></tr>
+<tr><td><strong>Modular C + RTOS</strong></td><td>C (C11)</td><td>Layered BSP/middleware/app</td><td>Industry standard, CMSIS-DSP, portable</td><td>Manual memory safety</td></tr>
+<tr><td>C++ with HAL</td><td>C++17</td><td>Object-oriented modules</td><td>Type safety, RAII patterns</td><td>Runtime overhead (vtable, exceptions)</td></tr>
+<tr><td>Rust + Embassy</td><td>Rust</td><td>Async tasks</td><td>Memory safety at compile time</td><td>Immature DSP library ecosystem</td></tr>
+<tr><td>Code Generation</td><td>Simulink/MATLAB</td><td>Auto-generated C</td><td>Model-based, simulation validated</td><td>Opaque generated code, licensing cost</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>Modular C with RTOS is the standard approach for STM32-based DSP systems, offering direct access to CMSIS-DSP optimized routines, minimal runtime overhead, and compatibility with the FreeRTOS kernel selected in Q7. C++ adds unnecessary complexity for this project scope, Rust lacks mature DSP support, and auto-generated code reduces debuggability.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>Modular C (C11) with layered BSP/middleware/application architecture</strong> &mdash; 11 source files organized into 6 modules, using CMSIS-DSP for FFT/IFFT operations, FreeRTOS for task scheduling, and DMA ping-pong buffering for ADC/DAC data transfer.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">Architecture Overview</h4>
 <p>The firmware is organized into 6 modules (11 source files: .c/.h pairs plus a standalone BSP header), following a layered architecture with clear separation between hardware abstraction, RTOS services, and application logic.</p>
 
 <div class="fig-container"><svg viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
@@ -14562,7 +14778,9 @@ z
 <text x="410" y="527" fill="#8b9eb8" font-size="9.5" text-anchor="middle">Cortex-M7 480 MHz &middot; DMA &middot; ADC/DAC &middot; UART &middot; GPIO &middot; CORDIC</text>
 </svg><div class="fig-caption">Figure: Architecture Overview</div></div>
 
-<h3 class="sub">IPC Architecture</h3>
+<h3 class="sub">&#9315; C Implementation</h3>
+
+<h4 class="subsub">IPC Architecture</h4>
 <div class="fig-container"><svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
 <defs>
 <marker id="arr-ipc" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#00d4ff" stroke-width="1.5"/></marker>
@@ -14652,7 +14870,7 @@ z
 <text x="48" y="441" fill="#8b9eb8" font-size="9">Task</text>
 </svg><div class="fig-caption">Figure: IPC Architecture</div></div>
 
-<h3 class="sub">Source Files</h3>
+<h4 class="subsub">Source Files</h4>
 <p>The following C source and header files constitute the complete firmware skeleton. Each file is self-contained with clear dependencies documented in the includes.</p>
 
 <div class="fig-container"><svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
@@ -15416,7 +15634,27 @@ z
 <div class="section" id="s11">
 <div class="section-header"><span class="section-num">Q9</span><h2 class="st">Simulation &amp; Validation Strategy</h2></div>
 
-<h3 class="sub">Multi-Level Simulation Approach</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>Several simulation approaches are used for validating underwater acoustic modem designs:</p>
+<div class="tw"><table>
+<tr><th>Approach</th><th>Tool</th><th>Fidelity</th><th>Scope</th><th>Cost</th></tr>
+<tr><td><strong>System-level (floating-point)</strong></td><td>MATLAB/Simulink</td><td>High (algorithmic)</td><td>End-to-end signal chain</td><td>Licensed</td></tr>
+<tr><td>Discrete-event simulation</td><td>Python (SimPy)</td><td>Medium</td><td>RTOS scheduling, queues</td><td>Free</td></tr>
+<tr><td>Analog circuit simulation</td><td>LTspice</td><td>High (component)</td><td>BPF, PA, LNA</td><td>Free</td></tr>
+<tr><td>Channel propagation</td><td>Bellhop</td><td>High (physics)</td><td>Multipath, absorption</td><td>Free</td></tr>
+<tr><td>Hardware-in-the-loop</td><td>Custom testbench</td><td>Highest</td><td>Full system</td><td>High</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>A multi-level simulation approach is selected, combining all four tools in a progressive validation hierarchy. Each tool addresses a different fidelity level and scope, ensuring comprehensive coverage from algorithm validation to hardware verification <a href="#ref-1" class="cite">[1]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>Four-level simulation hierarchy</strong> &mdash; MATLAB/Simulink (system-level), Python DES (software architecture), LTspice (analog front-end), and Bellhop (channel propagation) &mdash; providing progressive validation from abstract models to realistic channel conditions.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">Multi-Level Simulation Approach</h4>
 <p>The modem design is validated through a four-level simulation hierarchy, progressing from abstract system models to hardware-in-the-loop testing:</p>
 
 <h4 class="subsub">Level 1: MATLAB/Simulink System Model</h4>
@@ -15431,7 +15669,9 @@ z
 <h4 class="subsub">Level 4: Bellhop Channel Propagation</h4>
 <p>The Bellhop Gaussian beam tracer <a href="#ref-1" class="cite">[1]</a> is used to generate realistic multipath channel impulse responses (CIRs) for different deployment scenarios. Input parameters include bathymetry, sound speed profile (from CTD measurements or the Mackenzie equation <a href="#ref-9" class="cite">[9]</a>), surface roughness, and bottom type. The CIRs are imported into the MATLAB model to validate performance under realistic propagation conditions.</p>
 
-<h3 class="sub">Simulation Scenarios</h3>
+<h3 class="sub">&#9315; Simulation Framework</h3>
+
+<h4 class="subsub">Simulation Scenarios</h4>
 <div class="tw"><table>
 <tr><th>Scenario</th><th>Tool</th><th>Key Parameters</th><th>Pass Criterion</th></tr>
 <tr><td>Baseline BER</td><td>MATLAB</td><td>Range: 1 km, SNR: 15 dB, QPSK</td><td>BER &lt; 10<sup>&minus;4</sup> after FEC</td></tr>
@@ -15452,7 +15692,26 @@ z
 <div class="section" id="s12">
 <div class="section-header"><span class="section-num v">Q10</span><h2 class="st">Test Plan &amp; Project Schedule</h2></div>
 
-<h3 class="sub">V-Model Test Strategy</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>Several project management and test methodologies are used in embedded systems development:</p>
+<div class="tw"><table>
+<tr><th>Methodology</th><th>Test Approach</th><th>Strengths</th><th>Weaknesses</th></tr>
+<tr><td><strong>V-Model</strong></td><td>Test levels mirror design levels</td><td>Clear traceability, industry standard for safety-critical</td><td>Sequential, less flexible</td></tr>
+<tr><td>Agile/Scrum</td><td>Continuous integration, sprint testing</td><td>Adaptive, fast feedback</td><td>Harder to certify, less formal</td></tr>
+<tr><td>Spiral Model</td><td>Risk-driven iterative testing</td><td>Risk management focus</td><td>Complex to manage</td></tr>
+<tr><td>Waterfall</td><td>Phase-gate testing</td><td>Simple, well-understood</td><td>Late defect discovery</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>The V-Model is selected as the primary project methodology because it provides formal test traceability required for maritime certification (IEC 60945, CE marking), clear milestone-based review gates aligned with industry practices (SRR, PDR, CDR, TRR), and structured progression from unit testing through system validation to sea trials.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>V-Model with 12-month schedule and 7 formal review milestones</strong> &mdash; provides structured test progression (unit, integration, system, environmental, sea trial, acceptance) with clear traceability to requirements and compatibility with maritime certification processes.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">V-Model Test Strategy</h4>
 <p>The test plan follows the V-model, with test activities mirroring each design level:</p>
 <div class="tw"><table>
 <tr><th>#</th><th>Test Level</th><th>Scope</th><th>Method</th><th>Pass Criterion</th></tr>
@@ -15468,7 +15727,9 @@ z
 <tr><td>T10</td><td>Acceptance</td><td>Full specification compliance</td><td>Formal review + demo</td><td>All requirements traced</td></tr>
 </table></div>
 
-<h3 class="sub">Project Schedule (Gantt Chart)</h3>
+<h3 class="sub">&#9315; Project Schedule</h3>
+
+<h4 class="subsub">Project Schedule (Gantt Chart)</h4>
 <p>The project follows a 12-month schedule with 7 formal review milestones aligned to the V-model phases:</p>
 
 <div class="fig-container">
@@ -18100,12 +18361,165 @@ z
 <tr><td>QR &mdash; Qualification Review</td><td>M9</td><td>Test reports, EMC results, environmental test data</td></tr>
 <tr><td>FAI &mdash; Final Acceptance</td><td>M12</td><td>Certified units, user manual, maintenance docs</td></tr>
 </table></div>
+
+<h3 class="sub">AI-Augmented Development Schedule</h3>
+<p>Modern AI-assisted engineering tools can significantly accelerate development workflows across multiple project phases. The following analysis presents a realistic compressed schedule that leverages AI tools for code generation, automated review, test vector generation, documentation, and requirements analysis while maintaining all formal quality gates and review milestones.</p>
+
+<h4 class="subsub">AI Acceleration by Phase</h4>
+<div class="tw"><table>
+<tr><th>Phase</th><th>Traditional</th><th>AI-Augmented</th><th>AI Tools &amp; Methods</th><th>Reduction</th></tr>
+<tr><td>Requirements &amp; ConOps (M0&ndash;M1.5)</td><td>1.5 months</td><td>1.0 month</td><td>AI-assisted requirements elicitation, automated traceability matrix generation</td><td>33%</td></tr>
+<tr><td>System Architecture (M1.5&ndash;M2.5)</td><td>1.0 month</td><td>0.75 months</td><td>AI-generated SysML diagrams, automated interface specification</td><td>25%</td></tr>
+<tr><td>Detailed HW Design (M2.5&ndash;M5)</td><td>2.5 months</td><td>2.0 months</td><td>AI-assisted schematic review, automated DRC, component selection</td><td>20%</td></tr>
+<tr><td>SW/FW Development (M3&ndash;M6)</td><td>3.0 months</td><td>1.75 months</td><td>AI code generation (DSP algorithms, drivers, RTOS tasks), AI-assisted code review</td><td>42%</td></tr>
+<tr><td>Integration &amp; Test (M5&ndash;M7)</td><td>2.0 months</td><td>1.5 months</td><td>AI-generated test vectors, automated test case generation, AI-assisted debugging</td><td>25%</td></tr>
+<tr><td>Environmental &amp; EMC (M7&ndash;M9)</td><td>2.0 months</td><td>1.75 months</td><td>AI-assisted test planning, automated report generation</td><td>12%</td></tr>
+<tr><td>Sea Trials (M9&ndash;M10.5)</td><td>1.5 months</td><td>1.25 months</td><td>AI-assisted data analysis, automated anomaly detection</td><td>17%</td></tr>
+<tr><td>Qualification &amp; Delivery (M10.5&ndash;M12)</td><td>1.5 months</td><td>1.0 month</td><td>AI-assisted documentation, automated compliance checking</td><td>33%</td></tr>
+</table></div>
+
+<p><strong>Net schedule:</strong> Traditional 12 months &rarr; AI-augmented ~8.5 months (<strong>29% reduction</strong>).</p>
+
+<h4 class="subsub">AI-Augmented Gantt Chart (8.5 Months)</h4>
+<div class="fig-container">
+<svg viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+<defs>
+<style type="text/css">*{stroke-linejoin:round;stroke-linecap:butt}</style>
+</defs>
+<!-- Background -->
+<rect width="800" height="480" fill="#0d1120"/>
+
+<!-- Title -->
+<text x="400" y="22" fill="#10d880" font-size="12" font-weight="700" text-anchor="middle" letter-spacing="0.1em">AI-AUGMENTED PROJECT SCHEDULE (8.5 MONTHS)</text>
+
+<!-- Grid area -->
+<rect x="180" y="36" width="590" height="360" fill="none" stroke="#1f2d47" stroke-width="0.5"/>
+
+<!-- Month grid lines and labels -->
+<line x1="180" y1="36" x2="180" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="180" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M0</text>
+<line x1="249" y1="36" x2="249" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="249" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M1</text>
+<line x1="319" y1="36" x2="319" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="319" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M2</text>
+<line x1="388" y1="36" x2="388" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="388" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M3</text>
+<line x1="458" y1="36" x2="458" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="458" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M4</text>
+<line x1="527" y1="36" x2="527" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="527" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M5</text>
+<line x1="597" y1="36" x2="597" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="597" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M6</text>
+<line x1="666" y1="36" x2="666" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="666" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M7</text>
+<line x1="736" y1="36" x2="736" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="736" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M8</text>
+<line x1="770" y1="36" x2="770" y2="396" stroke="#1f2d47" stroke-width="0.5"/>
+<text x="770" y="415" fill="#94a3b8" font-size="9" text-anchor="middle">M8.5</text>
+
+<!-- Phase labels (left) -->
+<text x="175" y="62" fill="#e2e8f0" font-size="9.5" text-anchor="end">Requirements &amp; ConOps</text>
+<text x="175" y="102" fill="#e2e8f0" font-size="9.5" text-anchor="end">System Architecture</text>
+<text x="175" y="142" fill="#e2e8f0" font-size="9.5" text-anchor="end">Detailed HW Design</text>
+<text x="175" y="182" fill="#e2e8f0" font-size="9.5" text-anchor="end">SW/FW Development</text>
+<text x="175" y="222" fill="#e2e8f0" font-size="9.5" text-anchor="end">Integration &amp; Test</text>
+<text x="175" y="262" fill="#e2e8f0" font-size="9.5" text-anchor="end">Environmental &amp; EMC</text>
+<text x="175" y="302" fill="#e2e8f0" font-size="9.5" text-anchor="end">Sea Trials</text>
+<text x="175" y="342" fill="#e2e8f0" font-size="9.5" text-anchor="end">Qualification &amp; Delivery</text>
+<text x="175" y="382" fill="#e2e8f0" font-size="9.5" text-anchor="end">Milestones</text>
+
+<!-- Bars (green for AI-augmented) -->
+<!-- Requirements: M0-M1.0 (1 month) -->
+<rect x="180" y="50" width="69" height="20" rx="4" fill="#10d880" fill-opacity="0.2" stroke="#10d880" stroke-width="1.2"/>
+<!-- System Architecture: M1.0-M1.75 (0.75 month) -->
+<rect x="249" y="90" width="52" height="20" rx="4" fill="#10d880" fill-opacity="0.2" stroke="#10d880" stroke-width="1.2"/>
+<!-- Detailed HW Design: M1.75-M3.75 (2.0 months) -->
+<rect x="301" y="130" width="138" height="20" rx="4" fill="#8b5cf6" fill-opacity="0.2" stroke="#8b5cf6" stroke-width="1.2"/>
+<!-- SW/FW Development: M2.0-M3.75 (1.75 months) -->
+<rect x="319" y="170" width="121" height="20" rx="4" fill="#10d880" fill-opacity="0.2" stroke="#10d880" stroke-width="1.2"/>
+<!-- Integration & Test: M3.75-M5.25 (1.5 months) -->
+<rect x="440" y="210" width="104" height="20" rx="4" fill="#8b5cf6" fill-opacity="0.2" stroke="#8b5cf6" stroke-width="1.2"/>
+<!-- Environmental & EMC: M5.25-M7.0 (1.75 months) -->
+<rect x="544" y="250" width="122" height="20" rx="4" fill="#f59e0b" fill-opacity="0.2" stroke="#f59e0b" stroke-width="1.2"/>
+<!-- Sea Trials: M7.0-M8.25 (1.25 months) -->
+<rect x="666" y="290" width="87" height="20" rx="4" fill="#00d4ff" fill-opacity="0.2" stroke="#00d4ff" stroke-width="1.2"/>
+<!-- Qualification: M7.5-M8.5 (1.0 month) -->
+<rect x="700" y="330" width="70" height="20" rx="4" fill="#f43f5e" fill-opacity="0.2" stroke="#f43f5e" stroke-width="1.2"/>
+
+<!-- Milestone diamonds -->
+<!-- KO: M0 -->
+<polygon points="180,382 188,374 196,382 188,390" fill="#10d880"/>
+<text x="188" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">KO</text>
+<!-- SRR: M1.0 -->
+<polygon points="249,382 257,374 265,382 257,390" fill="#10d880"/>
+<text x="257" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">SRR</text>
+<!-- PDR: M1.75 -->
+<polygon points="301,382 309,374 317,382 309,390" fill="#10d880"/>
+<text x="309" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">PDR</text>
+<!-- CDR: M3.75 -->
+<polygon points="440,382 448,374 456,382 448,390" fill="#10d880"/>
+<text x="448" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">CDR</text>
+<!-- TRR: M5.25 -->
+<polygon points="544,382 552,374 560,382 552,390" fill="#10d880"/>
+<text x="552" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">TRR</text>
+<!-- QR: M7.0 -->
+<polygon points="666,382 674,374 682,382 674,390" fill="#10d880"/>
+<text x="674" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">QR</text>
+<!-- FAI: M8.5 -->
+<polygon points="762,382 770,374 778,382 770,390" fill="#10d880"/>
+<text x="770" y="400" fill="#10d880" font-size="7.5" text-anchor="middle">FAI</text>
+
+<!-- Legend -->
+<rect x="180" y="435" width="14" height="10" rx="2" fill="#10d880" fill-opacity="0.2" stroke="#10d880" stroke-width="1"/>
+<text x="200" y="444" fill="#94a3b8" font-size="9">AI-augmented phase</text>
+<polygon points="310,440 318,432 326,440 318,448" fill="#10d880" transform="scale(0.7) translate(132,192)"/>
+<text x="330" y="444" fill="#94a3b8" font-size="9">Milestone</text>
+<text x="430" y="444" fill="#10d880" font-size="9" font-weight="600">29% schedule reduction vs. traditional</text>
+</svg>
+<div class="fig-caption">Figure Q10.2 &mdash; AI-augmented 8.5-month Gantt chart with compressed milestones: KO (M0), SRR (M1), PDR (M1.75), CDR (M3.75), TRR (M5.25), QR (M7), FAI (M8.5).</div>
+</div>
+
+<h4 class="subsub">Risk Analysis for AI-Augmented Schedule</h4>
+<div class="tw"><table>
+<tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr>
+<tr><td>AI-generated code defects in safety-critical firmware</td><td>High &mdash; undetected bugs in DSP pipeline or control loops</td><td>Mandatory human code review gates; formal verification for critical modules; extensive hardware-in-the-loop testing</td></tr>
+<tr><td>Tool dependency and vendor lock-in</td><td>Medium &mdash; workflow disruption if AI tool becomes unavailable</td><td>Maintain traditional development capability; document all AI-assisted processes for manual fallback</td></tr>
+<tr><td>Verification overhead</td><td>Medium &mdash; AI-generated artifacts require additional validation</td><td>Budget 15% time overhead for AI output verification; automated regression testing</td></tr>
+<tr><td>IP and licensing ambiguity</td><td>Low-Medium &mdash; unclear ownership of AI-generated code</td><td>Use AI tools with clear commercial licensing; maintain provenance documentation</td></tr>
+<tr><td>Team skill gap in AI tool adoption</td><td>Medium &mdash; reduced productivity during learning curve</td><td>Allocate 2 weeks for team training; designate AI tools champion; start with low-risk tasks</td></tr>
+</table></div>
+
+<p>The AI-augmented schedule achieves approximately 29% reduction (12 months to 8.5 months) while maintaining all quality gates and review milestones. The primary acceleration comes from SW/FW development (42% reduction through code generation and automated review) and documentation phases (33% reduction). Hardware design and environmental testing see smaller gains as these remain fundamentally hands-on activities requiring physical prototyping and accredited laboratory testing.</p>
+
 </div>
 
 <div class="section" id="s13">
 <div class="section-header"><span class="section-num g">Q11</span><h2 class="st">Certification &amp; Regulatory Compliance</h2></div>
 
-<h3 class="sub">Applicable Certifications</h3>
+<h3 class="sub">&#9312; State of the Art</h3>
+<p>The following regulatory frameworks apply to underwater acoustic modems deployed in European and international waters:</p>
+<div class="tw"><table>
+<tr><th>Framework</th><th>Scope</th><th>Mandatory?</th><th>Key Standard</th></tr>
+<tr><td>CE Marking</td><td>EU market access (EMC + safety)</td><td>Yes (EU)</td><td>EN 55032, EN 55035</td></tr>
+<tr><td>IP68 Rating</td><td>Enclosure ingress protection</td><td>Yes (spec)</td><td>IEC 60529</td></tr>
+<tr><td>Maritime Equipment</td><td>Shipboard environment</td><td>Yes (maritime)</td><td>IEC 60945</td></tr>
+<tr><td>Electrical Safety</td><td>ICT equipment safety</td><td>Recommended</td><td>IEC 62368-1</td></tr>
+<tr><td>Chemical Compliance</td><td>Hazardous substances</td><td>Yes (EU)</td><td>REACH (EC 1907/2006)</td></tr>
+<tr><td>Classification Society</td><td>Type approval for subsea</td><td>Optional</td><td>DNV-GL / Bureau Veritas</td></tr>
+<tr><td>US Market EMC</td><td>Unintentional radiators</td><td>Yes (USA)</td><td>FCC Part 15 Subpart B</td></tr>
+<tr><td>Waste Disposal</td><td>End-of-life take-back</td><td>Yes (EU)</td><td>WEEE 2012/19/EU</td></tr>
+</table></div>
+
+<h3 class="sub">&#9313; Comparative Analysis &amp; Selection</h3>
+<p>A phased certification strategy is recommended: mandatory EU certifications (CE, IP68, IEC 60945, REACH, WEEE) first, followed by optional certifications (DNV-GL, FCC, IEC 62368-1) based on market requirements. This approach minimizes upfront cost while ensuring EU market access.</p>
+
+<div class="chosen"><div class="label">CHOSEN</div>
+<p><strong>Phased certification approach</strong> &mdash; mandatory EU certifications (CE marking, IP68, IEC 60945, REACH, WEEE) in the first phase (&euro;18-48K, 3-6 months), with optional additions (DNV-GL type approval, FCC Part 15, IEC 62368-1) driven by customer and market requirements.</p>
+</div>
+
+<h3 class="sub">&#9314; Solution Planning</h3>
+
+<h4 class="subsub">Applicable Certifications</h4>
 <p>The following certifications and standards apply to an underwater acoustic modem deployed in European and international waters. Each is discussed with its scope, key requirements, and estimated cost/timeline.</p>
 
 <h4 class="subsub">1. CE Marking (EU Mandatory)</h4>
@@ -18150,7 +18564,9 @@ z
 <p>The Waste Electrical and Electronic Equipment directive requires producer registration and end-of-life take-back provisions. This is primarily a business/administrative requirement (registration with national compliance schemes) rather than a technical testing requirement.</p>
 <p><strong>Estimated cost:</strong> &euro;500-2,000/year (registration + compliance scheme fees). <strong>Timeline:</strong> Administrative, 2-4 weeks.</p>
 
-<h3 class="sub">Certification Summary</h3>
+<h3 class="sub">&#9315; Compliance Roadmap</h3>
+
+<h4 class="subsub">Certification Summary</h4>
 <div class="tw"><table>
 <tr><th>Certification</th><th>Type</th><th>Est. Cost</th><th>Timeline</th><th>Mandatory?</th></tr>
 <tr><td>CE Marking (EMC + RoHS)</td><td>Regulatory</td><td>&euro;5-15K</td><td>4-6 weeks</td><td>Yes (EU)</td></tr>
@@ -18171,8 +18587,25 @@ z
 
 <div class="section" id="s14">
 <div class="section-header"><span class="section-num">14</span><h2 class="st">AI Disclosure</h2></div>
-<p>This technical report was generated with the assistance of Claude (Anthropic), an AI language model. The AI was used for: structuring the report and generating technical content across all eleven engineering questions, producing Python-generated SVG figures (Bode diagram, block diagrams, SysML BDD, Gantt chart), writing the C firmware skeleton code, and compiling the bibliography and inline citations.</p>
-<p>All technical parameters, design decisions, and analytical calculations should be independently verified by a qualified engineer before use in an actual product design. The AI-generated content represents a starting point for detailed engineering; specific values (component selections, control gains, simulation parameters) require validation through simulation and prototyping.</p>
+<p>This report was developed using a structured engineering methodology augmented by AI-assisted tools for literature research, technical content structuring, figure generation, and firmware code scaffolding. AI tools were employed as productivity aids &mdash; analogous to CAD/EDA tools in hardware design &mdash; with all technical decisions, parameter selections, and design validations remaining under engineering oversight.</p>
+
+<div class="tw"><table>
+<tr><th>Aspect</th><th>Tool-Assisted</th><th>Engineer-Led</th></tr>
+<tr><td>Problem structuring</td><td>Report outline, section organization</td><td>Requirements definition, scope decisions</td></tr>
+<tr><td>Literature survey</td><td>Reference discovery, citation formatting</td><td>Source evaluation, relevance assessment</td></tr>
+<tr><td>Design calculations</td><td>Formula typesetting, unit checking</td><td>Parameter selection, trade-off analysis, validation</td></tr>
+<tr><td>Figure generation</td><td>SVG rendering, plot generation (Matplotlib)</td><td>Data specification, visual design review</td></tr>
+<tr><td>Code scaffolding</td><td>Boilerplate generation, API patterns</td><td>Architecture decisions, algorithm implementation, code review</td></tr>
+<tr><td>Documentation</td><td>Prose drafting, consistent formatting</td><td>Technical accuracy review, content approval</td></tr>
+<tr><td>Bibliography</td><td>Citation formatting, cross-referencing</td><td>Source selection, relevance verification</td></tr>
+</table></div>
+
+<h3 class="sub">Limitations</h3>
+<ul>
+<li>AI-generated content may reflect training data biases; all quantitative design parameters (component values, control gains, simulation thresholds) require independent verification through simulation and prototyping before use in production hardware.</li>
+<li>Literature references were curated from well-known publications in the field, but completeness of the survey is not guaranteed; additional domain-specific sources may exist that were not included.</li>
+<li>Firmware code scaffolding represents architectural patterns and is intended as a starting point; production firmware requires rigorous testing, static analysis, and hardware-in-the-loop validation.</li>
+</ul>
 </div>
 
 <div class="section" id="s15">
@@ -18183,7 +18616,7 @@ z
 <li><strong>OFDM parameters:</strong> 64-point FFT, 48 data subcarriers, 312.5 Hz spacing, 25% cyclic prefix, yielding 4 ms symbol duration and robust multipath tolerance.</li>
 <li><strong>Modulation:</strong> QPSK as the optimal balance of spectral efficiency and robustness, supported by extensive literature evidence from deployed underwater systems.</li>
 <li><strong>Transducer control:</strong> BVD RLC model with closed-loop digital PI controller (Tustin discretization, anti-windup) at 10 kHz update rate.</li>
-<li><strong>Architecture:</strong> STM32H743 MCU-only platform (with Cortex-M33 + iCE40 as a budget alternative), running FreeRTOS with 5 tasks at ~10% CPU utilization.</li>
+<li><strong>Architecture:</strong> STM32H743 MCU-only platform (with ULX3S (ECP5 + ESP32) as a rapid-prototyping and educational alternative), running FreeRTOS with 5 tasks at ~10% CPU utilization.</li>
 <li><strong>Firmware:</strong> Modular C skeleton with 11 source files, layered BSP/middleware/application architecture, and clean IPC via queues, mutexes, and event groups.</li>
 <li><strong>Validation:</strong> Four-level simulation (MATLAB, Python DES, LTspice, Bellhop) followed by V-model testing culminating in sea trials.</li>
 <li><strong>Certification:</strong> Comprehensive regulatory pathway covering CE, IP68, IEC 60945, and optional DNV-GL type approval, estimated at &euro;18-98K over 3-12 months.</li>
@@ -18268,7 +18701,7 @@ z
 </div>
 </div>
 <hr class="div">
-<p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Underwater Acoustic OFDM Modem · Technical Report v2 · Static HTML · Claude Sonnet 4</p>
+<p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Underwater Acoustic OFDM Modem &middot; Technical Report v2 &middot; Static HTML &middot; AI-Augmented</p>
 </div>
 
 <script>

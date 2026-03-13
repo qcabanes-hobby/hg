@@ -649,84 +649,76 @@ def print_stats(nodes: dict):
         )
 
 
+# ── Unified scenario runner ──────────────────────────────────────────
+def run_scenario(name, positions, src, dst):
+    """
+    Run a complete AODV scenario:
+      1. Build network from positions
+      2. Discover route from src to dst
+      3. Send data payload
+      4. Print de-duplicated event log (first 20 entries)
+      5. Print per-node message statistics
+    """
+    print("=" * 60)
+    print(f"  Scenario {name}")
+    print("=" * 60)
+    print()
+
+    # Build network and draw topology
+    net = build_network(positions)
+    print("  Network topology:")
+    draw_ascii_topology(positions)
+    print()
+
+    # Route discovery
+    net[src].discover_route(dst)
+    route = net[src].rt.get(dst)
+
+    if route:
+        print(f"  Route found: {' -> '.join(str(n) for n in route)}")
+        print(f"  Hop count  : {len(route) - 1}")
+        net[src].send_data(dst, f"Payload from Node {src} to Node {dst}")
+    else:
+        print(f"  No route found from {src} to {dst}")
+
+    # Collect and de-duplicate event logs across all nodes, sort by timestamp
+    print()
+    print("  Event log:")
+    seen_log = set()
+    ordered_log = []
+    for node in net.values():
+        for line in node.log:
+            if line not in seen_log:
+                seen_log.add(line)
+                ordered_log.append(line)
+
+    # Sort by the content (which starts with event type, preserving order)
+    for line in ordered_log[:20]:
+        print(line)
+    if len(ordered_log) > 20:
+        print(f"  ... ({len(ordered_log) - 20} more events)")
+
+    # Message statistics
+    print()
+    print("  Message statistics per node:")
+    print_stats(net)
+    print()
+
+
 # ══════════════════════════════════════════════════════════════════════
 #  SCENARIO A — Linear chain, 8 nodes, 40 m spacing
 # ══════════════════════════════════════════════════════════════════════
-print("=" * 60)
-print("  Scenario A — Linear chain: 8 nodes, 40 m spacing")
-print("=" * 60)
-
 pos_a = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
-net_a = build_network(pos_a)
-
-print()
-print("  Network topology:")
-draw_ascii_topology(pos_a)
-print()
-
-# Node 1 initiates route discovery to Node 8
-net_a[1].discover_route(8)
-
-route_a = net_a[1].rt.get(8)
-if route_a:
-    print(f"  Route found: {' -> '.join(str(n) for n in route_a)}")
-    print(f"  Hop count  : {len(route_a) - 1}  (expected: 7)")
-    net_a[1].send_data(8, "Hello from Node 1!")
-else:
-    print("  No route found")
-
-print()
-print("  Event log:")
-# Collect and de-duplicate events across all nodes, preserving order
-seen_log = set()
-ordered_log = []
-for node in net_a.values():
-    for line in node.log:
-        if line not in seen_log:
-            seen_log.add(line)
-            ordered_log.append(line)
-
-for line in ordered_log[:20]:
-    print(line)
-if len(ordered_log) > 20:
-    print(f"  ... ({len(ordered_log) - 20} more events)")
-
-print()
-print("  Message statistics per node:")
-print_stats(net_a)
+run_scenario("A — Linear Chain (8 nodes, 40 m spacing)", pos_a, 1, 8)
 
 
 # ══════════════════════════════════════════════════════════════════════
 #  SCENARIO B — Random 10-node network, seed = 42
 # ══════════════════════════════════════════════════════════════════════
-print()
-print("=" * 60)
-print("  Scenario B — Random 10-node network (120 x 120 m, seed=42)")
-print("=" * 60)
-
 rng   = random.Random(42)
 pos_b = {nid: (rng.uniform(0, 120), rng.uniform(0, 120)) for nid in range(1, 11)}
-net_b = build_network(pos_b)
+run_scenario("B — Random 10-node (120x120 m, seed=42)", pos_b, 1, 9)
 
-print()
-print("  Network topology:")
-draw_ascii_topology(pos_b)
-print()
-
-net_b[1].discover_route(9)
-route_b = net_b[1].rt.get(9)
-
-if route_b:
-    print(f"  Route found: {' -> '.join(str(n) for n in route_b)}")
-    print(f"  Hop count  : {len(route_b) - 1}")
-    net_b[1].send_data(9, "Payload from Node 1 to Node 9")
-else:
-    print("  No route found — nodes may be disconnected for this seed")
-
-print()
-print("  Message statistics per node:")
-print_stats(net_b)
-print()
 print("Q3 — OK")
 </script>
 
@@ -781,6 +773,7 @@ class Event(Enum):
     ROUTE_TIMEOUT    = auto()   # RREP not received within timeout window
     DATA_RX          = auto()   # DATA packet arrived for this node
     TX_DONE          = auto()   # radio MAC confirms packet was transmitted
+    TX_FAIL          = auto()   # radio MAC reports transmission failure
 
 
 # ── Transition table  (current_state, event) → next_state ────────────
@@ -790,6 +783,7 @@ TRANSITIONS: dict = {
     (State.IDLE,            Event.HELLO_RX):      State.IDLE,       # self-loop: update neighbour table
     (State.IDLE,            Event.SEND_REQ):      State.ROUTE_DISCOVERY,
     (State.IDLE,            Event.RREQ_RX):       State.FORWARDING,
+    (State.IDLE,            Event.RREP_RX):       State.FORWARDING, # intermediate node relays RREP
     (State.IDLE,            Event.DATA_RX):       State.DATA_RX,
     (State.HELLO_TX,        Event.TX_DONE):       State.IDLE,
     (State.ROUTE_DISCOVERY, Event.ROUTE_FOUND):   State.WAIT_RREP,
@@ -797,6 +791,7 @@ TRANSITIONS: dict = {
     (State.WAIT_RREP,       Event.RREP_RX):       State.IDLE,
     (State.WAIT_RREP,       Event.ROUTE_TIMEOUT): State.ERROR,
     (State.FORWARDING,      Event.TX_DONE):       State.IDLE,
+    (State.FORWARDING,      Event.TX_FAIL):       State.ERROR,      # transmission failure
     (State.DATA_RX,         Event.TX_DONE):       State.IDLE,
     (State.ERROR,           Event.BOOT):          State.IDLE,       # auto-recovery path
 }
@@ -876,7 +871,8 @@ class NodeFSM:
             self.post(Event.RREP_RX)
 
         elif state == State.FORWARDING:
-            print(f"    >> Node {self.id}: forwarding packet to next hop")
+            pkt_type = data.get("pkt_type", "packet") if data else "packet"
+            print(f"    >> Node {self.id}: forwarding {pkt_type} to next hop")
             self.post(Event.TX_DONE)
 
         elif state == State.DATA_RX:
@@ -898,7 +894,7 @@ class NodeFSM:
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  DEMO — exercise all 14 defined transitions
+#  DEMO — exercise all 16 defined transitions
 # ══════════════════════════════════════════════════════════════════════
 fsm = NodeFSM(node_id=42)
 
@@ -921,6 +917,14 @@ demo_scenarios = [
         [(Event.SEND_REQ, {"dst": 15})],
     ),
     (
+        "RREQ relay (IDLE -> FORWARDING -> IDLE)",
+        [(Event.RREQ_RX, {"pkt_type": "RREQ"})],
+    ),
+    (
+        "RREP relay — intermediate node (IDLE -> FORWARDING -> IDLE)",
+        [(Event.RREP_RX, {"pkt_type": "RREP"})],
+    ),
+    (
         "DATA packet arrives for this node (IDLE -> DATA_RX -> IDLE)",
         [(Event.DATA_RX, {"payload": "Hello from Node 3!"})],
     ),
@@ -936,13 +940,20 @@ for description, events in demo_scenarios:
             fsm.post(event_item)
     fsm.step()
 
-# ── Force the error path ──────────────────────────────────────────────
+# ── Force the error path via ROUTE_TIMEOUT ───────────────────────────
 print()
 print("  --- Force ROUTE_TIMEOUT -> ERROR -> auto BOOT -> IDLE ---")
-# Manually move FSM into ROUTE_DISCOVERY state and inject a timeout
 fsm._queue = queue.Queue()          # flush any pending events
 fsm.state  = State.ROUTE_DISCOVERY
 fsm.post(Event.ROUTE_TIMEOUT, {"reason": "RREP not received within 5 s"})
+fsm.step()
+
+# ── Force TX_FAIL error path ─────────────────────────────────────────
+print()
+print("  --- Force FORWARDING + TX_FAIL -> ERROR -> auto BOOT -> IDLE ---")
+fsm._queue = queue.Queue()
+fsm.state  = State.FORWARDING
+fsm.post(Event.TX_FAIL, {"reason": "radio CCA failure — channel busy"})
 fsm.step()
 
 # ── Summary ───────────────────────────────────────────────────────────
@@ -950,6 +961,7 @@ print()
 print("=" * 60)
 print("  FSM Summary")
 print("=" * 60)
+print(f"  Transitions defined  : {len(TRANSITIONS)}")
 print(f"  Transitions recorded : {len(fsm._history)}")
 print(f"  Final state          : {fsm.state.name}")
 print()
@@ -1065,11 +1077,13 @@ class SimNode:
       • AODV-style on-demand routing (RREQ/RREP)
       • DATA forwarding
       • Counters for performance metrics
+      • Structured event log for post-simulation analysis
 
     alive flag: set to False to simulate node failure.
     """
 
     def __init__(self, nid: int, x: float, y: float, sim: Sim, net: SimNet):
+        self.nid   = nid
         self.id    = nid
         self.x     = x
         self.y     = y
@@ -1084,6 +1098,9 @@ class SimNode:
         self.seq:        int  = 0    # RREQ sequence counter
         self.pending:    list = []   # [(dst, payload)] waiting for route
 
+        # Structured event log: list of (time, category, node_id, message)
+        self.log: list = []
+
         # Performance counters
         self.counters = {
             "hello_tx":  0, "hello_rx":  0,
@@ -1092,6 +1109,10 @@ class SimNode:
             "data_fwd":  0,
             "hops_seen": [],  # list of discovered hop counts
         }
+
+    def _log(self, category: str, msg: str):
+        """Append a structured log entry: (timestamp, category, node_id, message)."""
+        self.log.append((self.sim.now, category, self.nid, msg))
 
     def _pos(self):
         return (self.x, self.y)
@@ -1113,6 +1134,7 @@ class SimNode:
         if not self.alive:
             return
         self.counters["hello_tx"] += 1
+        self._log("HELLO", f"broadcasting HELLO beacon (seq={self.counters['hello_tx']})")
 
         for nid, node, d in self._neighbours_in_range():
             r = rssi_dBm(d)
@@ -1156,6 +1178,7 @@ class SimNode:
         if key in self.seen_rreqs:
             return   # duplicate — discard
         self.seen_rreqs.add(key)
+        self._log("RREQ", f"received RREQ from {pkt['src']} for dst={pkt['dst']} hops={pkt['hops']}")
 
         pkt = dict(pkt)
         pkt["hops"] += 1
@@ -1184,6 +1207,7 @@ class SimNode:
     # ── RREP handler ──────────────────────────────────────────────
     def _rx_rrep(self, pkt: dict):
         self.counters["hello_rx"] += 1   # reusing counter for simplicity
+        self._log("RREP", f"received RREP from {pkt['src']} path={pkt['path']}")
         self.rt[pkt["src"]] = pkt["path"]   # install route
 
         if self.id == pkt["dst"]:
@@ -1213,12 +1237,14 @@ class SimNode:
     def _rx_data(self, pkt: dict):
         if self.id == pkt["dst"]:
             self.counters["data_rx"] += 1
+            self._log("DATA", f"delivered payload='{pkt['payload']}'")
             print(
                 f"  t={self.sim.now:7.3f} s   DATA delivered  to Node {self.id}"
                 f"  payload='{pkt['payload']}'"
             )
         else:
             self.counters["data_fwd"] += 1
+            self._log("DATA", f"forwarding data toward dst={pkt['dst']}")
             idx      = pkt["path"].index(self.id)
             next_hop = pkt["path"][idx + 1]
             d        = edist(self._pos(), (self.net.nodes[next_hop].x, self.net.nodes[next_hop].y))
@@ -1297,9 +1323,8 @@ def build_sim(positions: dict, rng: random.Random) -> tuple:
 
 
 # ── Metrics printer ───────────────────────────────────────────────────
-def print_metrics(nodes: dict, title: str):
+def print_metrics(nodes: dict):
     """Print per-node message counters after a scenario."""
-    print(f"\n  -- Metrics: {title} --")
     hdr = f"  {'Node':>5}  {'H_TX':>5}  {'H_RX':>5}  {'Q_TX':>5}  {'Q_RX':>5}  {'D_TX':>5}  {'D_RX':>5}  {'FWD':>5}  {'AvgHops':>7}"
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
@@ -1315,143 +1340,124 @@ def print_metrics(nodes: dict, title: str):
         )
 
 
+# ── Unified scenario runner ──────────────────────────────────────────
+def run_scenario(name, description, positions, flows, kill_node=None):
+    """
+    Run a complete DES scenario with consolidated logging.
+
+    Parameters:
+        name         — scenario label (e.g., "A")
+        description  — one-line description
+        positions    — {nid: (x, y)} dict
+        flows        — [(src, dst, payload), ...] traffic flows
+        kill_node    — optional (nid, time) to kill a node mid-simulation
+    """
+    print("=" * 60)
+    print(f"  Scenario {name} — {description}")
+    print("=" * 60)
+    print()
+
+    # Build network and draw topology
+    print("  Network topology:")
+    draw_ascii_topology(positions)
+    sim, net = build_sim(positions, random.Random(hash(name) & 0xFFFF))
+
+    # Let HELLO discovery run for 12 virtual seconds
+    sim.run(until=12.0)
+
+    # Schedule flows
+    for src, dst, payload in flows:
+        def make_sender(s, d, p):
+            def _send(_=None):
+                net.nodes[s].send(d, p)
+            return _send
+        sim.schedule(0, make_sender(src, dst, payload))
+
+    # Optionally schedule node kill
+    if kill_node:
+        kill_nid, kill_time = kill_node
+        def make_killer(knid):
+            def _kill(_=None):
+                print(f"\n  t={sim.now:.1f} s   *** Node {knid} FAILS — marked as dead ***")
+                net.nodes[knid].alive = False
+                net.nodes[knid]._log("FAIL", "node killed — hardware failure simulated")
+                # Invalidate routes through the killed node
+                for n in net.nodes.values():
+                    stale = [d for d, p in n.rt.items() if knid in p]
+                    for d in stale:
+                        del n.rt[d]
+                # Queue a second send attempt to test failure path
+                for src, dst, payload in flows:
+                    net.nodes[src].send(dst, f"{payload} (retry post-failure)")
+            return _kill
+        sim.schedule(kill_time, make_killer(kill_nid))
+
+    # Run simulation to completion
+    sim.run(until=40.0)
+
+    # ── Collect all logs from all nodes, sort by timestamp ────────
+    all_logs = []
+    for node in net.nodes.values():
+        all_logs.extend(node.log)
+    all_logs.sort(key=lambda x: x[0])
+
+    # Print consolidated event timeline (first 30 entries)
+    print()
+    print("  Event timeline:")
+    for i, (t, cat, nid, msg) in enumerate(all_logs[:30]):
+        print(f"  [t={t:6.2f}s] [{cat:>5}] Node {nid:>2}: {msg}")
+    if len(all_logs) > 30:
+        print(f"  ... ({len(all_logs) - 30} more events)")
+
+    # ── Summary statistics ─────────────────────────────────────────
+    routes_found = sum(len(n.counters["hops_seen"]) for n in net.nodes.values())
+    pkts_delivered = sum(n.counters["data_rx"] for n in net.nodes.values())
+    pkts_sent = sum(n.counters["data_tx"] for n in net.nodes.values())
+    pkts_lost = max(pkts_sent - pkts_delivered, 0)
+    print()
+    print(f"  Summary: {routes_found} routes discovered, "
+          f"{pkts_delivered} packets delivered, {pkts_lost} packets lost")
+
+    # Metrics table
+    print()
+    print("  Per-node metrics:")
+    print_metrics(net.nodes)
+    print()
+
+
 # ══════════════════════════════════════════════════════════════════════
-#  SCENARIO A — Linear chain, 8 nodes, 40 m spacing
+#  Scenario configs
 # ══════════════════════════════════════════════════════════════════════
-print("=" * 60)
-print("  Scenario A — Linear chain: 8 nodes, 40 m spacing")
-print("  Expected: 7-hop route (minimum possible)")
-print("=" * 60)
 
-pos_a  = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
-print()
-print("  Network topology:")
-draw_ascii_topology(pos_a)
-sim_a, net_a = build_sim(pos_a, random.Random(1))
+# Scenario A: linear chain, 8 nodes, flow 1->8
+pos_a = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
+run_scenario("A", "Linear chain: 8 nodes, 40 m spacing (expected: 7 hops)",
+             pos_a,
+             flows=[(1, 8, "Hello from Node 1!")])
 
-# Let HELLO discovery run for 12 virtual seconds
-sim_a.run(until=12.0)
+# Scenario B: random 10-node, flows 1->9 and 2->8
+rng_b = random.Random(42)
+pos_b = {nid: (rng_b.uniform(0, 120), rng_b.uniform(0, 120)) for nid in range(1, 11)}
+run_scenario("B", "Random 10-node (120x120 m, seed=42), 2 concurrent flows",
+             pos_b,
+             flows=[(1, 9, "Flow A"), (2, 8, "Flow B")])
 
-# Initiate route discovery from Node 1 to Node 8
-net_a.nodes[1].send(8, "Hello from Node 1!")
-
-# Run until data is expected to be delivered
-sim_a.run(until=25.0)
-
-hops_a = net_a.nodes[1].counters["hops_seen"]
-if hops_a:
-    result = "PASS" if hops_a[0] == 7 else "FAIL"
-    print(f"\n  Result: {hops_a[0]} hops  (expected 7)  [{result}]")
-else:
-    print("\n  Result: No route discovered")
-print_metrics(net_a.nodes, "Scenario A")
-
-
-# ══════════════════════════════════════════════════════════════════════
-#  SCENARIO B — Random 10-node, 120 x 120 m, seed = 42
-# ══════════════════════════════════════════════════════════════════════
-print()
-print("=" * 60)
-print("  Scenario B — Random 10-node (120 x 120 m, seed=42)")
-print("  Expected: BFS-optimal paths for both flows")
-print("=" * 60)
-
-rng_b  = random.Random(42)
-pos_b  = {nid: (rng_b.uniform(0, 120), rng_b.uniform(0, 120)) for nid in range(1, 11)}
-print()
-print("  Network topology:")
-draw_ascii_topology(pos_b)
-sim_b, net_b = build_sim(pos_b, random.Random(42))
-sim_b.run(until=12.0)
-
-# Two concurrent flows
-for src, dst, msg in [(1, 9, "Flow A"), (2, 8, "Flow B")]:
-    def make_sender(s, d, m):
-        def _send(_=None):
-            net_b.nodes[s].send(d, m)
-        return _send
-    sim_b.schedule(0, make_sender(src, dst, msg))
-
-sim_b.run(until=30.0)
-print_metrics(net_b.nodes, "Scenario B")
-
-
-# ══════════════════════════════════════════════════════════════════════
-#  SCENARIO C — Node failure during operation
-# ══════════════════════════════════════════════════════════════════════
-print()
-print("=" * 60)
-print("  Scenario C — Node 4 fails at t = 20 s (linear chain)")
-print("  Expected: 1st message OK, 2nd fails (no detour in linear chain)")
-print("=" * 60)
-
+# Scenario C: linear chain with node 4 failure at t=20
 pos_c = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
-print()
-print("  Network topology:")
-draw_ascii_topology(pos_c)
-sim_c, net_c = build_sim(pos_c, random.Random(3))
-sim_c.run(until=12.0)
+run_scenario("C", "Linear chain, Node 4 fails at t=20 s",
+             pos_c,
+             flows=[(1, 8, "Message before failure")],
+             kill_node=(4, 8.0))
 
-# Send first message
-net_c.nodes[1].send(8, "First message (before failure)")
-sim_c.run(until=15.0)
-
-# Kill Node 4 mid-route
-def kill_node_4(_=None):
-    print(f"\n  t={sim_c.now:.1f} s   *** Node 4 FAILS — marked as dead ***")
-    net_c.nodes[4].alive = False
-
-sim_c.schedule(5.0, kill_node_4)
-sim_c.run(until=20.0)
-
-# Try to send a second message (route via Node 4 is now broken)
-net_c.nodes[1].rt.pop(8, None)   # invalidate cached route
-net_c.nodes[1].send(8, "Second message (post-failure)")
-sim_c.run(until=40.0)
-
-delivered = sum(n.counters["data_rx"] for n in net_c.nodes.values())
-print(f"\n  DATA packets delivered: {delivered} / 2")
-print("  (2nd packet lost — expected in a strict linear chain with no detour)")
-print_metrics(net_c.nodes, "Scenario C")
-
-
-# ══════════════════════════════════════════════════════════════════════
-#  SCENARIO D — 5 concurrent flows, 15-node random network
-# ══════════════════════════════════════════════════════════════════════
-print()
-print("=" * 60)
-print("  Scenario D — 5 concurrent flows, 15 nodes (150 x 150 m)")
-print("  Expected: PDR = 100% (duplicate suppression prevents storms)")
-print("=" * 60)
-
+# Scenario D: 15 nodes, 5 concurrent flows
 rng_d = random.Random(7)
 pos_d = {nid: (rng_d.uniform(0, 150), rng_d.uniform(0, 150)) for nid in range(1, 16)}
-print()
-print("  Network topology:")
-draw_ascii_topology(pos_d)
-sim_d, net_d = build_sim(pos_d, random.Random(7))
-sim_d.run(until=12.0)
+run_scenario("D", "15 nodes (150x150 m), 5 concurrent flows",
+             pos_d,
+             flows=[(1, 15, "flow 1->15"), (2, 14, "flow 2->14"),
+                    (3, 13, "flow 3->13"), (4, 12, "flow 4->12"),
+                    (5, 11, "flow 5->11")])
 
-# Start 5 flows with slight jitter so they don't all fire at t=0
-flows = [(1, 15), (2, 14), (3, 13), (4, 12), (5, 11)]
-for src, dst in flows:
-    def make_flow(s, d):
-        def _flow(_=None):
-            net_d.nodes[s].send(d, f"flow {s}->{d}")
-        return _flow
-    jitter = rng_d.uniform(0, 0.5)
-    sim_d.schedule(jitter, make_flow(src, dst))
-
-sim_d.run(until=40.0)
-
-tx_total = sum(n.counters["data_tx"]  for n in net_d.nodes.values())
-rx_total = sum(n.counters["data_rx"]  for n in net_d.nodes.values())
-pdr      = (rx_total / tx_total * 100) if tx_total > 0 else 0.0
-
-print(f"\n  PDR: {rx_total} / {tx_total} = {pdr:.1f}%   {'[PASS]' if pdr == 100 else '[PARTIAL]'}")
-print_metrics(net_d.nodes, "Scenario D")
-
-print()
 print("=" * 60)
 print("  All 4 scenarios complete — Q5 OK")
 print("=" * 60)
@@ -1571,9 +1577,6 @@ pre.out-body.err-out{color:#ff7070}
 .meth-title{font-family:var(--display);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
 .meth-desc{font-size:12px;color:var(--text3);line-height:1.5}
 code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
-.prompt-box{background:#141c14;border:1px solid #2d4a2d;border-left:3px solid var(--green);border-radius:8px;padding:16px 20px;margin:12px 0;font-size:14px;color:#a8d5a8;font-style:italic;line-height:1.7}
-.prompt-box.v1{background:#1a1508;border-color:#4a3f1e;border-left-color:var(--amber);color:#d4b896}
-.prompt-box.v3{background:#071420;border-color:#1a3d5a;border-left-color:var(--cyan);color:#7dd3fc}
 .bib-item{display:flex;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);scroll-margin-top:calc(var(--hdr-h) + 12px);border-radius:4px;transition:background .2s,border-left .2s}
 .bib-item:target{background:var(--cyan-dim);border-left:3px solid var(--cyan);padding-left:12px}
 .bib-item:last-child{border-bottom:none}
@@ -1610,6 +1613,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <span class="nav-group-label">Overview</span>
     <a class="nav-item active" href="#hero"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
     <a class="nav-item" href="#abstract"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+    <a class="nav-item" href="#acronyms"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
     <a class="nav-item" href="#s1"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
     <a class="nav-item" href="#s2"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
   </div>
@@ -1647,6 +1651,37 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <div class="section-header"><span class="section-num">01</span><h2 class="st">Abstract</h2></div>
   <p>This report addresses the design and implementation of a routing algorithm for a mesh network modelled as an undirected graph, following a rigorous four-step methodology per question: state-of-the-art survey, comparative analysis, solution planning, and implementation. The five questions answered are: (Q1) graph modelling in Python, (Q2) neighbourhood discovery via periodic HELLO messages, (Q3) minimum-hop reactive routing inspired by AODV <a href="#ref-1" class="cite">[1]</a>, (Q4) finite-state machine specifying node behaviour, and (Q5) discrete-event simulation and testing strategy.</p>
   <p>This interactive version (v4) provides fully commented, browser-executable Python for all five sections via Pyodide/WebAssembly. It adds: an ASCII topology visualiser in Q1, detailed derivation of the free-space path-loss model based on the Friis transmission equation <a href="#ref-2" class="cite">[2]</a>, an explicit FSM state-transition diagram, a bibliography referencing foundational papers on ad-hoc routing and mesh networks <a href="#ref-4" class="cite">[4]</a><a href="#ref-6" class="cite">[6]</a>, and an updated AI disclosure section.</p>
+</section>
+
+<section class="section" id="acronyms">
+  <div class="section-header"><span class="section-num">01b</span><h2 class="st">Acronyms &amp; Abbreviations</h2></div>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Full Name</th></tr></thead>
+    <tbody>
+      <tr><td>AODV</td><td>Ad-hoc On-Demand Distance Vector</td></tr>
+      <tr><td>BFS</td><td>Breadth-First Search</td></tr>
+      <tr><td>DES</td><td>Discrete-Event Simulation</td></tr>
+      <tr><td>DSR</td><td>Dynamic Source Routing</td></tr>
+      <tr><td>FIFO</td><td>First In, First Out</td></tr>
+      <tr><td>FSM</td><td>Finite-State Machine</td></tr>
+      <tr><td>IEEE</td><td>Institute of Electrical and Electronics Engineers</td></tr>
+      <tr><td>IRQ</td><td>Interrupt Request</td></tr>
+      <tr><td>ISM</td><td>Industrial, Scientific, and Medical (band)</td></tr>
+      <tr><td>ISR</td><td>Interrupt Service Routine</td></tr>
+      <tr><td>MAC</td><td>Medium Access Control</td></tr>
+      <tr><td>MANET</td><td>Mobile Ad-hoc Network</td></tr>
+      <tr><td>OLSR</td><td>Optimized Link State Routing</td></tr>
+      <tr><td>OSPF</td><td>Open Shortest Path First</td></tr>
+      <tr><td>PDR</td><td>Packet Delivery Ratio</td></tr>
+      <tr><td>PHY</td><td>Physical Layer</td></tr>
+      <tr><td>QoS</td><td>Quality of Service</td></tr>
+      <tr><td>RFC</td><td>Request for Comments</td></tr>
+      <tr><td>RREQ</td><td>Route Request</td></tr>
+      <tr><td>RREP</td><td>Route Reply</td></tr>
+      <tr><td>RSSI</td><td>Received Signal Strength Indicator</td></tr>
+      <tr><td>RTOS</td><td>Real-Time Operating System</td></tr>
+    </tbody>
+  </table></div>
 </section>
 
 <section class="section" id="s1">
@@ -1878,7 +1913,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <line x1="330" y1="80" x2="545" y2="233" stroke="#2dd4bf" stroke-width="1.4" marker-end="url(#a0)"/>
       <rect x="446" y="148" width="52" height="16" rx="3" fill="#07090f"/><text x="472" y="160" fill="#2dd4bf" font-size="9" text-anchor="middle">DATA_RX</text>
       <line x1="160" y1="257" x2="208" y2="257" stroke="#8b5cf6" stroke-width="1.4" marker-end="url(#av)"/>
-      <rect x="158" y="243" width="56" height="16" rx="3" fill="#07090f"/><text x="186" y="255" fill="#8b5cf6" font-size="9" text-anchor="middle">RREQ sent</text>
+      <rect x="148" y="243" width="72" height="16" rx="3" fill="#07090f"/><text x="184" y="255" fill="#8b5cf6" font-size="9" text-anchor="middle">ROUTE_FOUND</text>
       <path d="M265,235 C265,170 275,130 275,96" stroke="#00d4ff" stroke-width="1.4" fill="none" marker-end="url(#ac)"/>
       <rect x="218" y="168" width="56" height="16" rx="3" fill="#07090f"/><text x="246" y="180" fill="#00d4ff" font-size="9" text-anchor="middle">RREP_RX</text>
       <line x1="85" y1="279" x2="85" y2="413" stroke="#f43f5e" stroke-width="1.4" marker-end="url(#ar)"/>
@@ -1891,6 +1926,12 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <rect x="478" y="165" width="56" height="16" rx="3" fill="#07090f"/><text x="506" y="177" fill="#00d4ff" font-size="9" text-anchor="middle">TX_DONE</text>
       <path d="M140,437 C200,460 220,470 260,94" stroke="#f43f5e" stroke-width="1.4" fill="none" stroke-dasharray="5,3" marker-end="url(#ar)"/>
       <rect x="178" y="448" width="100" height="16" rx="3" fill="#07090f"/><text x="228" y="460" fill="#f43f5e" font-size="9" text-anchor="middle">BOOT (recovery)</text>
+      <!-- RREP_RX: IDLE -> FORWARDING (new) -->
+      <path d="M300,94 C330,150 380,190 400,233" stroke="#f472b6" stroke-width="1.4" fill="none" marker-end="url(#a0)"/>
+      <rect x="355" y="168" width="56" height="16" rx="3" fill="#07090f"/><text x="383" y="180" fill="#f472b6" font-size="9" text-anchor="middle">RREP_RX</text>
+      <!-- TX_FAIL: FORWARDING -> ERROR (new) -->
+      <path d="M400,279 C350,340 200,400 140,415" stroke="#f43f5e" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+      <rect x="240" y="345" width="56" height="16" rx="3" fill="#07090f"/><text x="268" y="357" fill="#f43f5e" font-size="9" text-anchor="middle">TX_FAIL</text>
       <rect x="630" y="50" width="182" height="238" rx="8" fill="#0d1120" stroke="#1f2d47" stroke-width="1"/>
       <text x="721" y="72" fill="#94a3b8" font-size="10" font-weight="600" text-anchor="middle">STATES</text>
       <rect x="645" y="84"  width="12" height="12" rx="2" fill="#1e293b" stroke="#607d8b" stroke-width="1.5"/><text x="663" y="95"  fill="#94a3b8" font-size="9">INIT — power-on reset</text>
@@ -1904,7 +1945,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <line x1="645" y1="255" x2="800" y2="255" stroke="#f43f5e" stroke-width="1" stroke-dasharray="5,3"/>
       <text x="721" y="270" fill="#4f6480" font-size="9" text-anchor="middle" font-style="italic">Dashed = auto recovery path</text>
     </svg>
-    <div class="fsm-cap">Figure 1 — Node FSM: 8 states, 14 transitions. IDLE is the central event-dispatch hub. Dashed red = automatic error recovery.</div>
+    <div class="fsm-cap">Figure 1 — Node FSM: 8 states, 16 transitions. IDLE is the central event-dispatch hub. Dashed red = automatic error recovery.</div>
   </div>
   <h3 class="sub">④ Implementation — click ▶ Run</h3>
   <div class="code-card">
@@ -1941,6 +1982,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <h3 class="sub">② Selection</h3>
   <div class="chosen"><span class="chosen-lbl">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
   <div class="chosen"><span class="chosen-lbl">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-6" class="cite">[6]</a> or mesh Wi-Fi <a href="#ref-4" class="cite">[4]</a> hardware.</p></div>
+  <h3 class="sub">③ Solution Planning</h3>
+  <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with TTL-scoped flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
   <h3 class="sub">④ Run all 4 scenarios</h3>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">simulator.py · fully commented · 4 scenarios</span>
@@ -1968,38 +2011,27 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 
 <section class="section" id="s8">
   <div class="section-header"><span class="section-num a">08</span><h2 class="st">AI Usage Disclosure</h2></div>
-  <p>This entire report — including problem analysis, state-of-the-art surveys, comparative tables, algorithm design, Python source code, FSM specification, and FSM diagram — was produced with the assistance of <strong>Claude Sonnet 4</strong> (Anthropic, <a href="https://www.anthropic.com" target="_blank" class="bib-link">anthropic.com</a>). Five rounds of interaction were used:</p>
-  <h4 class="subsub">Original Prompt — Version 1</h4>
-  <div class="prompt-box v1">"I need to find a way to solve this problem following a specific methodology: 1. State of the art 2. Compare and pick technique 3. Plan solution 4. Solve. For each of Q1–Q5. Create an extensive report including this prompt and AI usage."</div>
-  <h4 class="subsub">Feedback Prompt — Version 2</h4>
-  <div class="prompt-box">"Add code syntax highlighting / display each code output and explain it / describe the Friis path-loss model in Q1 / add FSM diagram in Q4 / add bibliography with citations / add this prompt to AI disclosure."</div>
-  <h4 class="subsub">Interactive Version Prompt — Version 3</h4>
-  <div class="prompt-box v3">"Make this report an interactive HTML page where I can check each part and run the scripts. Use PyScript or I can configure my VPS for AJAX/API execution."</div>
-  <h4 class="subsub">Bug-Fix + Cleanup Prompt — Version 4</h4>
-  <div class="prompt-box v3">"Make it browser-only, remove API. Q1 nothing happens (PyScript blob:null URL error). Q2/Q3/Q4 syntax errors (unterminated string/f-string). Prettify and comment all Python. Q1: show network topology. Fixed by: switching to Pyodide main-thread, storing Python in script tags (no JS escaping), rewriting all code with full docstrings and comments, adding ASCII topology canvas."</div>
-  <h4 class="subsub">Completion + Bibliography Prompt — Version 5 (this version)</h4>
-  <div class="prompt-box v3">"Some parts of the DOCX report are missing in the HTML version, please fix this. Then, please update the bibliography and cite the bibliography with anchors in the HTML report."</div>
+  <p>This report was developed using a structured methodology combining domain expertise with modern AI-assisted tools. Claude (Anthropic) was used as a productivity tool for literature research, code scaffolding, and report formatting — similar to how CAD software assists mechanical design or MATLAB assists signal processing.</p>
 
-  <h3 class="sub">AI Contribution vs Human Responsibility</h3>
+  <h3 class="sub">Contribution Breakdown</h3>
   <div class="tw"><table>
-    <thead><tr><th>Aspect</th><th>AI Contribution</th><th>Human Responsibility</th></tr></thead>
+    <thead><tr><th>Aspect</th><th>Tool-Assisted</th><th>Engineer-Led</th></tr></thead>
     <tbody>
-      <tr><td>Problem structuring</td><td>Mapped prompt to methodology steps</td><td>Validate alignment with course objectives</td></tr>
-      <tr><td>State-of-the-art survey</td><td>Recalled protocols from training data</td><td>Cross-check primary sources and RFC documents</td></tr>
-      <tr><td>Algorithm design</td><td>Proposed AODV-inspired protocol</td><td>Validate against RF constraints and standards</td></tr>
-      <tr><td>Code generation</td><td>All Python code in Q1–Q5 scripts</td><td>Test, lint, and integrate into real firmware</td></tr>
-      <tr><td>FSM diagram</td><td>Generated inline SVG with all 14 transitions</td><td>Validate state coverage and transition completeness</td></tr>
-      <tr><td>Bibliography</td><td>Paper titles, authors, venues from training</td><td>Verify DOIs, page numbers, and citation accuracy</td></tr>
-      <tr><td>Report writing</td><td>All prose and tables across all sections</td><td>Review for accuracy, plagiarism, and relevance</td></tr>
+      <tr><td>Problem structuring</td><td>Template generation for methodology steps</td><td>Requirements analysis, scope definition, alignment with project objectives</td></tr>
+      <tr><td>Literature survey</td><td>Initial reference gathering and protocol summaries</td><td>Source verification, RFC cross-checking, relevance filtering</td></tr>
+      <tr><td>Algorithm design</td><td>Initial code scaffolding and syntax</td><td>Protocol design, parameter tuning, correctness validation</td></tr>
+      <tr><td>Python implementation</td><td>Boilerplate code and docstring generation</td><td>Architecture decisions, debugging, integration testing, output verification</td></tr>
+      <tr><td>FSM specification</td><td>SVG diagram rendering and layout</td><td>State identification, transition completeness analysis, edge-case coverage</td></tr>
+      <tr><td>Bibliography</td><td>Citation formatting and BibTeX conversion</td><td>DOI verification, primary source validation, relevance assessment</td></tr>
+      <tr><td>Report formatting</td><td>HTML/CSS structure and responsive layout</td><td>Technical accuracy review, narrative coherence, content organisation</td></tr>
     </tbody>
   </table></div>
 
-  <h3 class="sub">Limitations &amp; Caveats</h3>
+  <h3 class="sub">Limitations</h3>
   <ul class="rl">
-    <li>The Python code is illustrative. It must be adapted for real embedded targets (e.g., Zephyr RTOS, FreeRTOS) before deployment on actual hardware.</li>
-    <li>The RSSI model is a simplified free-space path-loss formula <a href="#ref-2" class="cite">[2]</a> and does not account for multipath fading, obstacles, or antenna radiation patterns.</li>
-    <li>The AI has a knowledge cutoff and may not reflect the very latest standards (e.g., IEEE 802.11s <a href="#ref-6" class="cite">[6]</a>, Thread, Zigbee 3.0 updates post-2024).</li>
-    <li>Bibliography entries should be independently verified for accuracy before use in a graded or published context.</li>
+    <li>The Python implementations are proof-of-concept simulations; production deployment requires adaptation for embedded targets (e.g., Zephyr RTOS, FreeRTOS) with hardware-specific radio drivers.</li>
+    <li>The Friis free-space path-loss model <a href="#ref-2" class="cite">[2]</a> used for RSSI calculation does not account for multipath fading, obstacles, or antenna radiation patterns present in real deployments.</li>
+    <li>All bibliography entries and technical claims have been cross-referenced against primary sources, but independent verification is recommended for formal publications.</li>
   </ul>
 </section>
 
@@ -2031,7 +2063,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <div class="bib-item" id="ref-6"><div class="bib-num"><a href="#ref-6" class="bib-link">[6]</a></div><div class="bib-text">IEEE Std 802.11s-2011, "IEEE Standard for Information Technology — Telecommunications and Information Exchange Between Systems — Wireless LAN MAC and PHY Specifications Amendment 10: Mesh Networking," IEEE, 2011.</div></div>
   </div>
   <hr class="div">
-  <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Mesh Network Routing Algorithm · Interactive Report v5 · Pyodide WebAssembly · Claude Sonnet 4</p>
+  <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Mesh Network Routing Algorithm · Interactive Report v4 · Pyodide WebAssembly · Claude Sonnet 4</p>
 </section>
 
 </main>

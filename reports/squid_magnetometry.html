@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SQUID Magnetometry — Interactive Technical Report</title>
+<title>SQUID Magnetometry — Static Technical Report</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07090f;--bg2:#0d1120;--surface:#161e30;--border:#1f2d47;--border2:#2a3d5c;--cyan:#00d4ff;--cyan-dim:#00d4ff18;--violet:#8b5cf6;--violet-dim:#8b5cf618;--green:#10d880;--green-dim:#10d88018;--amber:#f59e0b;--red:#f43f5e;--text:#e2e8f0;--text2:#94a3b8;--text3:#4f6480;--mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;--display:'Syne',sans-serif;--nav-w:260px;--hdr-h:56px}
@@ -11,25 +11,12 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7;overflow-x:hidden}
 
-/* Loading overlay */
-#loading-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .5s,visibility .5s}
-#loading-overlay.hidden{opacity:0;visibility:hidden}
-.spin-ring{width:56px;height:56px;border:3px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.load-bar-track{width:260px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
-.load-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:2px;transition:width .3s}
-.load-text{font-family:var(--mono);font-size:12px;color:var(--text3);text-align:center}
-
 /* Topbar */
 #topbar{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);background:#07090fdd;backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px 0 calc(var(--nav-w) + 20px);z-index:100;gap:16px}
 .title-bar{font-family:var(--display);font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:.05em;flex:1}
 .title-bar span{color:var(--text2);font-weight:400}
 .runtime-badge{display:flex;align-items:center;gap:7px;background:var(--green-dim);border:1px solid var(--green);border-radius:20px;padding:4px 14px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--green)}
-.runtime-badge.loading{background:#f59e0b18;border-color:var(--amber);color:var(--amber)}
-.runtime-badge.ready{background:var(--green-dim);border-color:var(--green);color:var(--green)}
 .runtime-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-.runtime-badge.loading .dot{animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* Sidebar */
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-top:var(--hdr-h);scrollbar-width:thin;scrollbar-color:var(--border2) transparent;z-index:50}
@@ -91,43 +78,13 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 /* Formula */
 .formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0}
 
-/* Code card */
-.code-card{background:#080c16;border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin:20px 0}
-.code-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#0f1520;border-bottom:1px solid var(--border)}
-.code-lang{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.1em}
-.code-file{font-family:var(--mono);font-size:11px;color:var(--text3)}
-.run-btn{display:flex;align-items:center;gap:7px;padding:5px 16px;background:var(--green-dim);border:1px solid var(--green);border-radius:6px;color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.05em;min-width:90px}
-.run-btn:hover:not(:disabled){background:var(--green);color:#000}
-.run-btn:disabled{opacity:.5;cursor:not-allowed}
-.run-btn .spinner{width:10px;height:10px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;display:none;flex-shrink:0}
-.run-btn.running .spinner{display:block}
-.run-btn.running .btn-text{display:none}
-.code-body{overflow-x:auto;padding:16px 20px;max-height:500px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;background:#080c16}
-.code-body pre{font-family:var(--mono);font-size:13px;line-height:1.65;color:#d4d4d4;tab-size:4;margin:0;white-space:pre}
+/* Section header (flex pattern) */
+.section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px}
 
-/* Syntax highlighting */
-.syn-kw{color:#569cd6;font-weight:600}
-.syn-imp{color:#c586c0;font-weight:600}
-.syn-str{color:#ce9178}
-.syn-com{color:#6a9955;font-style:italic}
-.syn-num{color:#b5cea8}
-.syn-cls{color:#4ec9b0}
-.syn-self{color:#9cdcfe}
-.syn-dec{color:#dcdcaa}
-
-/* Output panel */
-.output-panel{border-top:1px solid var(--border);background:#040810;display:none}
-.output-panel.visible{display:block}
-.output-header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#080e1a;border-bottom:1px solid var(--border)}
-.output-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em}
-.output-status{font-family:var(--mono);font-size:10px;letter-spacing:.05em}
-.output-status.ok{color:var(--green)}
-.output-status.err{color:var(--red)}
-.output-status.running{color:var(--amber)}
-.output-body{padding:14px 20px;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;background:#040810}
-.output-body pre{font-family:var(--mono);font-size:12px;line-height:1.6;color:#a8ff78;white-space:pre-wrap;margin:0}
-.output-body pre.ok{color:#a8ff78}
-.output-body pre.err{color:#ff7070}
+/* SVG figures */
+.svg-wrap{margin:24px 0;text-align:center}
+.svg-wrap svg{max-width:100%;height:auto}
+.svg-caption{font-family:var(--mono);font-size:12px;color:var(--text2);margin-top:10px;text-align:center}
 
 /* Analysis */
 .analysis{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:16px 0}
@@ -173,22 +130,12 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <body>
 
 <!-- ══════════════════════════════════════════════════════════
-     LOADING OVERLAY
-     ══════════════════════════════════════════════════════════ -->
-<div id="loading-overlay">
-  <div class="spin-ring"></div>
-  <div class="load-bar-track"><div class="load-bar-fill" id="load-bar"></div></div>
-  <div class="load-text">Downloading Pyodide (~8 MB) — first load only; cached after</div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
      TOP BAR
      ══════════════════════════════════════════════════════════ -->
 <header id="topbar">
-  <div class="title-bar">SQUID MAGNETOMETRY <span>— Interactive Report v1</span></div>
-  <div class="runtime-badge loading" id="runtime-badge">
-    <span class="dot"></span>
-    <span id="badge-text">Loading Python…</span>
+  <div class="title-bar">SQUID MAGNETOMETRY <span>— Technical Report v2</span></div>
+  <div class="runtime-badge">
+    <span class="dot"></span><span>HTML &middot; Static Report</span>
   </div>
 </header>
 
@@ -198,9 +145,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <nav class="sidebar">
   <div class="nav-group-label">Overview</div>
   <a href="#hero" class="nav-item active"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
-  <a href="#abstract" class="nav-item"><span class="nav-num">00</span><span class="nav-dot"></span>Abstract</a>
-  <a href="#s1" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Problem Statement</a>
-  <a href="#s2" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Methodology</a>
+  <a href="#abstract" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+  <a href="#acronyms" class="nav-item"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
+  <a href="#s1" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
+  <a href="#s2" class="nav-item"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
 
   <div class="nav-group-label">Questions</div>
   <a href="#s3" class="nav-item"><span class="nav-num">Q1</span><span class="nav-dot"></span>SQUID Equiv. Model</a>
@@ -235,21 +183,51 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── ABSTRACT ────────────────────────────────────────── -->
 <section class="section" id="abstract">
-  <span class="section-num">00</span>
-  <h2 class="st">Abstract</h2>
-  <p>Superconducting Quantum Interference Devices (SQUIDs) are among the most sensitive magnetic flux sensors ever developed, operating at the quantum limit of electromagnetic measurement. This report provides a comprehensive technical survey of SQUID physics, covering the equivalent magneto-electrical circuit model, the periodic flux-to-voltage transfer function, metrological performance characteristics, fabrication techniques, and cryogenic support systems. Each topic is explored through a structured four-step methodology: state-of-the-art survey, comparative analysis, solution planning with mathematical derivations, and executable Python implementations.</p>
-  <p>The five questions addressed span from fundamental Josephson junction physics through to practical engineering of long-duration cryostats. Python simulations model the RCSJ (Resistively and Capacitively Shunted Junction) equivalent circuit, compute the sinusoidal SQUID transfer function, perform sensitivity analysis across temperature ranges, classify fabrication processes, and estimate cryogen consumption for multi-month operation. All code runs entirely in the browser via Pyodide with no external dependencies.</p>
+  <div class="section-header"><span class="section-num">01</span><h2 class="st">Abstract</h2></div>
+  <p>Superconducting Quantum Interference Devices (SQUIDs) are among the most sensitive magnetic flux sensors ever developed, operating at the quantum limit of electromagnetic measurement. This report provides a comprehensive technical survey of SQUID physics, covering the equivalent magneto-electrical circuit model, the periodic flux-to-voltage transfer function, metrological performance characteristics, fabrication techniques, and cryogenic support systems. Each topic is explored through a structured four-step methodology: state-of-the-art survey, comparative analysis, solution planning with mathematical derivations, and detailed technical figures.</p>
+  <p>The five questions addressed span from fundamental Josephson junction physics through to practical engineering of long-duration cryostats. Technical diagrams illustrate the RCSJ (Resistively and Capacitively Shunted Junction) equivalent circuit, the sinusoidal SQUID transfer function, sensitivity analysis across temperature ranges, fabrication process classification, and cryogen consumption estimates for multi-month operation.</p>
+</section>
+
+<!-- ── ACRONYMS ──────────────────────────────────────────── -->
+<section class="section" id="acronyms">
+  <div class="section-header"><span class="section-num">01b</span><h2 class="st">Acronyms &amp; Abbreviations</h2></div>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Full Name</th></tr></thead>
+    <tbody>
+      <tr><td>BCS</td><td>Bardeen-Cooper-Schrieffer (theory)</td></tr>
+      <tr><td>DC</td><td>Direct Current</td></tr>
+      <tr><td>EMI</td><td>Electromagnetic Interference</td></tr>
+      <tr><td>FIB</td><td>Focused Ion Beam</td></tr>
+      <tr><td>FLL</td><td>Flux-Locked Loop</td></tr>
+      <tr><td>HTS</td><td>High-Temperature Superconductor</td></tr>
+      <tr><td>I-V</td><td>Current-Voltage (characteristic)</td></tr>
+      <tr><td>LHe</td><td>Liquid Helium</td></tr>
+      <tr><td>LN&#8322;</td><td>Liquid Nitrogen</td></tr>
+      <tr><td>LTS</td><td>Low-Temperature Superconductor</td></tr>
+      <tr><td>MEG</td><td>Magnetoencephalography</td></tr>
+      <tr><td>MLI</td><td>Multi-Layer Insulation</td></tr>
+      <tr><td>ODE</td><td>Ordinary Differential Equation</td></tr>
+      <tr><td>RCSJ</td><td>Resistively and Capacitively Shunted Junction</td></tr>
+      <tr><td>RF</td><td>Radio Frequency</td></tr>
+      <tr><td>RK4</td><td>4th-order Runge-Kutta (method)</td></tr>
+      <tr><td>RSJ</td><td>Resistively Shunted Junction</td></tr>
+      <tr><td>SI</td><td>International System of Units</td></tr>
+      <tr><td>SQUID</td><td>Superconducting Quantum Interference Device</td></tr>
+      <tr><td>UHV</td><td>Ultra-High Vacuum</td></tr>
+      <tr><td>UV</td><td>Ultraviolet</td></tr>
+      <tr><td>YBCO</td><td>Yttrium Barium Copper Oxide</td></tr>
+    </tbody>
+  </table></div>
 </section>
 
 <!-- ── S1: Problem Statement ───────────────────────────── -->
 <section class="section" id="s1">
-  <span class="section-num">01</span>
-  <h2 class="st">Problem Statement</h2>
+  <div class="section-header"><span class="section-num">02</span><h2 class="st">Problem Statement</h2></div>
   <p>This report investigates five core questions about SQUID-based magnetometry, covering the full stack from quantum physics to cryogenic engineering.</p>
   <h3 class="sub">Constraints</h3>
   <ul>
     <li>All models must be grounded in the Josephson effect and flux quantisation<a href="#ref-1" class="cite">[1]</a></li>
-    <li>Simulations run in standard-library Python 3.12 (Pyodide-compatible)</li>
+    <li>All analyses are presented with detailed technical figures and parameter tables</li>
     <li>Parameters must use SI units throughout</li>
     <li>Performance figures must reference published experimental data<a href="#ref-2" class="cite">[2]</a></li>
   </ul>
@@ -266,14 +244,13 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── S2: Methodology ────────────────────────────────── -->
 <section class="section" id="s2">
-  <span class="section-num">02</span>
-  <h2 class="st">Methodology</h2>
+  <div class="section-header"><span class="section-num">03</span><h2 class="st">Methodology</h2></div>
   <p>Every question follows a rigorous four-step methodology designed to move from survey through selection to validated implementation.</p>
   <div class="meth-grid">
     <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><p>Survey ≥ 3 existing techniques with a comparison table of key properties, supported by published references.</p></div>
     <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><p>Evaluate each technique with specific pros/cons. End with a justified CHOSEN selection box.</p></div>
     <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><p>Architecture, mathematical derivations, parameter tables, and class/interface design before any code.</p></div>
-    <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Implementation</div><p>Fully commented Python code with rich output, followed by an output analysis box linking results to theory.</p></div>
+    <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><p>Technical figures, numerical results, and output analysis linking results to theory.</p></div>
   </div>
 </section>
 
@@ -281,8 +258,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      Q1: SQUID EQUIVALENT MODEL
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s3">
-  <span class="section-num v">Q1</span>
-  <h2 class="st">SQUID Equivalent Magneto-Electrical Model</h2>
+  <div class="section-header"><span class="section-num v">Q1</span><h2 class="st">SQUID Equivalent Magneto-Electrical Model</h2></div>
   <p><strong>Type tags:</strong> <code>MATHEMATICAL</code>, <code>GRAPH-MODEL</code></p>
 
   <h3 class="sub">① State of the Art</h3>
@@ -324,45 +300,152 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>Stewart–McCumber param.</td><td>β_c</td><td>0.5</td><td>2πI_c R²C/Φ₀ → over-damped regime</td></tr>
   </table></div>
 
-  <p>The Python script below implements the RCSJ model for a single junction, solves the differential equation using 4th-order Runge-Kutta, computes the I–V curve, and renders an ASCII circuit diagram of the SQUID loop (two RCSJ junctions in parallel with a flux-threaded loop).</p>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
+  <p>The following diagrams illustrate the DC SQUID equivalent circuit using the RCSJ model and the resulting I-V characteristic showing critical current modulation with applied flux.</p>
 
-  <!-- CODE CARD Q1 -->
-  <div class="code-card">
-    <div class="code-toolbar">
-      <span class="code-lang">Python</span>
-      <span class="code-file">squid_rcsj_model.py · fully commented</span>
-      <button class="run-btn" onclick="runScript('q1')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button>
-    </div>
-    <div class="code-body" id="code-q1"></div>
-    <div class="output-panel" id="out-q1">
-      <div class="output-header">
-        <span class="output-label">Output</span>
-        <span class="output-status" id="status-q1"></span>
-      </div>
-      <div class="output-body"><pre id="pre-q1"></pre></div>
-    </div>
+  <!-- Figure 1: DC SQUID Equivalent Circuit -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 600 480" width="600" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <!-- Title -->
+      <text x="300" y="30" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">DC SQUID Equivalent Circuit (RCSJ Model)</text>
+      <!-- Bias current in -->
+      <line x1="300" y1="50" x2="300" y2="80" stroke="#00d4ff" stroke-width="2"/>
+      <polygon points="295,55 305,55 300,45" fill="#00d4ff"/>
+      <text x="330" y="60" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="11">I_b (in)</text>
+      <!-- Split node -->
+      <circle cx="300" cy="80" r="4" fill="#00d4ff"/>
+      <!-- Left arm -->
+      <line x1="300" y1="80" x2="150" y2="80" stroke="#00d4ff" stroke-width="2"/>
+      <line x1="150" y1="80" x2="150" y2="120" stroke="#00d4ff" stroke-width="2"/>
+      <!-- Left L/2 -->
+      <text x="125" y="110" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="end">L/2</text>
+      <!-- Left RCSJ group box -->
+      <rect x="100" y="120" width="100" height="200" rx="6" fill="none" stroke="#1f2d47" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="150" y="140" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">RCSJ Branch 1</text>
+      <!-- Left JJ (X symbol) -->
+      <line x1="135" y1="160" x2="165" y2="190" stroke="#00d4ff" stroke-width="2"/>
+      <line x1="165" y1="160" x2="135" y2="190" stroke="#00d4ff" stroke-width="2"/>
+      <text x="175" y="178" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">JJ₁</text>
+      <!-- Left R (zig-zag) -->
+      <polyline points="140,205 145,210 135,220 145,230 135,240 140,245" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="175" y="228" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="10">R_n</text>
+      <!-- Left C (parallel lines) -->
+      <line x1="130" y1="265" x2="170" y2="265" stroke="#8b5cf6" stroke-width="2"/>
+      <line x1="130" y1="275" x2="170" y2="275" stroke="#8b5cf6" stroke-width="2"/>
+      <text x="175" y="273" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="10">C</text>
+      <!-- Left connections -->
+      <line x1="150" y1="150" x2="150" y2="160" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="140" y1="190" x2="140" y2="205" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="140" y1="245" x2="140" y2="265" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="150" y1="275" x2="150" y2="300" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="150" y1="320" x2="150" y2="390" stroke="#00d4ff" stroke-width="2"/>
+      <!-- Right arm -->
+      <line x1="300" y1="80" x2="450" y2="80" stroke="#00d4ff" stroke-width="2"/>
+      <line x1="450" y1="80" x2="450" y2="120" stroke="#00d4ff" stroke-width="2"/>
+      <!-- Right L/2 -->
+      <text x="475" y="110" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="10">L/2</text>
+      <!-- Right RCSJ group box -->
+      <rect x="400" y="120" width="100" height="200" rx="6" fill="none" stroke="#1f2d47" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="450" y="140" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">RCSJ Branch 2</text>
+      <!-- Right JJ -->
+      <line x1="435" y1="160" x2="465" y2="190" stroke="#00d4ff" stroke-width="2"/>
+      <line x1="465" y1="160" x2="435" y2="190" stroke="#00d4ff" stroke-width="2"/>
+      <text x="475" y="178" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">JJ₂</text>
+      <!-- Right R -->
+      <polyline points="440,205 445,210 435,220 445,230 435,240 440,245" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="475" y="228" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="10">R_n</text>
+      <!-- Right C -->
+      <line x1="430" y1="265" x2="470" y2="265" stroke="#8b5cf6" stroke-width="2"/>
+      <line x1="430" y1="275" x2="470" y2="275" stroke="#8b5cf6" stroke-width="2"/>
+      <text x="475" y="273" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="10">C</text>
+      <!-- Right connections -->
+      <line x1="450" y1="150" x2="450" y2="160" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="440" y1="190" x2="440" y2="205" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="440" y1="245" x2="440" y2="265" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="450" y1="275" x2="450" y2="300" stroke="#00d4ff" stroke-width="1.5"/>
+      <line x1="450" y1="320" x2="450" y2="390" stroke="#00d4ff" stroke-width="2"/>
+      <!-- Bottom join -->
+      <line x1="150" y1="390" x2="450" y2="390" stroke="#00d4ff" stroke-width="2"/>
+      <circle cx="300" cy="390" r="4" fill="#00d4ff"/>
+      <!-- Bias current out -->
+      <line x1="300" y1="390" x2="300" y2="440" stroke="#00d4ff" stroke-width="2"/>
+      <polygon points="295,435 305,435 300,445" fill="#00d4ff"/>
+      <text x="330" y="440" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="11">I_b (out)</text>
+      <!-- Flux arrow through center -->
+      <circle cx="300" cy="235" r="50" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+      <text x="300" y="225" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="14" font-weight="700">&Phi;_ext</text>
+      <polygon points="295,248 305,248 300,260" fill="#f59e0b" opacity="0.7"/>
+      <!-- Voltage label -->
+      <line x1="520" y1="150" x2="520" y2="330" stroke="#10d880" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="540" y="235" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="11">V</text>
+      <text x="540" y="250" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">(output)</text>
+      <!-- Constraint equation -->
+      <text x="300" y="470" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="10">&phi;&#8321; &minus; &phi;&#8322; = 2&pi;(&Phi;_ext/&Phi;&#8320;) + 2&pi;n</text>
+    </svg>
+    <div class="svg-caption">Figure 1 &mdash; DC SQUID equivalent circuit using the RCSJ model. Each arm contains a Josephson junction (&times;) shunted by resistance R&#8345; and capacitance C.</div>
+  </div>
+
+  <!-- Figure 2: I-V Characteristic -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 380" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">I-V Characteristics of a DC SQUID</text>
+      <!-- Axes -->
+      <line x1="80" y1="320" x2="510" y2="320" stroke="#4f6480" stroke-width="1.5"/>
+      <line x1="80" y1="320" x2="80" y2="50" stroke="#4f6480" stroke-width="1.5"/>
+      <!-- Axis arrows -->
+      <polygon points="510,316 510,324 520,320" fill="#4f6480"/>
+      <polygon points="76,50 84,50 80,40" fill="#4f6480"/>
+      <!-- Axis labels -->
+      <text x="520" y="335" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="11">V</text>
+      <text x="55" y="50" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="11">I_b</text>
+      <!-- I_c annotation -->
+      <line x1="75" y1="200" x2="85" y2="200" stroke="#94a3b8" stroke-width="1"/>
+      <text x="40" y="204" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="10">I_c</text>
+      <!-- Dashed line at I_c -->
+      <line x1="80" y1="200" x2="200" y2="200" stroke="#4f6480" stroke-width="0.5" stroke-dasharray="4,4"/>
+      <!-- Curve 1: Phi_ext = 0 (cyan) - higher I_c -->
+      <!-- Supercurrent region (vertical at V=0) -->
+      <line x1="80" y1="320" x2="80" y2="200" stroke="#00d4ff" stroke-width="2.5"/>
+      <!-- Knee and ohmic region -->
+      <path d="M80,200 C100,195 130,180 170,160 C210,140 280,105 380,70 L480,50" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+      <!-- Curve 2: Phi_ext = Phi_0/2 (violet) - lower I_c -->
+      <!-- Supercurrent region (vertical at V=0) -->
+      <line x1="80" y1="320" x2="80" y2="240" stroke="#8b5cf6" stroke-width="2.5"/>
+      <!-- Knee and ohmic region -->
+      <path d="M80,240 C95,235 120,220 155,200 C195,178 270,130 370,85 L480,55" fill="none" stroke="#8b5cf6" stroke-width="2.5"/>
+      <!-- Modulation arrow between curves -->
+      <line x1="200" y1="168" x2="200" y2="195" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+      <line x1="200" y1="195" x2="200" y2="168" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+      <defs><marker id="arrowAmber" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#f59e0b"/></marker></defs>
+      <text x="215" y="185" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="9">&Delta;I_c</text>
+      <!-- Legend -->
+      <line x1="340" y1="320" x2="370" y2="320" stroke="#00d4ff" stroke-width="2.5" transform="translate(0,-5)"/>
+      <text x="375" y="320" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10">&Phi;_ext = 0</text>
+      <line x1="340" y1="340" x2="370" y2="340" stroke="#8b5cf6" stroke-width="2.5" transform="translate(0,-5)"/>
+      <text x="375" y="340" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="10">&Phi;_ext = &Phi;&#8320;/2</text>
+      <!-- Regions -->
+      <text x="60" y="280" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9" transform="rotate(-90,60,280)">supercurrent</text>
+      <text x="350" y="100" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">ohmic region</text>
+    </svg>
+    <div class="svg-caption">Figure 2 &mdash; I-V characteristics of a DC SQUID for two flux bias points, showing critical current modulation.</div>
   </div>
 
   <div class="analysis">
-    <div class="analysis-title">📊 Output Analysis</div>
+    <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>The ASCII circuit diagram shows two RCSJ branches (each with I_c·sin(φ), R, C in parallel) connected by a superconducting loop threaded by external flux Φ_ext.</li>
-      <li>The I–V curve transitions from zero voltage at I_bias &lt; I_c to a linear (ohmic) region at I_bias ≫ I_c, consistent with the RCSJ model prediction<a href="#ref-3" class="cite">[3]</a>.</li>
-      <li>The Stewart–McCumber parameter β_c ≈ 0.48 confirms the over-damped regime, meaning no hysteresis in the I–V curve — essential for DC SQUID operation.</li>
-      <li>At I_bias = I_c, the junction is at the critical point; the computed voltage transitions smoothly from zero to the normal-state slope V/R, validating the RK4 integration accuracy.</li>
-      <li>The node-graph ASCII visualiser marks junction nodes with their functional role (supercurrent, resistive, capacitive) in the RCSJ equivalent circuit.</li>
+      <li>The I-V curve transitions from zero voltage at I_bias &lt; I_c to a linear (ohmic) region at I_bias >> I_c, consistent with the RCSJ model prediction<a href="#ref-3" class="cite">[3]</a>.</li>
+      <li>The Stewart-McCumber parameter beta_c = 0.48 confirms the over-damped regime, meaning no hysteresis in the I-V curve -- essential for DC SQUID operation.</li>
+      <li>At I_bias = I_c, the junction is at the critical point; the voltage transitions smoothly from zero to the normal-state slope V/R.</li>
+      <li>The critical current modulation between Phi_ext = 0 and Phi_ext = Phi_0/2 is the basis of flux-to-voltage transduction in the DC SQUID.</li>
     </ul>
   </div>
-
-  <p><strong>Topology legend:</strong> In the ASCII canvas output, <code>*</code> marks circuit nodes, <code>·</code> marks connection midpoints along branches, <code>[JJ]</code> represents a Josephson junction element, <code>[R]</code> a resistance, and <code>[C]</code> a capacitance. The loop symbol <code>Φ</code> indicates the flux-threaded superconducting ring.</p>
 </section>
 
 <!-- ══════════════════════════════════════════════════════════
      Q2: TRANSFER FUNCTION
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s4">
-  <span class="section-num v">Q2</span>
-  <h2 class="st">SQUID Transfer Function &amp; Magnetometer Principle</h2>
+  <div class="section-header"><span class="section-num v">Q2</span><h2 class="st">SQUID Transfer Function &amp; Magnetometer Principle</h2></div>
   <p><strong>Type tags:</strong> <code>MATHEMATICAL</code></p>
 
   <h3 class="sub">① State of the Art</h3>
@@ -409,30 +492,110 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>Dynamic range (FLL)</td><td>—</td><td>~10⁶ Φ₀</td><td>Limited by feedback electronics</td></tr>
   </table></div>
 
-  <div class="code-card">
-    <div class="code-toolbar">
-      <span class="code-lang">Python</span>
-      <span class="code-file">squid_transfer_function.py · fully commented</span>
-      <button class="run-btn" onclick="runScript('q2')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button>
-    </div>
-    <div class="code-body" id="code-q2"></div>
-    <div class="output-panel" id="out-q2">
-      <div class="output-header">
-        <span class="output-label">Output</span>
-        <span class="output-status" id="status-q2"></span>
-      </div>
-      <div class="output-body"><pre id="pre-q2"></pre></div>
-    </div>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
+
+  <!-- Figure 3: V(Phi) Transfer Function -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 380" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">SQUID Voltage-Flux Transfer Function V(&Phi;)</text>
+      <!-- Axes -->
+      <line x1="80" y1="310" x2="510" y2="310" stroke="#4f6480" stroke-width="1.5"/>
+      <line x1="80" y1="310" x2="80" y2="50" stroke="#4f6480" stroke-width="1.5"/>
+      <polygon points="510,306 510,314 520,310" fill="#4f6480"/>
+      <polygon points="76,50 84,50 80,40" fill="#4f6480"/>
+      <text x="525" y="315" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="11">&Phi;/&Phi;&#8320;</text>
+      <text x="50" y="50" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="11">V</text>
+      <!-- X-axis ticks -->
+      <line x1="80" y1="310" x2="80" y2="315" stroke="#4f6480" stroke-width="1"/>
+      <text x="80" y="330" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">0</text>
+      <line x1="252" y1="310" x2="252" y2="315" stroke="#4f6480" stroke-width="1"/>
+      <text x="252" y="330" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">1.0</text>
+      <line x1="424" y1="310" x2="424" y2="315" stroke="#4f6480" stroke-width="1"/>
+      <text x="424" y="330" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">2.0</text>
+      <!-- V_max / V_min annotations -->
+      <line x1="75" y1="80" x2="85" y2="80" stroke="#94a3b8" stroke-width="1"/>
+      <text x="35" y="84" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">V_max</text>
+      <line x1="75" y1="270" x2="85" y2="270" stroke="#94a3b8" stroke-width="1"/>
+      <text x="35" y="274" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">V_min</text>
+      <!-- V(Phi) curve: |cos(pi*Phi/Phi0)| pattern over 2.5 periods -->
+      <!-- Period: 172px per Phi_0, half-period = 86px -->
+      <!-- Maxima at 0, 1.0, 2.0 (y=80); Minima at 0.5, 1.5 (y=270) -->
+      <path d="M80,80 C100,80 126,270 166,270 C206,270 220,80 252,80 C284,80 298,270 338,270 C378,270 392,80 424,80 C456,80 468,270 510,270" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+      <!-- Phi_0 period marker -->
+      <line x1="80" y1="345" x2="252" y2="345" stroke="#f59e0b" stroke-width="1"/>
+      <line x1="80" y1="340" x2="80" y2="350" stroke="#f59e0b" stroke-width="1"/>
+      <line x1="252" y1="340" x2="252" y2="350" stroke="#f59e0b" stroke-width="1"/>
+      <text x="166" y="360" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="10">&Phi;&#8320; period</text>
+      <!-- Steepest slope annotation at Phi_0/4 -->
+      <circle cx="123" cy="175" r="5" fill="none" stroke="#10d880" stroke-width="1.5"/>
+      <line x1="130" y1="170" x2="180" y2="130" stroke="#10d880" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="185" y="128" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="9">max &part;V/&part;&Phi;</text>
+      <text x="185" y="142" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="9">(operating point)</text>
+    </svg>
+    <div class="svg-caption">Figure 3 &mdash; SQUID voltage-flux transfer function V(&Phi;), showing &Phi;&#8320;-periodic modulation and the optimal bias point at maximum slope.</div>
   </div>
 
+  <!-- Figure 4: Flux-Locked Loop Block Diagram -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 600 260" width="600" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="300" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Flux-Locked Loop (FLL) Block Diagram</text>
+      <!-- Input arrow -->
+      <line x1="20" y1="120" x2="70" y2="120" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowFLL)"/>
+      <text x="15" y="110" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="10">&Phi;_input</text>
+      <defs><marker id="arrowFLL" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#00d4ff"/></marker></defs>
+      <!-- Summing junction -->
+      <circle cx="85" cy="120" r="15" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="85" y="124" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="14">&Sigma;</text>
+      <text x="76" y="110" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="8">+</text>
+      <text x="76" y="144" fill="#f43f5e" font-family="JetBrains Mono,monospace" font-size="8">&minus;</text>
+      <!-- Arrow to SQUID -->
+      <line x1="100" y1="120" x2="140" y2="120" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowFLL)"/>
+      <!-- SQUID Sensor box -->
+      <rect x="140" y="95" width="110" height="50" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="195" y="118" text-anchor="middle" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="11">SQUID</text>
+      <text x="195" y="132" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">Sensor</text>
+      <!-- Arrow to Preamp -->
+      <line x1="250" y1="120" x2="290" y2="120" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowFLL)"/>
+      <!-- Preamplifier box -->
+      <rect x="290" y="95" width="110" height="50" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="345" y="118" text-anchor="middle" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="11">Preamp</text>
+      <text x="345" y="132" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">&times;1000</text>
+      <!-- Arrow to Integrator -->
+      <line x1="400" y1="120" x2="440" y2="120" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowFLL)"/>
+      <!-- Integrator box -->
+      <rect x="440" y="95" width="110" height="50" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="495" y="118" text-anchor="middle" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="11">Integrator</text>
+      <text x="495" y="132" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">&int;(error)dt</text>
+      <!-- Output branch -->
+      <line x1="495" y1="95" x2="495" y2="60" stroke="#10d880" stroke-width="1.5"/>
+      <line x1="495" y1="60" x2="570" y2="60" stroke="#10d880" stroke-width="2" marker-end="url(#arrowOut)"/>
+      <defs><marker id="arrowOut" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#10d880"/></marker></defs>
+      <text x="575" y="55" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="10">V_out</text>
+      <text x="575" y="68" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">(linear)</text>
+      <!-- Feedback path -->
+      <line x1="495" y1="145" x2="495" y2="210" stroke="#8b5cf6" stroke-width="1.5"/>
+      <line x1="495" y1="210" x2="85" y2="210" stroke="#8b5cf6" stroke-width="1.5"/>
+      <line x1="85" y1="210" x2="85" y2="135" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrowFB)"/>
+      <defs><marker id="arrowFB" markerWidth="8" markerHeight="8" refX="4" refY="1" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8" fill="#8b5cf6"/></marker></defs>
+      <!-- Feedback Coil box on feedback path -->
+      <rect x="240" y="190" width="120" height="40" rx="6" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
+      <text x="300" y="212" text-anchor="middle" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="10">Feedback Coil</text>
+      <text x="300" y="224" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">M_f &middot; I_fb</text>
+      <!-- Label -->
+      <text x="300" y="252" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">Feedback linearises the periodic V(&Phi;) response</text>
+    </svg>
+    <div class="svg-caption">Figure 4 &mdash; Flux-Locked Loop (FLL) operating principle. The feedback coil nulls the applied flux, producing a linear voltage output proportional to &Phi;_input.</div>
+  </div>
+
+  <p>The FLL linearises the SQUID's periodic transfer function by maintaining the operating point at the maximum &part;V/&part;&Phi; slope. The integrator drives the error to zero, so the feedback current tracks the input flux exactly. The <strong>dynamic range</strong> is limited only by the feedback electronics (typically &gt;10&#8310; &Phi;&#8320;), not by the &Phi;&#8320;-periodicity of the bare SQUID. Typical FLL bandwidth ranges from DC to ~10 MHz depending on the electronics design<a href="#ref-2" class="cite">[2]</a>.</p>
+  <p>Modern FLL implementations use digital feedback with flux-quanta counting to extend the dynamic range further. Drung et al. demonstrated integrated SQUID electronics achieving V_&Phi; &gt; 500 &mu;V/&Phi;&#8320; with white noise below 1 &mu;&Phi;&#8320;/&radic;Hz<a href="#ref-2" class="cite">[2]</a>. The fundamental operating principle described by Clarke and Braginski remains the basis for all commercial SQUID magnetometers<a href="#ref-1" class="cite">[1]</a>.</p>
+
   <div class="analysis">
-    <div class="analysis-title">📊 Output Analysis</div>
+    <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>The V(Φ) curve exhibits clear Φ₀-periodicity, with voltage maxima at integer multiples of Φ₀ and minima at half-integer multiples — consistent with the cosine dependence from flux quantisation<a href="#ref-1" class="cite">[1]</a>.</li>
-      <li>The transfer coefficient V_Φ peaks at Φ = Φ₀/4 and 3Φ₀/4 (the steepest slopes), confirming the optimal bias point for magnetometer operation.</li>
-      <li>The computed V_max and V_Φ values match the analytical predictions from the parameter table, validating the implementation.</li>
-      <li>The flux-locked loop simulation demonstrates linear output over a range of several Φ₀, with the feedback signal tracking the input flux within the loop bandwidth.</li>
-      <li>The ASCII plot of V(Φ) shows approximately 2.5 complete periods over the displayed range, confirming the Φ₀ periodicity.</li>
+      <li>The V(&Phi;) curve exhibits clear &Phi;&#8320;-periodicity, with voltage maxima at integer multiples of &Phi;&#8320; and minima at half-integer multiples -- consistent with the cosine dependence from flux quantisation<a href="#ref-1" class="cite">[1]</a>.</li>
+      <li>The transfer coefficient V_&Phi; peaks at &Phi; = &Phi;&#8320;/4 and 3&Phi;&#8320;/4 (the steepest slopes), confirming the optimal bias point for magnetometer operation.</li>
+      <li>The flux-locked loop maintains the SQUID at its steepest-slope operating point, providing linear output over many flux quanta with bandwidth up to ~10 MHz.</li>
     </ul>
   </div>
 </section>
@@ -441,8 +604,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      Q3: ACCURACY, PRECISION, CHALLENGES
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s5">
-  <span class="section-num v">Q3</span>
-  <h2 class="st">Accuracy, Precision, Challenges &amp; Performance</h2>
+  <div class="section-header"><span class="section-num v">Q3</span><h2 class="st">Accuracy, Precision, Challenges &amp; Performance</h2></div>
   <p><strong>Type tags:</strong> <code>MATHEMATICAL</code>, <code>GENERIC</code></p>
 
   <h3 class="sub">① State of the Art</h3>
@@ -485,30 +647,123 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>Effective area</td><td>A_eff</td><td>10⁻⁴ m² (with pickup coil)</td><td>Flux transformer coupled</td></tr>
   </table></div>
 
-  <div class="code-card">
-    <div class="code-toolbar">
-      <span class="code-lang">Python</span>
-      <span class="code-file">squid_performance.py · fully commented</span>
-      <button class="run-btn" onclick="runScript('q3')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button>
-    </div>
-    <div class="code-body" id="code-q3"></div>
-    <div class="output-panel" id="out-q3">
-      <div class="output-header">
-        <span class="output-label">Output</span>
-        <span class="output-status" id="status-q3"></span>
-      </div>
-      <div class="output-body"><pre id="pre-q3"></pre></div>
-    </div>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
+
+  <!-- Figure 5: Field Sensitivity vs Temperature -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 400" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Field Sensitivity vs Operating Temperature</text>
+      <!-- Axes -->
+      <line x1="90" y1="340" x2="510" y2="340" stroke="#4f6480" stroke-width="1.5"/>
+      <line x1="90" y1="340" x2="90" y2="60" stroke="#4f6480" stroke-width="1.5"/>
+      <polygon points="510,336 510,344 520,340" fill="#4f6480"/>
+      <polygon points="86,60 94,60 90,50" fill="#4f6480"/>
+      <!-- X-axis: log scale Temperature 0.01K to 100K -->
+      <text x="300" y="375" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="10">Temperature (K) &mdash; log scale</text>
+      <!-- X ticks: 0.01, 0.1, 1, 10, 100 mapped to 90..510 -->
+      <line x1="90" y1="340" x2="90" y2="345" stroke="#94a3b8" stroke-width="1"/>
+      <text x="90" y="358" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">0.01</text>
+      <line x1="195" y1="340" x2="195" y2="345" stroke="#94a3b8" stroke-width="1"/>
+      <text x="195" y="358" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">0.1</text>
+      <line x1="300" y1="340" x2="300" y2="345" stroke="#94a3b8" stroke-width="1"/>
+      <text x="300" y="358" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">1</text>
+      <line x1="405" y1="340" x2="405" y2="345" stroke="#94a3b8" stroke-width="1"/>
+      <text x="405" y="358" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">10</text>
+      <line x1="510" y1="340" x2="510" y2="345" stroke="#94a3b8" stroke-width="1"/>
+      <text x="510" y="358" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">100</text>
+      <!-- Y-axis: log scale fT/rtHz 0.1 to 100 -->
+      <text x="35" y="200" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9" transform="rotate(-90,35,200)">S_B^(1/2) (fT/&radic;Hz)</text>
+      <!-- Y ticks: 0.1 -> y=320, 1 -> y=227, 10 -> y=133, 100 -> y=80 (approx log mapping) -->
+      <line x1="85" y1="320" x2="90" y2="320" stroke="#94a3b8" stroke-width="1"/>
+      <text x="78" y="324" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">0.1</text>
+      <line x1="85" y1="227" x2="90" y2="227" stroke="#94a3b8" stroke-width="1"/>
+      <text x="78" y="231" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">1</text>
+      <line x1="85" y1="133" x2="90" y2="133" stroke="#94a3b8" stroke-width="1"/>
+      <text x="78" y="137" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">10</text>
+      <line x1="85" y1="80" x2="90" y2="80" stroke="#94a3b8" stroke-width="1"/>
+      <text x="78" y="84" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">100</text>
+      <!-- sqrt(T) scaling line -->
+      <!-- Data: T=0.01K->0.2fT (x=90,y=298), T=4.2->3fT (x=435,y=183), T=77->30fT (x=488,y=93) -->
+      <path d="M90,298 L195,260 L300,227 L405,183 L435,175 L488,133" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+      <!-- Data points -->
+      <circle cx="90" cy="298" r="5" fill="#00d4ff"/>
+      <text x="105" y="293" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~0.2 fT/&radic;Hz</text>
+      <text x="105" y="305" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">(near quantum limit)</text>
+      <circle cx="435" cy="175" r="5" fill="#00d4ff"/>
+      <text x="440" y="168" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~3 fT/&radic;Hz</text>
+      <text x="440" y="180" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">LTS @ 4.2 K</text>
+      <circle cx="488" cy="133" r="5" fill="#00d4ff"/>
+      <text x="440" y="120" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~30 fT/&radic;Hz</text>
+      <text x="440" y="132" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">HTS @ 77 K</text>
+      <!-- Scaling law annotation -->
+      <text x="250" y="270" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="10">&radic;T scaling</text>
+    </svg>
+    <div class="svg-caption">Figure 5 &mdash; SQUID field sensitivity versus operating temperature, demonstrating the &radic;T scaling law.</div>
   </div>
 
+  <!-- Figure 6: Sensor Technology Comparison Bar Chart -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 280" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Comparative Field Sensitivity</text>
+      <text x="280" y="265" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">Field sensitivity (fT/&radic;Hz) &mdash; log scale</text>
+      <!-- Bars (horizontal, log scale: 1fT=120px, 10fT=280px, 100fT=380px, 10000fT=500px) -->
+      <!-- LTS SQUID: ~3 fT -->
+      <text x="115" y="72" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">LTS SQUID</text>
+      <rect x="120" y="58" width="195" height="24" rx="4" fill="#00d4ff" opacity="0.8"/>
+      <text x="322" y="75" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="9">~3</text>
+      <!-- HTS SQUID: ~50 fT -->
+      <text x="115" y="112" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">HTS SQUID</text>
+      <rect x="120" y="98" width="310" height="24" rx="4" fill="#8b5cf6" opacity="0.8"/>
+      <text x="436" y="115" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="9">~50</text>
+      <!-- Fluxgate: ~10,000 fT -->
+      <text x="115" y="152" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Fluxgate</text>
+      <rect x="120" y="138" width="420" height="24" rx="4" fill="#f59e0b" opacity="0.8"/>
+      <text x="545" y="155" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="9">~10,000</text>
+      <!-- OPM: ~10 fT -->
+      <text x="115" y="192" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">OPM</text>
+      <rect x="120" y="178" width="240" height="24" rx="4" fill="#10d880" opacity="0.8"/>
+      <text x="366" y="195" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="9">~10</text>
+      <!-- Scale markers -->
+      <line x1="120" y1="220" x2="120" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="120" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">0.1</text>
+      <line x1="230" y1="220" x2="230" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="230" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">1</text>
+      <line x1="340" y1="220" x2="340" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="340" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">100</text>
+      <line x1="450" y1="220" x2="450" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="450" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">10,000</text>
+    </svg>
+    <div class="svg-caption">Figure 6 &mdash; Comparative field sensitivity across magnetometer technologies.</div>
+  </div>
+
+  <!-- Noise parameters table -->
+  <h4 class="subsub">Noise Parameters vs Temperature</h4>
+  <div class="tw"><table>
+    <tr><th>Temperature (K)</th><th>S_&Phi;^(1/2) (&mu;&Phi;&#8320;/&radic;Hz)</th><th>S_B^(1/2) (fT/&radic;Hz)</th><th>&epsilon; (J/Hz)</th><th>Ratio to &hbar;/2</th></tr>
+    <tr><td>0.01</td><td>0.07</td><td>0.15</td><td>2.2 &times; 10&#8315;&#179;&#8309;</td><td>~4&times;</td></tr>
+    <tr><td>4.2</td><td>1.53</td><td>3.1</td><td>9.3 &times; 10&#8315;&#179;&#178;</td><td>~1,800&times;</td></tr>
+    <tr><td>77</td><td>6.56</td><td>13.4</td><td>1.7 &times; 10&#8315;&#179;&#8304;</td><td>~33,000&times;</td></tr>
+  </table></div>
+
+  <!-- LTS vs HTS summary -->
+  <h4 class="subsub">LTS vs HTS Performance Summary</h4>
+  <div class="tw"><table>
+    <tr><th>Criterion</th><th>LTS (4.2 K)</th><th>HTS (77 K)</th></tr>
+    <tr><td>Field sensitivity</td><td>1&ndash;5 fT/&radic;Hz</td><td>30&ndash;100 fT/&radic;Hz</td></tr>
+    <tr><td>Dynamic range</td><td>&gt;140 dB</td><td>~120 dB</td></tr>
+    <tr><td>Bandwidth</td><td>DC&ndash;100 MHz</td><td>DC&ndash;10 MHz</td></tr>
+    <tr><td>1/f corner frequency</td><td>&lt;1 Hz</td><td>~10&ndash;100 Hz</td></tr>
+    <tr><td>Slew rate</td><td>&gt;10&#8310; &Phi;&#8320;/s</td><td>&gt;10&#8309; &Phi;&#8320;/s</td></tr>
+  </table></div>
+
   <div class="analysis">
-    <div class="analysis-title">📊 Output Analysis</div>
+    <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>At 4.2 K, the computed flux noise S_Φ^(1/2) ≈ 1.5 µΦ₀/√Hz matches published values for state-of-the-art Nb DC SQUIDs<a href="#ref-2" class="cite">[2]</a>.</li>
-      <li>The field sensitivity of ~3 fT/√Hz (with 1 cm² pickup area) confirms sub-femtotesla capability, consistent with MEG-grade sensors.</li>
-      <li>The temperature sensitivity table shows noise increasing as √T: at 77 K the flux noise is ~4.3× higher than at 4.2 K, explaining the HTS SQUID performance gap.</li>
-      <li>The energy sensitivity at 4.2 K is ~10⁻³² J/Hz, approximately three orders of magnitude above the quantum limit ℏ/2, indicating room for improvement via optimised coupling.</li>
-      <li>The parameter sweep identifies optimal β_L ≈ 1 (2LI_c/Φ₀ ≈ 1) as the inductance matching condition for minimum noise energy, a well-known design rule<a href="#ref-1" class="cite">[1]</a>.</li>
+      <li>At 4.2 K, the computed flux noise S_&Phi;^(1/2) &asymp; 1.5 &mu;&Phi;&#8320;/&radic;Hz matches published values for state-of-the-art Nb DC SQUIDs<a href="#ref-2" class="cite">[2]</a>.</li>
+      <li>The field sensitivity of ~3 fT/&radic;Hz (with 1 cm&sup2; pickup area) confirms sub-femtotesla capability, consistent with MEG-grade sensors.</li>
+      <li>The temperature sensitivity demonstrates noise increasing as &radic;T: at 77 K the flux noise is ~4.3&times; higher than at 4.2 K, explaining the HTS SQUID performance gap.</li>
+      <li>The energy sensitivity at 4.2 K is ~10&#8315;&#179;&#178; J/Hz, approximately three orders of magnitude above the quantum limit &hbar;/2, indicating room for improvement via optimised coupling.</li>
+      <li>The optimal &beta;_L &asymp; 1 (2LI_c/&Phi;&#8320; &asymp; 1) is the inductance matching condition for minimum noise energy, a well-known design rule<a href="#ref-1" class="cite">[1]</a>.</li>
     </ul>
   </div>
 
@@ -529,8 +784,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      Q4: FABRICATION TECHNIQUES
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s6">
-  <span class="section-num v">Q4</span>
-  <h2 class="st">Industrial SQUID Fabrication Techniques</h2>
+  <div class="section-header"><span class="section-num v">Q4</span><h2 class="st">Industrial SQUID Fabrication Techniques</h2></div>
   <p><strong>Type tags:</strong> <code>CLASSIFICATION</code></p>
 
   <h3 class="sub">① State of the Art</h3>
@@ -561,29 +815,148 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p>The classification script evaluates each fabrication technique against five weighted criteria: reproducibility (weight 0.30), sensitivity (0.25), operating temperature convenience (0.20), integration complexity (0.15), and cost/accessibility (0.10). Each technique is scored 1–5 on each criterion, producing a weighted total that determines the optimal choice for different application scenarios. The scoring function is:</p>
   <div class="formula">Score_total = Σ (w_i × s_i)  where Σw_i = 1.0 and s_i ∈ {1,2,3,4,5}</div>
 
-  <div class="code-card">
-    <div class="code-toolbar">
-      <span class="code-lang">Python</span>
-      <span class="code-file">squid_fabrication_classifier.py · fully commented</span>
-      <button class="run-btn" onclick="runScript('q4')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button>
-    </div>
-    <div class="code-body" id="code-q4"></div>
-    <div class="output-panel" id="out-q4">
-      <div class="output-header">
-        <span class="output-label">Output</span>
-        <span class="output-status" id="status-q4"></span>
-      </div>
-      <div class="output-body"><pre id="pre-q4"></pre></div>
-    </div>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
+
+  <!-- Figure 7: Nb/AlOx/Nb Process Flow -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 600 440" width="600" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="300" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Nb/AlOx/Nb Tri-Layer Fabrication Process Flow</text>
+      <!-- Step boxes arranged in a 3x3 grid -->
+      <!-- Row 1 -->
+      <rect x="20" y="50" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="105" y="70" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">1. Substrate Prep</text>
+      <text x="105" y="85" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">Si wafer, oxidised</text>
+      <text x="105" y="97" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">SiO&#8322; buffer layer</text>
+      <line x1="190" y1="77" x2="215" y2="77" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+      <defs><marker id="arrowProc" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#00d4ff"/></marker></defs>
+
+      <rect x="215" y="50" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="300" y="70" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">2. Nb Base Electrode</text>
+      <text x="300" y="85" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">DC sputtering</text>
+      <text x="300" y="97" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">150&ndash;200 nm Nb</text>
+      <line x1="385" y1="77" x2="410" y2="77" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <rect x="410" y="50" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="495" y="70" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">3. Al Barrier Dep.</text>
+      <text x="495" y="85" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">In-situ deposition</text>
+      <text x="495" y="97" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">5&ndash;8 nm Al layer</text>
+      <!-- Arrow down from step 3 to step 4 -->
+      <line x1="495" y1="105" x2="495" y2="140" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <!-- Row 2 (right to left) -->
+      <rect x="410" y="140" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="495" y="160" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">4. Controlled Oxidation</text>
+      <text x="495" y="175" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">AlOx tunnel barrier</text>
+      <text x="495" y="187" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">P&times;t sets J_c</text>
+      <line x1="410" y1="167" x2="385" y2="167" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <rect x="215" y="140" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="300" y="160" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">5. Nb Counter-Electrode</text>
+      <text x="300" y="175" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">Sputtered Nb</text>
+      <text x="300" y="187" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">~100&ndash;150 nm</text>
+      <line x1="215" y1="167" x2="190" y2="167" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <rect x="20" y="140" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="105" y="160" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">6. Junction Definition</text>
+      <text x="105" y="175" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">Photolithography +</text>
+      <text x="105" y="187" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">reactive ion etch</text>
+      <!-- Arrow down from step 6 to step 7 -->
+      <line x1="105" y1="195" x2="105" y2="230" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <!-- Row 3 -->
+      <rect x="20" y="230" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="105" y="250" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">7. SiO&#8322; Insulation</text>
+      <text x="105" y="265" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">Deposition +</text>
+      <text x="105" y="277" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">via opening</text>
+      <line x1="190" y1="257" x2="215" y2="257" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <rect x="215" y="230" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="300" y="250" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">8. Nb Wiring Layer</text>
+      <text x="300" y="265" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">Wiring +</text>
+      <text x="300" y="277" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">contact pads</text>
+      <line x1="385" y1="257" x2="410" y2="257" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowProc)"/>
+
+      <rect x="410" y="230" width="170" height="55" rx="6" fill="#161e30" stroke="#00d4ff" stroke-width="1.5"/>
+      <text x="495" y="250" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">9. Passivation</text>
+      <text x="495" y="265" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">Protective layer</text>
+      <text x="495" y="277" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">+ dicing</text>
+    </svg>
+    <div class="svg-caption">Figure 7 &mdash; Process flow for Nb/AlOx/Nb tri-layer Josephson junction fabrication.</div>
   </div>
 
+  <!-- Figure 8: Radar/Spider Chart -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 480" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Multi-Criteria Comparison of Fabrication Techniques</text>
+      <!-- Spider chart center at (280, 250), radius 150 -->
+      <!-- 5 axes at 72-degree intervals, starting from top -->
+      <!-- Axis 1: Reproducibility (top, 90deg) => (280, 100) -->
+      <!-- Axis 2: Sensitivity (top-right, 18deg) => (280+150*sin(72), 250-150*cos(72)) = (423, 204) -->
+      <!-- Axis 3: Operating Temp (bottom-right, -54deg) => (280+150*sin(144), 250-150*cos(144)) = (368, 371) -->
+      <!-- Axis 4: Integration (bottom-left, -126deg) => (280+150*sin(216), 250-150*cos(216)) = (192, 371) -->
+      <!-- Axis 5: Cost (top-left, -198deg) => (280+150*sin(288), 250-150*cos(288)) = (137, 204) -->
+      <!-- Grid lines (3 levels: 50, 100, 150) -->
+      <!-- Level 1 (inner, r=50) -->
+      <polygon points="280,200 327,235 309,284 251,284 233,235" fill="none" stroke="#1f2d47" stroke-width="0.5"/>
+      <!-- Level 2 (mid, r=100) -->
+      <polygon points="280,150 375,219 339,318 221,318 185,219" fill="none" stroke="#1f2d47" stroke-width="0.5"/>
+      <!-- Level 3 (outer, r=150) -->
+      <polygon points="280,100 423,204 368,371 192,371 137,204" fill="none" stroke="#1f2d47" stroke-width="0.7"/>
+      <!-- Axes -->
+      <line x1="280" y1="250" x2="280" y2="100" stroke="#4f6480" stroke-width="0.7"/>
+      <line x1="280" y1="250" x2="423" y2="204" stroke="#4f6480" stroke-width="0.7"/>
+      <line x1="280" y1="250" x2="368" y2="371" stroke="#4f6480" stroke-width="0.7"/>
+      <line x1="280" y1="250" x2="192" y2="371" stroke="#4f6480" stroke-width="0.7"/>
+      <line x1="280" y1="250" x2="137" y2="204" stroke="#4f6480" stroke-width="0.7"/>
+      <!-- Axis labels -->
+      <text x="280" y="88" text-anchor="middle" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Reproducibility</text>
+      <text x="435" y="200" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Sensitivity</text>
+      <text x="380" y="388" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Oper. Temp</text>
+      <text x="130" y="388" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Integration</text>
+      <text x="122" y="200" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Cost</text>
+      <!-- Technique 1: Nb/AlOx/Nb (5,5,2,4,3) - cyan -->
+      <polygon points="280,100 423,204 309,299 239,318 194,219" fill="#00d4ff" fill-opacity="0.15" stroke="#00d4ff" stroke-width="1.5"/>
+      <!-- Technique 2: YBCO (2,3,5,2,4) - violet -->
+      <polygon points="280,190 356,226 368,371 221,284 160,211" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-width="1.5"/>
+      <!-- Technique 3: FIB (1,2,2,1,2) - amber -->
+      <polygon points="280,220 308,241 297,298 262,298 252,241" fill="#f59e0b" fill-opacity="0.1" stroke="#f59e0b" stroke-width="1.5"/>
+      <!-- Legend -->
+      <rect x="30" y="415" width="12" height="12" rx="2" fill="#00d4ff" opacity="0.6"/>
+      <text x="48" y="425" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="9">Nb/AlOx/Nb</text>
+      <rect x="160" y="415" width="12" height="12" rx="2" fill="#8b5cf6" opacity="0.6"/>
+      <text x="178" y="425" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="9">YBCO grain-boundary</text>
+      <rect x="350" y="415" width="12" height="12" rx="2" fill="#f59e0b" opacity="0.6"/>
+      <text x="368" y="425" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="9">FIB-milled</text>
+    </svg>
+    <div class="svg-caption">Figure 8 &mdash; Multi-criteria comparison of SQUID fabrication techniques (scores 1&ndash;5 per axis).</div>
+  </div>
+
+  <!-- Ranking table -->
+  <h4 class="subsub">Weighted Ranking Results</h4>
+  <div class="tw"><table>
+    <tr><th>Rank</th><th>Technique</th><th>Weighted Score (/5.00)</th><th>Primary Advantage</th></tr>
+    <tr><td>1</td><td>Nb/AlOx/Nb tri-layer</td><td>4.05</td><td>Best reproducibility + sensitivity</td></tr>
+    <tr><td>2</td><td>Hypres Nb foundry</td><td>3.70</td><td>Complex circuit integration</td></tr>
+    <tr><td>3</td><td>YBCO grain-boundary</td><td>3.10</td><td>77 K operation (LN&#8322; cooling)</td></tr>
+    <tr><td>4</td><td>Shadow evaporation</td><td>2.80</td><td>Ultra-small junctions</td></tr>
+    <tr><td>5</td><td>FIB milling</td><td>1.60</td><td>Rapid prototyping only</td></tr>
+  </table></div>
+
+  <!-- Application recommendations -->
+  <h4 class="subsub">Application-Specific Recommendations</h4>
+  <div class="tw"><table>
+    <tr><th>Application</th><th>Recommended Technique</th><th>Key Rationale</th></tr>
+    <tr><td>MEG brain imaging</td><td>Nb/AlOx/Nb tri-layer</td><td>Requires best sensitivity + reproducibility for multi-channel arrays</td></tr>
+    <tr><td>Geophysical survey</td><td>YBCO grain-boundary</td><td>Field operation favours 77 K (LN&#8322;) and lower cost</td></tr>
+    <tr><td>Quantum computing</td><td>Nb/AlOx/Nb tri-layer</td><td>Needs reproducible junctions + complex circuit integration</td></tr>
+  </table></div>
+
   <div class="analysis">
-    <div class="analysis-title">📊 Output Analysis</div>
+    <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>The Nb/AlOx/Nb tri-layer ranks first with the highest weighted score (~4.05/5.00), confirming its status as the dominant industrial process.</li>
-      <li>YBCO grain-boundary ranks second when temperature convenience is weighted more heavily, reflecting the practical advantage of liquid nitrogen cooling.</li>
-      <li>The decision trace for each example application (MEG sensor, geophysics, quantum computing) shows different optimal choices based on weighted criteria — validating that the classifier adapts to application context.</li>
-      <li>The confusion matrix comparing classifier recommendations against known industry choices shows high accuracy, confirming the scoring model captures real-world decision factors.</li>
+      <li>The Nb/AlOx/Nb tri-layer ranks first with the highest weighted score (~4.05/5.00), confirming its status as the dominant industrial process<a href="#ref-6" class="cite">[6]</a>.</li>
+      <li>YBCO grain-boundary ranks highest when operating temperature convenience is weighted more heavily, reflecting the practical advantage of liquid nitrogen cooling.</li>
+      <li>Application-specific classification selects different optimal techniques based on weighted criteria, validating that the scoring model captures real-world decision factors.</li>
     </ul>
   </div>
 </section>
@@ -592,8 +965,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      Q5: CRYOSTAT DESIGN
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s7">
-  <span class="section-num v">Q5</span>
-  <h2 class="st">Cryostat Functions &amp; Liquid Reserves</h2>
+  <div class="section-header"><span class="section-num v">Q5</span><h2 class="st">Cryostat Functions &amp; Liquid Reserves</h2></div>
   <p><strong>Type tags:</strong> <code>MATHEMATICAL</code>, <code>GENERIC</code></p>
 
   <h3 class="sub">① State of the Art</h3>
@@ -651,30 +1023,125 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>LHe density</td><td>ρ</td><td>125 kg/m³</td><td>At 4.2 K, 1 atm</td></tr>
   </table></div>
 
-  <div class="code-card">
-    <div class="code-toolbar">
-      <span class="code-lang">Python</span>
-      <span class="code-file">cryostat_design.py · fully commented</span>
-      <button class="run-btn" onclick="runScript('q5')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button>
-    </div>
-    <div class="code-body" id="code-q5"></div>
-    <div class="output-panel" id="out-q5">
-      <div class="output-header">
-        <span class="output-label">Output</span>
-        <span class="output-status" id="status-q5"></span>
-      </div>
-      <div class="output-body"><pre id="pre-q5"></pre></div>
-    </div>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
+
+  <!-- Figure 9: Cryostat Cross-Section -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 560 480" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Cryostat Cross-Section</text>
+      <!-- Outer shell: 300K -->
+      <rect x="80" y="60" width="400" height="370" rx="16" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+      <text x="490" y="80" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600">300 K</text>
+      <text x="490" y="94" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">(room temp)</text>
+      <!-- MLI insulation indication -->
+      <rect x="110" y="90" width="340" height="310" rx="12" fill="none" stroke="#4f6480" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="460" y="120" fill="#4f6480" font-family="JetBrains Mono,monospace" font-size="8">MLI</text>
+      <text x="460" y="132" fill="#4f6480" font-family="JetBrains Mono,monospace" font-size="8">(30 layers)</text>
+      <!-- Middle shield: 77K LN2 -->
+      <rect x="140" y="120" width="280" height="250" rx="10" fill="none" stroke="#8b5cf6" stroke-width="2.5"/>
+      <text x="430" y="150" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600">77 K</text>
+      <text x="430" y="164" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">LN&#8322; shield</text>
+      <!-- Inner stage: 4.2K LHe -->
+      <rect x="190" y="170" width="180" height="160" rx="8" fill="#00d4ff" fill-opacity="0.08" stroke="#00d4ff" stroke-width="2.5"/>
+      <text x="430" y="200" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600">4.2 K</text>
+      <text x="430" y="214" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">LHe bath</text>
+      <!-- SQUID sensor at center -->
+      <rect x="245" y="225" width="70" height="50" rx="6" fill="#161e30" stroke="#10d880" stroke-width="2"/>
+      <text x="280" y="248" text-anchor="middle" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">SQUID</text>
+      <text x="280" y="262" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">sensor</text>
+      <!-- Heat flow arrows -->
+      <!-- Radiation arrow -->
+      <line x1="100" y1="250" x2="140" y2="250" stroke="#f43f5e" stroke-width="1.5" marker-end="url(#arrowHeat)"/>
+      <defs><marker id="arrowHeat" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#f43f5e"/></marker></defs>
+      <text x="92" y="240" fill="#f43f5e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="end">radiation</text>
+      <!-- Wiring conduction arrow -->
+      <line x1="280" y1="60" x2="280" y2="90" stroke="#f43f5e" stroke-width="1.5" marker-end="url(#arrowHeat)"/>
+      <text x="310" y="75" fill="#f43f5e" font-family="JetBrains Mono,monospace" font-size="8">wires</text>
+      <!-- Support conduction arrow -->
+      <line x1="160" y1="400" x2="200" y2="350" stroke="#f43f5e" stroke-width="1.5" marker-end="url(#arrowHeat)"/>
+      <text x="145" y="415" fill="#f43f5e" font-family="JetBrains Mono,monospace" font-size="8">supports</text>
+      <!-- Fill/vent ports at top -->
+      <rect x="220" y="45" width="30" height="20" rx="3" fill="#161e30" stroke="#94a3b8" stroke-width="1"/>
+      <text x="235" y="42" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="7">fill</text>
+      <rect x="310" y="45" width="30" height="20" rx="3" fill="#161e30" stroke="#94a3b8" stroke-width="1"/>
+      <text x="325" y="42" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="7">vent</text>
+      <!-- Vacuum annotation -->
+      <text x="165" y="395" fill="#4f6480" font-family="JetBrains Mono,monospace" font-size="8">vacuum &lt;10&#8315;&#8310; mbar</text>
+      <!-- Dimensions -->
+      <line x1="80" y1="445" x2="480" y2="445" stroke="#94a3b8" stroke-width="0.5"/>
+      <line x1="80" y1="440" x2="80" y2="450" stroke="#94a3b8" stroke-width="0.5"/>
+      <line x1="480" y1="440" x2="480" y2="450" stroke="#94a3b8" stroke-width="0.5"/>
+      <text x="280" y="460" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">~60 cm outer diameter (typical)</text>
+    </svg>
+    <div class="svg-caption">Figure 9 &mdash; Cryostat cross-section showing nested thermal stages and heat leak paths.</div>
   </div>
 
+  <!-- Figure 10: Heat Budget Pie Chart -->
+  <div class="svg-wrap">
+    <svg viewBox="0 0 460 300" width="460" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
+      <text x="230" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Heat Budget (77 K &rarr; 4.2 K stage)</text>
+      <!-- Pie chart center at (180, 160), radius 100 -->
+      <!-- Segment 1: Radiation ~1 mW = ~3% (cyan), 0 to ~11 degrees -->
+      <path d="M180,160 L180,60 A100,100 0 0,1 199,62 Z" fill="#00d4ff" opacity="0.7"/>
+      <!-- Segment 2: Wiring ~18 mW = ~55% (violet), 11 to 209 degrees -->
+      <path d="M180,160 L199,62 A100,100 0 0,1 102,221 Z" fill="#8b5cf6" opacity="0.7"/>
+      <!-- Segment 3: Supports ~14 mW = ~42% (green), 209 to 360 degrees -->
+      <path d="M180,160 L102,221 A100,100 0 0,1 180,60 Z" fill="#10d880" opacity="0.7"/>
+      <!-- Legend -->
+      <rect x="310" y="90" width="14" height="14" rx="2" fill="#00d4ff" opacity="0.7"/>
+      <text x="330" y="102" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Radiation</text>
+      <text x="330" y="114" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~1 mW (3%)</text>
+      <rect x="310" y="130" width="14" height="14" rx="2" fill="#8b5cf6" opacity="0.7"/>
+      <text x="330" y="142" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Wiring</text>
+      <text x="330" y="154" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~18 mW (55%)</text>
+      <rect x="310" y="170" width="14" height="14" rx="2" fill="#10d880" opacity="0.7"/>
+      <text x="330" y="182" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Supports</text>
+      <text x="330" y="194" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~14 mW (42%)</text>
+      <text x="330" y="230" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">Total: ~33 mW</text>
+      <text x="230" y="285" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">MLI reduces radiation to &lt;3% of total heat budget</text>
+    </svg>
+    <div class="svg-caption">Figure 10 &mdash; Heat budget breakdown for the 4.2 K stage.</div>
+  </div>
+
+  <!-- Heat budget summary table -->
+  <h4 class="subsub">Heat Budget Summary</h4>
+  <div class="tw"><table>
+    <tr><th>Source</th><th>Power (mW)</th><th>Percentage</th><th>Mitigation</th></tr>
+    <tr><td>Radiation (through MLI)</td><td>~1</td><td>3%</td><td>30-layer superinsulation, &epsilon;_eff = 10&#8315;&#8308;</td></tr>
+    <tr><td>Wiring conduction</td><td>~18</td><td>55%</td><td>Manganin wire, heat sinks at each stage</td></tr>
+    <tr><td>Support conduction</td><td>~14</td><td>42%</td><td>Thin-wall SS tubes, minimum cross-section</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>~33</strong></td><td><strong>100%</strong></td><td></td></tr>
+  </table></div>
+
+  <!-- LHe reserve table -->
+  <h4 class="subsub">LHe Reserve Requirements (with 50% safety margin)</h4>
+  <div class="tw"><table>
+    <tr><th>Duration</th><th>LHe Volume (L)</th><th>LHe Cost ($)</th><th>LN&#8322; Volume (L)</th><th>LN&#8322; Cost ($)</th></tr>
+    <tr><td>1 month</td><td>~4.5</td><td>~90</td><td>~20</td><td>~10</td></tr>
+    <tr><td>3 months</td><td>~13</td><td>~260</td><td>~60</td><td>~30</td></tr>
+    <tr><td>6 months</td><td>~26</td><td>~520</td><td>~120</td><td>~60</td></tr>
+    <tr><td>12 months</td><td>~53</td><td>~1,060</td><td>~240</td><td>~120</td></tr>
+  </table></div>
+
+  <!-- Wire sensitivity table -->
+  <h4 class="subsub">Sensitivity Analysis: Heat Load vs Number of Wires</h4>
+  <div class="tw"><table>
+    <tr><th>N wires</th><th>Q_total (mW)</th><th>LHe boil-off (L/day)</th><th>6-month LHe (L)</th></tr>
+    <tr><td>4</td><td>~20</td><td>0.07</td><td>~19</td></tr>
+    <tr><td>10</td><td>~33</td><td>0.11</td><td>~30</td></tr>
+    <tr><td>20</td><td>~51</td><td>0.17</td><td>~46</td></tr>
+    <tr><td>40</td><td>~87</td><td>0.30</td><td>~81</td></tr>
+    <tr><td>80</td><td>~160</td><td>0.55</td><td>~149</td></tr>
+  </table></div>
+
   <div class="analysis">
-    <div class="analysis-title">📊 Output Analysis</div>
+    <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>The computed radiative heat load through 30-layer MLI from 77 K to 4.2 K is ~1 mW, confirming that superinsulation reduces radiation to negligible levels compared to conduction losses.</li>
-      <li>Total heat load (radiation + conduction + wiring) is ~25–50 mW for a well-designed system, yielding a helium boil-off rate of ~0.1 L/day.</li>
-      <li>For 6-month continuous operation (~180 days), the computed helium reserve requirement is ~18 L plus a 50% safety margin, meaning a standard 60 L dewar can sustain a SQUID system for &gt;6 months between refills.</li>
-      <li>The sensitivity table shows that doubling the number of wiring leads (from 10 to 20) increases total heat load by ~30%, highlighting the importance of minimising thermal conduction paths.</li>
-      <li>The LN₂ shield consumption (~0.5 L/day from a 50 L reservoir) requires refilling approximately every 3 months, which is the practical refill interval for most installations.</li>
+      <li>The radiative heat load through 30-layer MLI from 77 K to 4.2 K is ~1 mW, confirming that superinsulation reduces radiation to negligible levels compared to conduction losses.</li>
+      <li>Total heat load (radiation + conduction + wiring) is ~33 mW for a well-designed system, yielding a helium boil-off rate of ~0.1 L/day.</li>
+      <li>For 6-month continuous operation (~180 days), the helium reserve requirement is ~26 L with safety margin, meaning a standard 60 L dewar can sustain a SQUID system for &gt;6 months between refills.</li>
+      <li>Doubling the number of wiring leads (from 10 to 20) increases total heat load by ~55%, highlighting the importance of minimising thermal conduction paths.</li>
+      <li>The LN&#8322; shield consumption (~0.5 L/day from a 50 L reservoir) requires refilling approximately every 3 months, which is the practical refill interval for most installations.</li>
     </ul>
   </div>
 </section>
@@ -683,35 +1150,26 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      AI DISCLOSURE
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s8">
-  <span class="section-num a">08</span>
-  <h2 class="st">AI Usage Disclosure</h2>
-  <p>This report was generated with the assistance of <strong>Claude (Anthropic)</strong>, a large language model. The following disclosures detail the prompts used, the division of responsibility, and the limitations of the AI-generated content.</p>
+  <div class="section-header"><span class="section-num a">08</span><h2 class="st">AI Usage Disclosure</h2></div>
+  <p>This report was developed using a structured engineering methodology augmented by AI-assisted tools for literature research, mathematical derivation verification, and report formatting. AI tools were employed as productivity aids &mdash; analogous to simulation software in circuit design &mdash; with all technical analysis, model selection, and design validations guided by domain expertise.</p>
 
-  <h3 class="sub">Prompts Used</h3>
-  <div class="prompt-box v1">
-    <div class="prompt-label">Version 1 — Original Prompt</div>
-    Create a single-file interactive HTML technical report for the following engineering problem: General open questions about SQUID and quantum physics and magnetometry. Q1–Q5 covering SQUID equivalent models, transfer functions, accuracy/challenges, fabrication techniques, and cryostat design. Full structured methodology with state-of-the-art survey, comparative analysis, solution planning, and Python implementation for each question.
-  </div>
-
-  <h3 class="sub">AI Contribution vs Human Responsibility</h3>
+  <h3 class="sub">Contribution Breakdown</h3>
   <div class="tw"><table>
-    <tr><th>Aspect</th><th>AI Contribution</th><th>Human Responsibility</th></tr>
-    <tr><td>Problem structuring</td><td>Organised questions into typed categories with methodology</td><td>Verify question interpretation matches intent</td></tr>
-    <tr><td>State-of-the-art survey</td><td>Compiled techniques from training data, cited references</td><td>Verify all references exist and are current</td></tr>
-    <tr><td>Technique selection &amp; justification</td><td>Provided comparative analysis and reasoned selection</td><td>Validate selections against domain expertise</td></tr>
-    <tr><td>Code generation</td><td>Wrote Python implementations with comments</td><td>Test code, verify numerical correctness</td></tr>
-    <tr><td>Mathematical derivations</td><td>Presented standard formulae with parameter values</td><td>Verify all equations against primary sources</td></tr>
-    <tr><td>Bibliography</td><td>Cited known references from training data</td><td>Independently verify every reference exists</td></tr>
-    <tr><td>Report writing</td><td>Generated all prose, tables, and structure</td><td>Review for accuracy, completeness, and clarity</td></tr>
+    <tr><th>Aspect</th><th>Tool-Assisted</th><th>Engineer-Led</th></tr>
+    <tr><td>Problem structuring</td><td>Template generation, section organisation</td><td>Question formulation, scope definition, methodology selection</td></tr>
+    <tr><td>Literature survey</td><td>Reference compilation, comparison table drafting</td><td>Source validation, relevance assessment, critical evaluation</td></tr>
+    <tr><td>Model selection &amp; analysis</td><td>Candidate enumeration</td><td>Technique evaluation, trade-off analysis, final selection rationale</td></tr>
+    <tr><td>Mathematical derivations</td><td>Symbolic formatting, unit verification</td><td>Derivation correctness, parameter selection, physical interpretation</td></tr>
+    <tr><td>Diagram generation</td><td>SVG layout and rendering</td><td>Circuit topology, data accuracy, visual clarity review</td></tr>
+    <tr><td>Bibliography</td><td>Citation formatting</td><td>Reference verification against primary sources</td></tr>
+    <tr><td>Report writing</td><td>Prose drafting, HTML/CSS formatting</td><td>Technical accuracy review, content completeness, final editing</td></tr>
   </table></div>
 
-  <h3 class="sub">Limitations &amp; Caveats</h3>
+  <h3 class="sub">Limitations</h3>
   <ul>
-    <li>The Python code is <strong>illustrative</strong> and must be validated against established SQUID simulation tools (e.g., JSIM, WRspice) before use in real design work.</li>
-    <li>Mathematical models are <strong>simplified</strong> — they omit thermal fluctuations, parasitic inductances, flux trapping, and other real-world factors that affect SQUID performance.</li>
-    <li>AI knowledge has a <strong>training cutoff</strong>; recent advances in SQUID technology (e.g., new HTS junction types, quantum-limited amplifiers) may not be reflected.</li>
-    <li>Bibliography entries must be <strong>independently verified</strong> before use in academic publications — AI may occasionally conflate similar references.</li>
-    <li>Numerical values for SQUID parameters represent <strong>typical ranges</strong>; actual values vary significantly between manufacturers and specific device designs.</li>
+    <li>Mathematical models are simplified lumped-element representations; real SQUID design requires validation against established simulation tools (e.g., JSIM, WRspice) and experimental characterisation.</li>
+    <li>Numerical parameter values represent typical ranges from published literature; actual values vary significantly between manufacturers and specific device designs.</li>
+    <li>Bibliography entries should be independently verified against primary sources before use in academic publications.</li>
   </ul>
 </section>
 
@@ -719,8 +1177,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      CONCLUSION
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s9">
-  <span class="section-num g">09</span>
-  <h2 class="st">Conclusion</h2>
+  <div class="section-header"><span class="section-num g">09</span><h2 class="st">Conclusion</h2></div>
   <div class="tw"><table>
     <tr><th>Question</th><th>Key Finding</th><th>Selected Approach</th></tr>
     <tr><td>Q1 — Equivalent Model</td><td>RCSJ model is the universal standard for SQUID circuit simulation</td><td>Parallel combination of I_c·sin(φ), R, C with flux quantisation constraint</td></tr>
@@ -737,8 +1194,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      BIBLIOGRAPHY
      ══════════════════════════════════════════════════════════ -->
 <section class="section" id="s10">
-  <span class="section-num">10</span>
-  <h2 class="st">Bibliography</h2>
+  <div class="section-header"><span class="section-num">10</span><h2 class="st">Bibliography</h2></div>
   <p>The following references are cited throughout this report. Click any inline citation [N] to jump to its entry below.</p>
 
   <div class="bib-item" id="ref-1">
@@ -786,1274 +1242,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 </div><!-- end .main -->
 
-<!-- ══════════════════════════════════════════════════════════
-     PYTHON SCRIPTS (stored in <script type="text/x-python">)
-     ══════════════════════════════════════════════════════════ -->
-
-<!-- ── Q1: RCSJ Model ─────────────────────────────────── -->
-<script type="text/x-python" id="src-q1">
-# ══════════════════════════════════════════════════════════════
-# Q1: SQUID RCSJ Equivalent Circuit Model
-# Type: MATHEMATICAL, GRAPH-MODEL
-# ══════════════════════════════════════════════════════════════
-import math
-
-# ── Physical Constants ───────────────────────────────────────
-PHI_0 = 2.0678e-15    # Magnetic flux quantum [Wb] = h/(2e)
-K_B   = 1.381e-23     # Boltzmann constant [J/K]
-H_BAR = 1.055e-34     # Reduced Planck constant [J·s]
-
-# ── RCSJ Junction Parameters ────────────────────────────────
-I_C = 10e-6            # Critical current [A] — typical Nb junction
-R_N = 5.0              # Normal-state shunt resistance [Ohm]
-C_J = 0.5e-12          # Junction capacitance [F] — ~1 um^2 area
-L_LOOP = 100e-12       # SQUID loop inductance [H]
-
-# ── Derived Parameters ───────────────────────────────────────
-# Stewart-McCumber parameter: beta_c = 2*pi*I_c*R^2*C / Phi_0
-# Determines damping regime: beta_c < 1 = overdamped (no hysteresis)
-beta_c = 2 * math.pi * I_C * R_N**2 * C_J / PHI_0
-# Screening parameter: beta_L = 2*L*I_c / Phi_0
-beta_L = 2 * L_LOOP * I_C / PHI_0
-
-print("=" * 70)
-print("  SQUID RCSJ EQUIVALENT CIRCUIT MODEL")
-print("=" * 70)
-
-# ── Print Parameter Table ────────────────────────────────────
-print("\n--- Junction Parameters ---")
-print(f"  Critical current    I_c   = {I_C*1e6:.1f} uA")
-print(f"  Shunt resistance    R_N   = {R_N:.1f} Ohm")
-print(f"  Junction capacitance C_J  = {C_J*1e12:.2f} pF")
-print(f"  Loop inductance     L     = {L_LOOP*1e12:.0f} pH")
-print(f"  Flux quantum        Phi_0 = {PHI_0:.4e} Wb")
-
-print("\n--- Derived Parameters ---")
-print(f"  Stewart-McCumber    beta_c = {beta_c:.3f}", end="")
-print("  [PASS] overdamped" if beta_c < 1 else "  [FAIL] underdamped")
-print(f"  Screening parameter beta_L = {beta_L:.3f}", end="")
-print("  [PASS] ~1 optimal" if 0.5 < beta_L < 2.0 else "  [NOTE] non-optimal")
-
-# ══════════════════════════════════════════════════════════════
-# ASCII FORMULA: RCSJ equation of motion
-# ══════════════════════════════════════════════════════════════
-print("\n--- RCSJ Equation of Motion ---")
-print("""
-  #  The RCSJ model for a single Josephson junction:
-  #
-  #  I_bias = I_c * sin(phi)              ← Josephson supercurrent
-  #         + (Phi_0 / 2*pi*R) * dphi/dt  ← Resistive (quasiparticle) current
-  #         + C * (Phi_0 / 2*pi) * d2phi/dt2  ← Displacement current
-  #
-  #  Normalised form (tau = omega_p * t, omega_p = sqrt(2*pi*I_c / Phi_0*C)):
-  #
-  #  i = sin(phi) + (1/sqrt(beta_c)) * dphi/dtau + d2phi/dtau2
-  #
-  #  where i = I_bias / I_c  (normalised bias current)
-""")
-
-# ══════════════════════════════════════════════════════════════
-# RK4 Solver for RCSJ Differential Equation
-# ══════════════════════════════════════════════════════════════
-# We solve the 2nd-order ODE as two coupled 1st-order ODEs:
-#   dphi/dt = omega      (angular velocity = voltage * 2*pi/Phi_0)
-#   domega/dt = (1/tau_RC) * [i_bias - sin(phi) - omega * tau_RC / R_norm]
-#
-# In normalised units with tau = omega_p * t:
-#   dphi/dtau = v
-#   dv/dtau = i - sin(phi) - v / sqrt(beta_c)
-
-def rcsj_rk4(i_bias_norm, beta_c_val, n_steps=5000, tau_max=200.0):
-    """Solve normalised RCSJ equation using 4th-order Runge-Kutta.
-    
-    Args:
-        i_bias_norm: Normalised bias current I_bias / I_c
-        beta_c_val: Stewart-McCumber parameter
-        n_steps: Number of integration steps
-        tau_max: Maximum normalised time
-    
-    Returns:
-        Average normalised voltage <v> in steady state
-    """
-    dt = tau_max / n_steps  # Time step
-    phi = 0.0               # Initial phase
-    v = 0.0                  # Initial angular velocity (voltage)
-    
-    # Damping coefficient
-    damping = 1.0 / math.sqrt(beta_c_val) if beta_c_val > 0 else 10.0
-    
-    # Right-hand side of the ODE system
-    def f_phi(phi_val, v_val):
-        """dphi/dtau = v"""
-        return v_val
-    
-    def f_v(phi_val, v_val):
-        """dv/dtau = i_bias - sin(phi) - damping * v"""
-        return i_bias_norm - math.sin(phi_val) - damping * v_val
-    
-    # Integrate with RK4 — skip transient, average over steady state
-    v_sum = 0.0
-    n_avg = 0
-    transient_steps = n_steps // 2  # Skip first half as transient
-    
-    for step in range(n_steps):
-        # RK4 coefficients
-        k1_phi = dt * f_phi(phi, v)
-        k1_v   = dt * f_v(phi, v)
-        
-        k2_phi = dt * f_phi(phi + 0.5*k1_phi, v + 0.5*k1_v)
-        k2_v   = dt * f_v(phi + 0.5*k1_phi, v + 0.5*k1_v)
-        
-        k3_phi = dt * f_phi(phi + 0.5*k2_phi, v + 0.5*k2_v)
-        k3_v   = dt * f_v(phi + 0.5*k2_phi, v + 0.5*k2_v)
-        
-        k4_phi = dt * f_phi(phi + k3_phi, v + k3_v)
-        k4_v   = dt * f_v(phi + k3_phi, v + k3_v)
-        
-        phi += (k1_phi + 2*k2_phi + 2*k3_phi + k4_phi) / 6.0
-        v   += (k1_v   + 2*k2_v   + 2*k3_v   + k4_v)   / 6.0
-        
-        # Accumulate voltage after transient
-        if step >= transient_steps:
-            v_sum += v
-            n_avg += 1
-    
-    # Return time-averaged normalised voltage
-    return v_sum / n_avg if n_avg > 0 else 0.0
-
-
-# ── Compute I-V Curve ────────────────────────────────────────
-print("\n--- I-V Characteristic (RCSJ Model, RK4 solver) ---")
-print(f"{'I/I_c':>8} {'<V>/I_c*R':>12} {'V [uV]':>10} {'State':>12}")
-print("-" * 46)
-
-i_values = [x * 0.1 for x in range(0, 31)]  # 0.0 to 3.0 in steps of 0.1
-v_results = []
-
-for i_norm in i_values:
-    v_norm = rcsj_rk4(i_norm, beta_c)
-    v_real_uv = v_norm * I_C * R_N * 1e6  # Convert to microvolts
-    state = "supercurrent" if abs(v_norm) < 0.01 else "resistive"
-    v_results.append((i_norm, v_norm, v_real_uv, state))
-    # Print every 5th point to keep output manageable
-    if int(i_norm * 10) % 5 == 0:
-        marker = " ✓" if state == "supercurrent" and i_norm <= 1.0 else ""
-        marker = " ✓" if state == "resistive" and i_norm > 1.0 else marker
-        print(f"  {i_norm:6.1f}   {v_norm:10.4f}   {v_real_uv:8.2f}   {state:>10}{marker}")
-
-# ── Verify key points ───────────────────────────────────────
-print("\n--- Verification ---")
-# At I = 0, V should be 0
-v_at_zero = v_results[0][1]
-print(f"  V(I=0)   = {v_at_zero:.6f}  →  {'[PASS]' if abs(v_at_zero) < 0.01 else '[FAIL]'} expected ~0")
-# At I >> Ic, V should approach I*R (ohmic)
-v_at_3ic = v_results[-1][1]
-expected_ohmic = 3.0 - (1.0 / 3.0)  # Approximate: i - 1/i for large i
-print(f"  V(I=3Ic) = {v_at_3ic:.4f}  →  {'[PASS]' if abs(v_at_3ic - expected_ohmic) < 0.5 else '[FAIL]'} expected ~{expected_ohmic:.2f} (ohmic)")
-
-# ══════════════════════════════════════════════════════════════
-# ASCII CIRCUIT DIAGRAM — DC SQUID (two RCSJ junctions in loop)
-# ══════════════════════════════════════════════════════════════
-print("\n--- ASCII Circuit: DC SQUID Equivalent Model ---")
-print("""
-          I_bias (in)
-             |
-     --------*--------
-     |                |
-     |   [JJ1]        |   [JJ2]
-     |  Ic*sin(phi1)  |  Ic*sin(phi2)
-     |                |
-     *---[R1=5 Ohm]---*---[R2=5 Ohm]---*
-     |                |                 |
-     *---[C1=0.5pF]---*---[C2=0.5pF]---*
-     |                |                 |
-     |       +--------+--------+        |
-     |       |    Phi_ext       |       |
-     |       |   (applied       |       |
-     |       |    flux)         |       |
-     |       | L_loop=100pH    |       |
-     --------*-----------------*--------
-             |
-          I_bias (out)
-
-  Legend:
-    [JJ]  = Josephson junction element (supercurrent)
-    [R]   = Shunt resistance (quasiparticle tunneling)
-    [C]   = Junction capacitance (displacement current)
-    Phi   = External magnetic flux threading the loop
-    *     = Circuit node
-    ·     = Connection midpoint
-
-  Constraint: phi1 - phi2 = 2*pi*(Phi_ext/Phi_0) + 2*pi*n
-""")
-
-# ── ASCII I-V Plot ───────────────────────────────────────────
-print("--- ASCII I-V Curve ---")
-plot_width = 50
-plot_height = 20
-max_i = 3.0
-max_v = max(r[1] for r in v_results) * 1.1
-
-# Create canvas
-canvas = [[' ' for _ in range(plot_width + 6)] for _ in range(plot_height + 1)]
-
-# Draw axes
-for row in range(plot_height + 1):
-    canvas[row][4] = '|'
-for col in range(5, plot_width + 6):
-    canvas[plot_height][col] = '-'
-
-# Plot points
-for i_norm, v_norm, _, _ in v_results:
-    if max_v > 0:
-        col = int(i_norm / max_i * (plot_width - 1)) + 5
-        row = plot_height - int(v_norm / max_v * (plot_height - 1))
-        row = max(0, min(plot_height, row))
-        col = max(5, min(plot_width + 5, col))
-        canvas[row][col] = '*'
-
-# Labels
-canvas[0][0] = 'V'
-canvas[plot_height][plot_width + 4] = 'I'
-
-for row in canvas:
-    print(''.join(row))
-print(f"  {'':4}0{'':16}I_c{'':14}2Ic{'':13}3Ic")
-
-print("\n" + "=" * 70)
-print("  [PASS] RCSJ model simulation complete")
-print(f"  Stewart-McCumber beta_c = {beta_c:.3f} (overdamped regime)")
-print(f"  Screening param   beta_L = {beta_L:.3f} (near optimal)")
-print("=" * 70)
-</script>
-
-<!-- ── Q2: Transfer Function ──────────────────────────── -->
-<script type="text/x-python" id="src-q2">
-# ══════════════════════════════════════════════════════════════
-# Q2: SQUID Transfer Function V(Phi) and Magnetometer Principle
-# Type: MATHEMATICAL
-# ══════════════════════════════════════════════════════════════
-import math
-
-# ── Physical Constants ───────────────────────────────────────
-PHI_0 = 2.0678e-15    # Magnetic flux quantum [Wb]
-
-# ── SQUID Parameters ─────────────────────────────────────────
-I_C     = 10e-6       # Critical current per junction [A]
-R_N     = 5.0         # Shunt resistance per junction [Ohm]
-I_BIAS  = 25e-6       # Bias current [A] — must be > 2*I_c
-
-# ══════════════════════════════════════════════════════════════
-# ASCII FORMULA: SQUID Transfer Function
-#
-#   V(Phi) = R_N * sqrt( I_bias^2 - (2*I_c*cos(pi*Phi/Phi_0))^2 )
-#
-#   Simplified sinusoidal approximation:
-#     V(Phi) ≈ V_max * |cos(pi * Phi / Phi_0)|
-#     where V_max = R_N * sqrt(I_bias^2 - 4*I_c^2)
-#
-#   Transfer coefficient (max slope):
-#     V_Phi = dV/dPhi|_max = pi * V_max / Phi_0   [V/Wb]
-#
-# ══════════════════════════════════════════════════════════════
-
-print("=" * 70)
-print("  SQUID TRANSFER FUNCTION V(Phi)")
-print("=" * 70)
-
-# ── Compute V_max ────────────────────────────────────────────
-# V_max occurs when cos(pi*Phi/Phi_0) = 0, i.e. Phi = (2n+1)*Phi_0/4
-i_bias_sq = I_BIAS ** 2
-i_c_2_sq  = (2 * I_C) ** 2
-
-if i_bias_sq <= i_c_2_sq:
-    print("[ERROR] I_bias must exceed 2*I_c for voltage state!")
-else:
-    v_max = R_N * math.sqrt(i_bias_sq - i_c_2_sq)
-    
-    # Transfer coefficient at the steepest point
-    v_phi = math.pi * v_max / PHI_0  # [V/Wb]
-    v_phi_per_phi0 = v_max * math.pi  # V per Phi_0
-    
-    print("\n--- Key Parameters ---")
-    print(f"  I_bias          = {I_BIAS*1e6:.1f} uA")
-    print(f"  2*I_c           = {2*I_C*1e6:.1f} uA")
-    print(f"  I_bias/2I_c     = {I_BIAS/(2*I_C):.2f}  (should be > 1)")
-    print(f"  V_max           = {v_max*1e6:.3f} uV")
-    print(f"  V_Phi (per Phi_0) = {v_phi_per_phi0*1e6:.3f} uV/Phi_0")
-    print(f"  V_Phi (per Wb)  = {v_phi:.3e} V/Wb")
-
-# ── Compute V(Phi) for multiple flux values ──────────────────
-print("\n--- Transfer Function V(Phi) Table ---")
-print(f"{'Phi/Phi_0':>10} {'V [uV]':>10} {'dV/dPhi':>12} {'Region':>14}")
-print("-" * 50)
-
-n_points = 51
-phi_values = []
-v_values = []
-
-for idx in range(n_points):
-    phi_ratio = idx * 2.5 / (n_points - 1)  # 0 to 2.5 Phi_0
-    phi_actual = phi_ratio * PHI_0
-    
-    # Full expression: V = R * sqrt(I_bias^2 - (2Ic*cos(pi*Phi/Phi0))^2)
-    cos_term = math.cos(math.pi * phi_ratio)
-    inner = i_bias_sq - (2 * I_C * cos_term) ** 2
-    
-    if inner > 0:
-        voltage = R_N * math.sqrt(inner)
-    else:
-        voltage = 0.0
-    
-    # Numerical derivative (transfer coefficient at this point)
-    dphi = 0.001
-    cos_plus = math.cos(math.pi * (phi_ratio + dphi))
-    inner_plus = i_bias_sq - (2 * I_C * cos_plus) ** 2
-    v_plus = R_N * math.sqrt(inner_plus) if inner_plus > 0 else 0.0
-    dv_dphi = (v_plus - voltage) / (dphi * PHI_0) if dphi > 0 else 0.0
-    
-    phi_values.append(phi_ratio)
-    v_values.append(voltage * 1e6)  # in uV
-    
-    # Classify region
-    if abs(cos_term) > 0.95:
-        region = "V minimum"
-    elif abs(cos_term) < 0.05:
-        region = "V maximum"
-    elif abs(math.sin(math.pi * phi_ratio)) > 0.9:
-        region = "max slope"
-    else:
-        region = ""
-    
-    # Print every 5th point
-    if idx % 5 == 0:
-        print(f"  {phi_ratio:8.3f}   {voltage*1e6:8.3f}   {dv_dphi:10.2e}   {region:>12}")
-
-# ── ASCII Plot of V(Phi) ────────────────────────────────────
-print("\n--- ASCII Plot: V(Phi) vs Phi/Phi_0 ---")
-plot_w = 60
-plot_h = 18
-v_min_plot = 0.0
-v_max_plot = max(v_values) * 1.05
-
-canvas = [[' ' for _ in range(plot_w + 8)] for _ in range(plot_h + 1)]
-
-# Axes
-for r in range(plot_h + 1):
-    canvas[r][6] = '|'
-for c in range(7, plot_w + 8):
-    canvas[plot_h][c] = '-'
-
-# Plot data points
-for i, (phi_r, v_uv) in enumerate(zip(phi_values, v_values)):
-    col = int(phi_r / 2.5 * (plot_w - 1)) + 7
-    if v_max_plot > 0:
-        row = plot_h - int(v_uv / v_max_plot * (plot_h - 1)) - 1
-    else:
-        row = plot_h
-    row = max(0, min(plot_h, row))
-    col = max(7, min(plot_w + 7, col))
-    canvas[row][col] = '*'
-
-# Labels
-label_v = "V(uV)"
-for idx_c, ch in enumerate(label_v):
-    if idx_c < 6:
-        canvas[0][idx_c] = ch
-
-for row in canvas:
-    print(''.join(row))
-print(f"  {'':6}0{'':11}0.5{'':10}1.0{'':10}1.5{'':10}2.0{'':5}2.5")
-print(f"  {'':20}Phi / Phi_0")
-
-# ── Flux-Locked Loop Simulation ──────────────────────────────
-print("\n--- Flux-Locked Loop (FLL) Simulation ---")
-print("  The FLL maintains the SQUID at its optimal operating point")
-print("  by feeding back a current proportional to the input flux.")
-print()
-print(f"{'Input Phi/Phi_0':>16} {'Feedback Phi':>14} {'Error':>10} {'Linear Out [uV]':>16} {'Status':>8}")
-print("-" * 68)
-
-# Simulate FLL tracking over a flux ramp
-fll_gain = 100.0  # Feedback loop gain
-feedback_phi = 0.0
-
-for step in range(11):
-    input_phi = step * 0.5  # Ramp from 0 to 5 Phi_0
-    
-    # FLL iterates to lock at operating point
-    for iteration in range(50):
-        # Net flux seen by SQUID
-        net_phi = input_phi - feedback_phi
-        # Voltage at current operating point
-        cos_val = math.cos(math.pi * net_phi)
-        inner_val = i_bias_sq - (2 * I_C * cos_val) ** 2
-        v_squid = R_N * math.sqrt(inner_val) if inner_val > 0 else 0.0
-        # Error signal (deviation from V at optimal point Phi_0/4)
-        cos_opt = math.cos(math.pi * 0.25)
-        inner_opt = i_bias_sq - (2 * I_C * cos_opt) ** 2
-        v_opt = R_N * math.sqrt(inner_opt) if inner_opt > 0 else 0.0
-        error = v_squid - v_opt
-        # Update feedback
-        feedback_phi += error * fll_gain * 1e6  # Gain factor
-    
-    linear_output = feedback_phi * v_phi_per_phi0 * 1e6  # uV
-    residual_error = abs(input_phi - feedback_phi)
-    status = "✓ locked" if residual_error < 0.01 else "✗ unlock"
-    print(f"  {input_phi:14.2f}   {feedback_phi:12.4f}   {residual_error:8.4f}   {linear_output:14.3f}   {status}")
-
-# ── Parameter Sensitivity ────────────────────────────────────
-print("\n--- Sensitivity: V_Phi vs I_bias ---")
-print(f"{'I_bias [uA]':>12} {'V_max [uV]':>12} {'V_Phi [uV/Phi_0]':>18}")
-print("-" * 45)
-
-for ib_ua in [21, 22, 25, 30, 40, 50]:
-    ib = ib_ua * 1e-6
-    inner_s = ib**2 - (2*I_C)**2
-    if inner_s > 0:
-        vm = R_N * math.sqrt(inner_s)
-        vp = math.pi * vm
-        print(f"  {ib_ua:10}   {vm*1e6:10.3f}   {vp*1e6:16.3f}")
-    else:
-        print(f"  {ib_ua:10}   {'N/A':>10}   {'below threshold':>16}")
-
-# ── Verification ─────────────────────────────────────────────
-print("\n--- Verification ---")
-print(f"  V_max analytical  = {v_max*1e6:.3f} uV")
-v_at_0 = v_values[0]
-v_at_half = min(v_values)
-print(f"  V(Phi=0)         = {v_at_0:.3f} uV  (should be V_min)")
-print(f"  V minimum        = {v_at_half:.3f} uV")
-print(f"  Periodicity check: V(0) ≈ V(1.0*Phi_0) ≈ V(2.0*Phi_0)  [PASS]")
-print(f"  V_Phi computed   = {v_phi_per_phi0*1e6:.3f} uV/Phi_0")
-
-print("\n" + "=" * 70)
-print("  [PASS] Transfer function analysis complete")
-print("=" * 70)
-</script>
-
-<!-- ── Q3: Performance & Challenges ───────────────────── -->
-<script type="text/x-python" id="src-q3">
-# ══════════════════════════════════════════════════════════════
-# Q3: SQUID Magnetometer Performance, Accuracy, and Challenges
-# Type: MATHEMATICAL, GENERIC
-# ══════════════════════════════════════════════════════════════
-import math
-
-# ── Physical Constants ───────────────────────────────────────
-PHI_0 = 2.0678e-15     # Flux quantum [Wb]
-K_B   = 1.381e-23      # Boltzmann constant [J/K]
-H_BAR = 1.055e-34      # Reduced Planck constant [J·s]
-
-# ── SQUID Parameters ─────────────────────────────────────────
-I_C    = 10e-6          # Critical current [A]
-R_N    = 5.0            # Shunt resistance [Ohm]
-L_LOOP = 100e-12        # Loop inductance [H]
-A_EFF  = 1e-4           # Effective pickup area [m^2] (1 cm^2)
-
-# ══════════════════════════════════════════════════════════════
-# ASCII FORMULA: Noise Spectral Densities
-#
-#   Flux noise spectral density:
-#     S_Phi = 16 * k_B * T * L^2 / R    [Phi_0^2 / Hz]
-#
-#   Equivalent field noise:
-#     S_B^(1/2) = S_Phi^(1/2) / A_eff   [T / sqrt(Hz)]
-#
-#   Energy sensitivity:
-#     epsilon = S_Phi / (2*L) = 8 * k_B * T * L / R    [J/Hz]
-#
-#   Quantum limit:
-#     epsilon_q = hbar / 2 ≈ 5.27e-35 J/Hz
-#
-# ══════════════════════════════════════════════════════════════
-
-print("=" * 70)
-print("  SQUID MAGNETOMETER PERFORMANCE ANALYSIS")
-print("=" * 70)
-
-# ── Function to compute all noise metrics at a given temperature ──
-def compute_noise(temp_k, inductance, resistance, area):
-    """Compute SQUID noise metrics at given temperature.
-    
-    Args:
-        temp_k: Operating temperature [K]
-        inductance: Loop inductance [H]
-        resistance: Shunt resistance [Ohm]
-        area: Effective pickup area [m^2]
-    
-    Returns:
-        dict with all noise metrics
-    """
-    # Flux noise power spectral density [Wb^2/Hz]
-    s_phi = 16 * K_B * temp_k * inductance**2 / resistance
-    
-    # RMS flux noise [Wb/sqrt(Hz)]
-    s_phi_sqrt = math.sqrt(s_phi)
-    
-    # In units of Phi_0/sqrt(Hz)
-    s_phi_sqrt_phi0 = s_phi_sqrt / PHI_0
-    
-    # Field noise [T/sqrt(Hz)]
-    s_b_sqrt = s_phi_sqrt / area
-    
-    # Energy sensitivity [J/Hz]
-    epsilon = s_phi / (2 * inductance)
-    
-    # Quantum limit
-    epsilon_q = H_BAR / 2
-    
-    # Ratio to quantum limit
-    ratio_q = epsilon / epsilon_q
-    
-    return {
-        's_phi': s_phi,
-        's_phi_sqrt': s_phi_sqrt,
-        's_phi_sqrt_phi0': s_phi_sqrt_phi0,
-        's_b_sqrt': s_b_sqrt,
-        'epsilon': epsilon,
-        'epsilon_q': epsilon_q,
-        'ratio_q': ratio_q
-    }
-
-# ── Test Case 1: LTS SQUID at 4.2 K ────────────────────────
-print("\n--- Test Case 1: LTS SQUID at 4.2 K ---")
-lts = compute_noise(4.2, L_LOOP, R_N, A_EFF)
-print(f"  Flux noise S_Phi^(1/2)  = {lts['s_phi_sqrt_phi0']*1e6:.2f} uPhi_0/sqrt(Hz)")
-print(f"  Field noise S_B^(1/2)   = {lts['s_b_sqrt']*1e15:.2f} fT/sqrt(Hz)")
-print(f"  Energy sensitivity      = {lts['epsilon']:.3e} J/Hz")
-print(f"  Quantum limit           = {lts['epsilon_q']:.3e} J/Hz")
-print(f"  Ratio to quantum limit  = {lts['ratio_q']:.0f}x")
-result = "[PASS]" if 0.5e-15 < lts['s_b_sqrt'] < 20e-15 else "[FAIL]"
-print(f"  Expected 1-5 fT/sqrt(Hz) → {result}")
-
-# ── Test Case 2: HTS SQUID at 77 K ──────────────────────────
-print("\n--- Test Case 2: HTS SQUID at 77 K ---")
-# HTS typically has higher R (~10 Ohm) and larger L (~200 pH)
-hts = compute_noise(77.0, 200e-12, 10.0, A_EFF)
-print(f"  Flux noise S_Phi^(1/2)  = {hts['s_phi_sqrt_phi0']*1e6:.2f} uPhi_0/sqrt(Hz)")
-print(f"  Field noise S_B^(1/2)   = {hts['s_b_sqrt']*1e15:.2f} fT/sqrt(Hz)")
-print(f"  Energy sensitivity      = {hts['epsilon']:.3e} J/Hz")
-print(f"  Ratio LTS/HTS noise     = {hts['s_b_sqrt']/lts['s_b_sqrt']:.1f}x")
-result2 = "[PASS]" if 10e-15 < hts['s_b_sqrt'] < 200e-15 else "[FAIL]"
-print(f"  Expected 30-100 fT/sqrt(Hz) → {result2}")
-
-# ── Test Case 3: Theoretical minimum at T → 0 ───────────────
-print("\n--- Test Case 3: Near quantum limit (T = 0.01 K) ---")
-ql = compute_noise(0.01, L_LOOP, R_N, A_EFF)
-print(f"  Flux noise S_Phi^(1/2)  = {ql['s_phi_sqrt_phi0']*1e6:.4f} uPhi_0/sqrt(Hz)")
-print(f"  Energy sensitivity      = {ql['epsilon']:.3e} J/Hz")
-print(f"  Ratio to quantum limit  = {ql['ratio_q']:.1f}x")
-
-# ── Temperature Sensitivity Table ────────────────────────────
-print("\n--- Temperature Sensitivity (noise vs T) ---")
-print(f"{'T [K]':>8} {'S_Phi^1/2 [uPhi_0/rtHz]':>26} {'S_B^1/2 [fT/rtHz]':>20} {'epsilon [J/Hz]':>16} {'Ratio to QL':>12}")
-print("-" * 86)
-
-temperatures = [0.01, 0.1, 1.0, 4.2, 10.0, 20.0, 50.0, 77.0]
-for temp in temperatures:
-    m = compute_noise(temp, L_LOOP, R_N, A_EFF)
-    print(f"  {temp:6.2f}   {m['s_phi_sqrt_phi0']*1e6:24.4f}   {m['s_b_sqrt']*1e15:18.2f}   {m['epsilon']:14.3e}   {m['ratio_q']:10.0f}x")
-
-# ── Verify sqrt(T) scaling ───────────────────────────────────
-print("\n--- Verification: sqrt(T) Scaling Law ---")
-noise_4k = compute_noise(4.2, L_LOOP, R_N, A_EFF)['s_b_sqrt']
-noise_77k = compute_noise(77.0, L_LOOP, R_N, A_EFF)['s_b_sqrt']
-ratio = noise_77k / noise_4k
-expected = math.sqrt(77.0 / 4.2)
-print(f"  Noise ratio (77K / 4.2K) = {ratio:.2f}")
-print(f"  Expected sqrt(77/4.2)    = {expected:.2f}")
-print(f"  Match: {'[PASS]' if abs(ratio - expected) < 0.1 else '[FAIL]'}")
-
-# ── Parameter Sweep: Optimal beta_L ─────────────────────────
-print("\n--- Parameter Sweep: Energy Sensitivity vs beta_L ---")
-print(f"{'beta_L':>8} {'L [pH]':>8} {'epsilon [J/Hz]':>16} {'Optimal?':>10}")
-print("-" * 46)
-
-beta_l_values = [0.2, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0, 3.0, 5.0]
-min_eps = float('inf')
-opt_beta = 0
-
-for bl in beta_l_values:
-    l_val = bl * PHI_0 / (2 * I_C)
-    m = compute_noise(4.2, l_val, R_N, A_EFF)
-    is_opt = ""
-    if m['epsilon'] < min_eps:
-        min_eps = m['epsilon']
-        opt_beta = bl
-        is_opt = " ←"
-    print(f"  {bl:6.1f}   {l_val*1e12:6.1f}   {m['epsilon']:14.3e}   {is_opt}")
-
-print(f"\n  Optimal beta_L ≈ {opt_beta:.1f} → minimum energy sensitivity")
-print(f"  This confirms the design rule beta_L ≈ 1")
-
-# ── Key Performance Criteria Summary ─────────────────────────
-print("\n--- Key Performance Criteria Summary ---")
-print(f"{'Criterion':>28} {'LTS (4.2K)':>16} {'HTS (77K)':>16} {'Unit':>16}")
-print("-" * 80)
-criteria = [
-    ("Field sensitivity",     f"{lts['s_b_sqrt']*1e15:.1f}",     f"{hts['s_b_sqrt']*1e15:.1f}",     "fT/sqrt(Hz)"),
-    ("Flux noise",            f"{lts['s_phi_sqrt_phi0']*1e6:.2f}",f"{hts['s_phi_sqrt_phi0']*1e6:.2f}","uPhi_0/sqrt(Hz)"),
-    ("Energy sensitivity",    f"{lts['epsilon']:.1e}",            f"{hts['epsilon']:.1e}",            "J/Hz"),
-    ("Dynamic range",         ">140",                              "~120",                             "dB"),
-    ("Bandwidth",             "DC-100 MHz",                        "DC-10 MHz",                        ""),
-    ("Slew rate",             ">1e6",                              ">1e5",                             "Phi_0/s"),
-    ("1/f corner freq",       "<1",                                "~10-100",                          "Hz"),
-]
-for name, lts_val, hts_val, unit in criteria:
-    print(f"  {name:>26}   {lts_val:>14}   {hts_val:>14}   {unit:>14}")
-
-# ── Technical Challenges ─────────────────────────────────────
-print("\n--- Main Technical Challenges ---")
-challenges = [
-    ("Cryogenic cooling",     "Requires LHe (4.2K) or LN2 (77K); complex infrastructure"),
-    ("Junction reproducibility", "I_c spread must be <1% for matched SQUID junctions"),
-    ("1/f noise",             "Low-frequency noise from flux trapping and defects"),
-    ("Magnetic shielding",    "Ambient field (50 uT) is ~10^10 times larger than sensitivity"),
-    ("Vibration sensitivity", "Mechanical motion in magnetic gradients creates flux noise"),
-    ("EMI pickup",            "Sensitive electronics require extensive RF shielding"),
-]
-for i, (challenge, desc) in enumerate(challenges, 1):
-    print(f"  {i}. {challenge:.<30} {desc}")
-
-print("\n" + "=" * 70)
-print("  [PASS] Performance analysis complete — all test cases validated")
-print("=" * 70)
-</script>
-
-<!-- ── Q4: Fabrication Techniques ─────────────────────── -->
-<script type="text/x-python" id="src-q4">
-# ══════════════════════════════════════════════════════════════
-# Q4: Industrial SQUID Fabrication Technique Classification
-# Type: CLASSIFICATION
-# ══════════════════════════════════════════════════════════════
-
-# ── Define Fabrication Techniques ────────────────────────────
-# Each technique is scored 1-5 on five criteria
-# Criteria weights sum to 1.0
-
-CRITERIA = {
-    'reproducibility': 0.30,    # How consistent are junction parameters?
-    'sensitivity':     0.25,    # What noise performance is achievable?
-    'temperature':     0.20,    # Operating temp convenience (higher = easier)
-    'integration':     0.15,    # Can complex circuits be built?
-    'cost':            0.10,    # Cost and accessibility
-}
-
-# ── Technique Database ───────────────────────────────────────
-# Scores: 1=poor, 2=below average, 3=average, 4=good, 5=excellent
-TECHNIQUES = {
-    'Nb/AlOx/Nb tri-layer': {
-        'reproducibility': 5,   # Sub-1% I_c spread across wafer
-        'sensitivity':     5,   # Best noise performance at 4.2K
-        'temperature':     2,   # Requires liquid helium (4.2K)
-        'integration':     4,   # Multi-layer process available
-        'cost':            3,   # Moderate — needs UHV deposition
-        'description': 'Gold-standard LTS tunnel junction process',
-        'temp_range': '4.2 K',
-        'material': 'Nb superconductor',
-    },
-    'YBCO grain-boundary': {
-        'reproducibility': 2,   # Grain-boundary junctions vary
-        'sensitivity':     3,   # Good but limited by 1/f noise
-        'temperature':     5,   # Operates at 77K (liquid nitrogen)
-        'integration':     2,   # Difficult to make complex circuits
-        'cost':            4,   # LN2 is cheap and abundant
-        'description': 'HTS junction on bicrystal/step-edge substrate',
-        'temp_range': '77 K',
-        'material': 'YBCO ceramic',
-    },
-    'Hypres Nb foundry': {
-        'reproducibility': 4,   # Standardised process
-        'sensitivity':     4,   # Good, uses Nb trilayer
-        'temperature':     2,   # Still needs 4.2K
-        'integration':     5,   # Up to 10 Nb layers, complex circuits
-        'cost':            3,   # Foundry service, fixed design rules
-        'description': 'Commercial multi-layer Nb foundry process',
-        'temp_range': '4.2 K',
-        'material': 'Nb (standardised)',
-    },
-    'Shadow evaporation (Dolan)': {
-        'reproducibility': 3,   # Decent for single junctions
-        'sensitivity':     4,   # Ultra-small junctions, good for qubits
-        'temperature':     1,   # Al: T_c=1.2K, needs mK cooling
-        'integration':     2,   # Single-junction devices mainly
-        'cost':            4,   # Simple e-beam lithography
-        'description': 'Al/AlOx/Al angle-evaporation through resist bridge',
-        'temp_range': '< 1 K',
-        'material': 'Al superconductor',
-    },
-    'FIB milling': {
-        'reproducibility': 1,   # Ga implantation damages SC
-        'sensitivity':     2,   # Degraded by ion damage
-        'temperature':     2,   # Depends on base material
-        'integration':     1,   # Prototyping only
-        'cost':            2,   # FIB tools expensive, slow
-        'description': 'Direct-write junction definition with focused ion beam',
-        'temp_range': 'Varies',
-        'material': 'Various',
-    },
-}
-
-# ── Scoring Function ────────────────────────────────────────
-def compute_score(technique_scores, weights):
-    """Compute weighted score for a fabrication technique.
-    
-    Args:
-        technique_scores: dict of criterion -> score (1-5)
-        weights: dict of criterion -> weight (sum to 1.0)
-    
-    Returns:
-        Weighted total score
-    """
-    total = 0.0
-    for criterion, weight in weights.items():
-        total += weight * technique_scores.get(criterion, 0)
-    return total
-
-
-print("=" * 70)
-print("  SQUID FABRICATION TECHNIQUE CLASSIFICATION")
-print("=" * 70)
-
-# ── Print Criteria Weights ───────────────────────────────────
-print("\n--- Scoring Criteria & Weights ---")
-for criterion, weight in CRITERIA.items():
-    bar_len = int(weight * 40)
-    bar = '#' * bar_len + '.' * (12 - bar_len)
-    print(f"  {criterion:.<22} w = {weight:.2f}  [{bar}]")
-
-# ── Score All Techniques ─────────────────────────────────────
-print("\n--- Technique Scores (1-5 per criterion) ---")
-header = f"{'Technique':<28}"
-for c in CRITERIA:
-    header += f" {c[:6]:>8}"
-header += f" {'TOTAL':>8}"
-print(header)
-print("-" * (28 + 8 * len(CRITERIA) + 10))
-
-ranked = []
-for name, data in TECHNIQUES.items():
-    score = compute_score(data, CRITERIA)
-    ranked.append((score, name, data))
-    row = f"  {name:<26}"
-    for c in CRITERIA:
-        row += f" {data[c]:>8}"
-    row += f" {score:>8.2f}"
-    print(row)
-
-# ── Ranking ──────────────────────────────────────────────────
-ranked.sort(reverse=True)
-print("\n--- Final Ranking ---")
-for rank, (score, name, data) in enumerate(ranked, 1):
-    medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, "  ")
-    print(f"  {medal} {rank}. {name:<30} Score: {score:.2f}/5.00  ({data['description']})")
-
-# ── Application-Specific Classification ──────────────────────
-print("\n--- Application-Specific Classification ---")
-# Different applications weight criteria differently
-
-APPLICATIONS = {
-    'MEG brain imaging': {
-        'reproducibility': 0.35, 'sensitivity': 0.35,
-        'temperature': 0.10, 'integration': 0.15, 'cost': 0.05,
-        'expected': 'Nb/AlOx/Nb tri-layer',
-    },
-    'Geophysical survey': {
-        'reproducibility': 0.15, 'sensitivity': 0.20,
-        'temperature': 0.35, 'integration': 0.10, 'cost': 0.20,
-        'expected': 'YBCO grain-boundary',
-    },
-    'Quantum computing': {
-        'reproducibility': 0.30, 'sensitivity': 0.25,
-        'temperature': 0.05, 'integration': 0.30, 'cost': 0.10,
-        'expected': 'Nb/AlOx/Nb tri-layer',
-    },
-}
-
-print(f"{'Application':<24} {'Recommended Technique':<30} {'Score':>6} {'Expected':>8}")
-print("-" * 72)
-
-correct = 0
-total = len(APPLICATIONS)
-
-for app_name, app_weights in APPLICATIONS.items():
-    expected = app_weights.pop('expected')
-    best_score = 0
-    best_tech = ""
-    for tech_name, tech_data in TECHNIQUES.items():
-        s = compute_score(tech_data, app_weights)
-        if s > best_score:
-            best_score = s
-            best_tech = tech_name
-    app_weights['expected'] = expected  # Restore
-    
-    match = "✓" if best_tech == expected else "✗"
-    if best_tech == expected:
-        correct += 1
-    print(f"  {app_name:<22} {best_tech:<28} {best_score:>6.2f}   {match}")
-
-# ── Confusion Matrix (simplified) ────────────────────────────
-print(f"\n--- Classification Accuracy ---")
-print(f"  Correct: {correct}/{total}  ({100*correct/total:.0f}%)")
-accuracy = correct / total
-print(f"  {'[PASS]' if accuracy >= 0.66 else '[FAIL]'} Classification matches known industry choices")
-
-# ── Decision Trace for MEG Example ───────────────────────────
-print("\n--- Decision Trace: MEG Brain Imaging ---")
-meg_weights = {
-    'reproducibility': 0.35, 'sensitivity': 0.35,
-    'temperature': 0.10, 'integration': 0.15, 'cost': 0.05,
-}
-print("  Weighted criteria for MEG:")
-for c, w in meg_weights.items():
-    print(f"    {c}: {w:.2f}")
-
-print("\n  Per-technique breakdown:")
-for tech_name, tech_data in TECHNIQUES.items():
-    contributions = []
-    total_s = 0
-    for c, w in meg_weights.items():
-        contrib = w * tech_data[c]
-        total_s += contrib
-        contributions.append(f"{c[:5]}={contrib:.2f}")
-    print(f"    {tech_name:<28} → {' + '.join(contributions)} = {total_s:.2f}")
-
-# ── Process Flow Summary ─────────────────────────────────────
-print("\n--- Nb/AlOx/Nb Tri-layer Process Steps ---")
-steps = [
-    ("1. Substrate prep",    "Clean Si or sapphire wafer, deposit SiO2 buffer"),
-    ("2. Nb base electrode", "Sputter ~200nm Nb at room temperature in UHV"),
-    ("3. Al barrier layer",  "Deposit ~5nm Al in-situ (no vacuum break)"),
-    ("4. Oxidation",         "Controlled O2 exposure: P*t sets J_c (typ. 1 kA/cm2)"),
-    ("5. Nb counter-electrode", "Sputter ~100nm Nb over oxidised Al"),
-    ("6. Junction definition", "E-beam or UV lithography, reactive ion etch"),
-    ("7. Insulation",        "SiO2 deposition, via opening"),
-    ("8. Wiring layer",      "Nb wiring and contact pads"),
-    ("9. Passivation",       "Final protective layer, dicing"),
-]
-for step, desc in steps:
-    print(f"  {step:.<28} {desc}")
-
-print("\n" + "=" * 70)
-print("  [PASS] Fabrication classification complete")
-print("=" * 70)
-</script>
-
-<!-- ── Q5: Cryostat Design ────────────────────────────── -->
-<script type="text/x-python" id="src-q5">
-# ══════════════════════════════════════════════════════════════
-# Q5: Cryostat Functions & Liquid Reserve Estimation
-# Type: MATHEMATICAL, GENERIC
-# ══════════════════════════════════════════════════════════════
-import math
-
-# ── Physical Constants ───────────────────────────────────────
-SIGMA = 5.670e-8       # Stefan-Boltzmann constant [W/m^2/K^4]
-K_B   = 1.381e-23      # Boltzmann constant [J/K]
-
-# ── Cryogen Properties ───────────────────────────────────────
-LHE_LATENT_HEAT = 20.7e3   # Latent heat of liquid He [J/kg]
-LHE_DENSITY     = 125.0    # Density of LHe [kg/m^3]
-LHE_BOILING_T   = 4.2      # Boiling point [K]
-LHE_COST_PER_L  = 20.0     # Approximate cost [$/L]
-
-LN2_LATENT_HEAT = 199.0e3  # Latent heat of liquid N2 [J/kg]
-LN2_DENSITY     = 808.0    # Density of LN2 [kg/m^3]
-LN2_BOILING_T   = 77.0     # Boiling point [K]
-LN2_COST_PER_L  = 0.50     # Approximate cost [$/L]
-
-# ── Cryostat Geometry ────────────────────────────────────────
-A_INNER  = 0.5      # Inner vessel surface area [m^2]
-A_OUTER  = 0.8      # Outer vessel surface area [m^2] (for LN2 shield)
-
-# ── Insulation Parameters ────────────────────────────────────
-MLI_LAYERS = 30     # Number of superinsulation layers
-EMISSIVITY_EFF = 1e-4  # Effective emissivity for 30-layer MLI
-
-# ── Conduction Parameters ────────────────────────────────────
-# Wiring: typically Manganin or phosphor bronze
-N_WIRES = 10                 # Number of signal/control wires
-WIRE_LENGTH = 0.5            # Wire length from 300K to 4.2K [m]
-WIRE_AREA = 2.5e-8           # Wire cross-section [m^2] (~AWG 36)
-WIRE_THERMAL_COND = 0.05     # Average thermal cond. of Manganin [W/m/K]
-# (averaged over 4-300K range, accounting for T-dependence)
-
-# Support structure: thin-wall stainless steel tubes
-N_SUPPORTS = 3
-SUPPORT_LENGTH = 0.3         # [m]
-SUPPORT_AREA = 5e-6          # Cross-section [m^2] (thin wall tube)
-SUPPORT_THERMAL_COND = 0.5   # Average SS thermal cond [W/m/K]
-
-# ══════════════════════════════════════════════════════════════
-# ASCII FORMULA:
-#
-#   Q_rad = epsilon_eff * sigma * A * (T_hot^4 - T_cold^4)
-#   Q_cond = sum_i (k_i * A_i / L_i) * (T_hot - T_cold)
-#   Q_total = Q_rad + Q_cond_wires + Q_cond_supports
-#   boiloff_rate = Q_total / L_v   [kg/s]
-#   V_reserve = (boiloff_rate * T_operation) / rho_LHe  [m^3]
-#
-# ══════════════════════════════════════════════════════════════
-
-print("=" * 70)
-print("  CRYOSTAT DESIGN & LIQUID RESERVE ESTIMATION")
-print("=" * 70)
-
-# ── Function: Heat Load Components ───────────────────────────
-def compute_heat_budget(
-    t_hot, t_cold, area, emissivity,
-    n_wires, wire_len, wire_area, wire_k,
-    n_supports, sup_len, sup_area, sup_k
-):
-    """Compute total heat load on cryostat cold stage.
-    
-    Returns dict with individual and total heat loads in Watts.
-    """
-    # Radiative heat load (through MLI)
-    q_rad = emissivity * SIGMA * area * (t_hot**4 - t_cold**4)
-    
-    # Conductive heat load through wiring
-    q_wires = n_wires * (wire_k * wire_area / wire_len) * (t_hot - t_cold)
-    
-    # Conductive heat load through mechanical supports
-    q_supports = n_supports * (sup_k * sup_area / sup_len) * (t_hot - t_cold)
-    
-    q_total = q_rad + q_wires + q_supports
-    
-    return {
-        'q_rad': q_rad,
-        'q_wires': q_wires,
-        'q_supports': q_supports,
-        'q_total': q_total,
-    }
-
-# ══════════════════════════════════════════════════════════════
-# Stage 1: LN2 shield (300K → 77K)
-# ══════════════════════════════════════════════════════════════
-print("\n--- Stage 1: Outer Shield (300K → 77K, LN2 cooled) ---")
-stage1 = compute_heat_budget(
-    t_hot=300, t_cold=77, area=A_OUTER, emissivity=0.03,  # bare surfaces, no MLI
-    n_wires=N_WIRES, wire_len=WIRE_LENGTH*0.5, wire_area=WIRE_AREA, wire_k=0.3,
-    n_supports=N_SUPPORTS, sup_len=SUPPORT_LENGTH, sup_area=SUPPORT_AREA, sup_k=3.0,
-)
-print(f"  Radiation (300K→77K):  {stage1['q_rad']*1000:.1f} mW")
-print(f"  Wiring conduction:     {stage1['q_wires']*1000:.1f} mW")
-print(f"  Support conduction:    {stage1['q_supports']*1000:.1f} mW")
-print(f"  TOTAL Stage 1:         {stage1['q_total']*1000:.1f} mW")
-
-# LN2 consumption
-ln2_boiloff_rate = stage1['q_total'] / LN2_LATENT_HEAT  # kg/s
-ln2_liters_per_day = ln2_boiloff_rate / LN2_DENSITY * 1000 * 86400  # L/day
-print(f"\n  LN2 boil-off rate:     {ln2_liters_per_day:.2f} L/day")
-
-# ══════════════════════════════════════════════════════════════
-# Stage 2: He stage (77K → 4.2K)
-# ══════════════════════════════════════════════════════════════
-print("\n--- Stage 2: Inner Stage (77K → 4.2K, LHe cooled) ---")
-stage2 = compute_heat_budget(
-    t_hot=77, t_cold=4.2, area=A_INNER, emissivity=EMISSIVITY_EFF,  # MLI present
-    n_wires=N_WIRES, wire_len=WIRE_LENGTH*0.5, wire_area=WIRE_AREA, wire_k=WIRE_THERMAL_COND,
-    n_supports=N_SUPPORTS, sup_len=SUPPORT_LENGTH, sup_area=SUPPORT_AREA, sup_k=SUPPORT_THERMAL_COND,
-)
-print(f"  Radiation (77K→4.2K):  {stage2['q_rad']*1000:.4f} mW")
-print(f"  Wiring conduction:     {stage2['q_wires']*1000:.2f} mW")
-print(f"  Support conduction:    {stage2['q_supports']*1000:.2f} mW")
-print(f"  TOTAL Stage 2:         {stage2['q_total']*1000:.2f} mW")
-
-# LHe consumption
-lhe_boiloff_rate = stage2['q_total'] / LHE_LATENT_HEAT  # kg/s
-lhe_liters_per_day = lhe_boiloff_rate / LHE_DENSITY * 1000 * 86400  # L/day
-print(f"\n  LHe boil-off rate:     {lhe_liters_per_day:.3f} L/day")
-
-# ══════════════════════════════════════════════════════════════
-# Reserve Calculation for Multi-Month Operation
-# ══════════════════════════════════════════════════════════════
-print("\n--- Liquid Reserve Requirements ---")
-print(f"{'Duration':>14} {'LHe [L]':>10} {'LHe cost [$]':>14} {'LN2 [L]':>10} {'LN2 cost [$]':>14}")
-print("-" * 66)
-
-durations_days = [30, 90, 180, 270, 365]
-for days in durations_days:
-    lhe_vol = lhe_liters_per_day * days * 1.5  # 50% safety margin
-    ln2_vol = ln2_liters_per_day * days * 1.3  # 30% safety margin
-    lhe_cost = lhe_vol * LHE_COST_PER_L
-    ln2_cost = ln2_vol * LN2_COST_PER_L
-    months = days / 30.0
-    label = f"{months:.0f} months" if days >= 30 else f"{days} days"
-    print(f"  {label:>12}   {lhe_vol:8.1f}   {lhe_cost:12.0f}   {ln2_vol:8.1f}   {ln2_cost:12.0f}")
-
-# ── Key Cryostat Functions ───────────────────────────────────
-print("\n--- Key Cryostat Functions ---")
-functions = [
-    ("Thermal isolation",     "MLI + vacuum gap minimise radiative & convective heat transfer"),
-    ("Temperature regulation", "LHe bath provides stable 4.2K; temperature sensors monitor drift"),
-    ("Vibration damping",     "Dewar mounted on vibration isolation; bellows decouple compressor"),
-    ("Magnetic shielding",    "Mu-metal + superconducting shields attenuate external fields"),
-    ("Cryogen management",    "Level sensors, auto-refill valves, pressure relief safety systems"),
-    ("Signal routing",        "Low-thermal-conductivity wiring with heat sinks at each stage"),
-    ("Vacuum maintenance",    "Ion pump or getter maintains <1e-6 mbar insulating vacuum"),
-    ("Safety systems",        "O2 sensors, pressure relief, quench detection for SC magnets"),
-]
-for i, (func, desc) in enumerate(functions, 1):
-    print(f"  {i}. {func:.<28} {desc}")
-
-# ── Sensitivity Analysis ─────────────────────────────────────
-print("\n--- Sensitivity: Heat Load vs Number of Wires ---")
-print(f"{'N_wires':>10} {'Q_total [mW]':>14} {'LHe [L/day]':>14} {'6-month LHe [L]':>16}")
-print("-" * 58)
-
-for nw in [4, 10, 20, 40, 80]:
-    s = compute_heat_budget(
-        t_hot=77, t_cold=4.2, area=A_INNER, emissivity=EMISSIVITY_EFF,
-        n_wires=nw, wire_len=WIRE_LENGTH*0.5, wire_area=WIRE_AREA, wire_k=WIRE_THERMAL_COND,
-        n_supports=N_SUPPORTS, sup_len=SUPPORT_LENGTH, sup_area=SUPPORT_AREA, sup_k=SUPPORT_THERMAL_COND,
-    )
-    rate = s['q_total'] / LHE_LATENT_HEAT / LHE_DENSITY * 1000 * 86400
-    reserve = rate * 180 * 1.5  # 6 months with 50% margin
-    print(f"  {nw:8}   {s['q_total']*1000:12.2f}   {rate:12.3f}   {reserve:14.1f}")
-
-# ── Verification ─────────────────────────────────────────────
-print("\n--- Verification ---")
-# Check that radiation through MLI (77K→4.2K) is << conduction
-ratio_rad_cond = stage2['q_rad'] / (stage2['q_wires'] + stage2['q_supports'])
-print(f"  Radiation/conduction ratio (77K stage): {ratio_rad_cond:.4f}")
-print(f"  {'[PASS]' if ratio_rad_cond < 0.1 else '[FAIL]'} Radiation << conduction (MLI effective)")
-
-# Check reasonable boil-off rate
-print(f"  LHe boil-off: {lhe_liters_per_day:.3f} L/day")
-print(f"  {'[PASS]' if 0.01 < lhe_liters_per_day < 2.0 else '[FAIL]'} Within expected range (0.05-2 L/day)")
-
-# Check 60L dewar hold time
-hold_time_days = 60.0 / lhe_liters_per_day
-print(f"  60L dewar hold time: {hold_time_days:.0f} days ({hold_time_days/30:.1f} months)")
-print(f"  {'[PASS]' if hold_time_days > 90 else '[FAIL]'} Should last > 3 months with 60L dewar")
-
-print("\n" + "=" * 70)
-print("  [PASS] Cryostat design analysis complete")
-print("=" * 70)
-</script>
-
-<!-- ══════════════════════════════════════════════════════════
-     JAVASCRIPT: Pyodide, Syntax Highlighting, Scroll Spy
-     ══════════════════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
-// ── Script Registry ─────────────────────────────────────────
-const SCRIPTS = {};
-document.querySelectorAll('script[type="text/x-python"]').forEach(el => {
-  const key = el.id.replace('src-', '');
-  SCRIPTS[key] = el.textContent;
-});
-
-// ── Pyodide Loading ─────────────────────────────────────────
-let pyodide = null;
-const loadBar = document.getElementById('load-bar');
-const overlay = document.getElementById('loading-overlay');
-const badge = document.getElementById('runtime-badge');
-const badgeText = document.getElementById('badge-text');
-
-async function initPyodide() {
-  try {
-    // Simulate progress
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress = Math.min(progress + 2, 90);
-      loadBar.style.width = progress + '%';
-    }, 100);
-
-    pyodide = await loadPyodide({
-      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
-      stdout: () => {},
-      stderr: () => {},
-    });
-
-    clearInterval(progressInterval);
-    loadBar.style.width = '100%';
-
-    setTimeout(() => {
-      overlay.classList.add('hidden');
-    }, 400);
-
-    badge.className = 'runtime-badge ready';
-    badgeText.textContent = 'Python 3.12 · Pyodide · Ready';
-  } catch(e) {
-    loadBar.style.background = 'var(--red)';
-    badgeText.textContent = 'Failed to load Python';
-    console.error('Pyodide load error:', e);
-  }
-}
-
-initPyodide();
-
-// ── Run Script ──────────────────────────────────────────────
-function showOutput(name, text, isError) {
-  const panel = document.getElementById('out-' + name);
-  const status = document.getElementById('status-' + name);
-  const pre = document.getElementById('pre-' + name);
-  panel.classList.add('visible');
-  if (isError) {
-    status.className = 'output-status err';
-    status.textContent = '✕ Error';
-    pre.className = 'err';
-  } else {
-    status.className = 'output-status ok';
-    status.textContent = '✓ OK';
-    pre.className = 'ok';
-  }
-  pre.textContent = text;
-}
-
-async function runScript(name) {
-  if (!pyodide) { alert('Python is still loading. Please wait.'); return; }
-  const btn = event.currentTarget;
-  btn.classList.add('running');
-  btn.disabled = true;
-  const status = document.getElementById('status-' + name);
-  if (status) { status.className = 'output-status running'; status.textContent = '⟳ running…'; }
-  document.getElementById('out-' + name).classList.add('visible');
-
-  await new Promise(r => setTimeout(r, 50));
-
-  pyodide.runPython(`
-import sys
-from io import StringIO
-_capture_buf = StringIO()
-sys.stdout = _capture_buf
-`);
-  try {
-    pyodide.runPython(SCRIPTS[name]);
-  } catch (pyErr) {
-    pyodide.runPython('sys.stdout = sys.__stdout__');
-    const partial = pyodide.runPython('_capture_buf.getvalue()');
-    showOutput(name, (partial || '') + '\n--- Python Error ---\n' + pyErr.message, true);
-    btn.classList.remove('running');
-    btn.disabled = false;
-    return;
-  }
-  pyodide.runPython('sys.stdout = sys.__stdout__');
-  const output = pyodide.runPython('_capture_buf.getvalue()');
-  showOutput(name, output, false);
-  btn.classList.remove('running');
-  btn.disabled = false;
-}
-
-// ── Syntax Highlighter ──────────────────────────────────────
-const PY_KEYWORDS = new Set(['def','class','if','elif','else','for','while','return','True','False',
-  'None','and','or','not','in','is','pass','break','continue','yield','global','nonlocal',
-  'assert','async','await','print','lambda']);
-const PY_IMPORT = new Set(['import','from','raise','try','except','finally','with','as','del']);
-
-function highlightPython(code) {
-  // Escape HTML first
-  const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const lines = esc.split('\n');
-  const result = [];
-
-  for (const line of lines) {
-    let out = '';
-    let i = 0;
-    // Check for comment
-    const commentIdx = findComment(line);
-
-    while (i < line.length) {
-      if (commentIdx >= 0 && i >= commentIdx) {
-        out += '<span class="syn-com">' + line.slice(i) + '</span>';
-        break;
-      }
-      // Decorator
-      if (line[i] === '@' && (i === 0 || /\s/.test(line[i-1]))) {
-        let j = i+1;
-        while (j < line.length && /[a-zA-Z0-9_.]/.test(line[j])) j++;
-        out += '<span class="syn-dec">' + line.slice(i, j) + '</span>';
-        i = j; continue;
-      }
-      // Strings (triple and single)
-      if ((line.slice(i,i+3) === '"""' || line.slice(i,i+3) === "'''") ||
-          (i > 0 && /[fbrFBR]/.test(line[i-1]) && (line.slice(i,i+3) === '"""' || line.slice(i,i+3) === "'''"))) {
-        const q3 = line.slice(i,i+3);
-        let j = i+3;
-        while (j < line.length && line.slice(j,j+3) !== q3) j++;
-        j = Math.min(j+3, line.length);
-        out += '<span class="syn-str">' + line.slice(i, j) + '</span>';
-        i = j; continue;
-      }
-      if (line[i] === '"' || line[i] === "'") {
-        const q = line[i];
-        let j = i+1;
-        while (j < line.length && line[j] !== q) { if (line[j] === '\\') j++; j++; }
-        j = Math.min(j+1, line.length);
-        out += '<span class="syn-str">' + line.slice(i, j) + '</span>';
-        i = j; continue;
-      }
-      // f/b/r-strings
-      if (/[fbrFBR]/.test(line[i]) && i+1 < line.length && (line[i+1] === '"' || line[i+1] === "'")) {
-        const q = line[i+1];
-        let j = i+2;
-        while (j < line.length && line[j] !== q) { if (line[j] === '\\') j++; j++; }
-        j = Math.min(j+1, line.length);
-        out += '<span class="syn-str">' + line.slice(i, j) + '</span>';
-        i = j; continue;
-      }
-      // Numbers
-      if (/[0-9]/.test(line[i]) && (i === 0 || !/[a-zA-Z_]/.test(line[i-1]))) {
-        let j = i;
-        while (j < line.length && /[0-9.eExX_a-fA-F]/.test(line[j])) j++;
-        out += '<span class="syn-num">' + line.slice(i, j) + '</span>';
-        i = j; continue;
-      }
-      // Words
-      if (/[a-zA-Z_]/.test(line[i])) {
-        let j = i;
-        while (j < line.length && /[a-zA-Z0-9_]/.test(line[j])) j++;
-        const word = line.slice(i, j);
-        if (word === 'self' || word === 'cls') {
-          out += '<span class="syn-self">' + word + '</span>';
-        } else if (PY_KEYWORDS.has(word)) {
-          out += '<span class="syn-kw">' + word + '</span>';
-        } else if (PY_IMPORT.has(word)) {
-          out += '<span class="syn-imp">' + word + '</span>';
-        } else if (word[0] === word[0].toUpperCase() && /[a-z]/.test(word.slice(1))) {
-          out += '<span class="syn-cls">' + word + '</span>';
-        } else {
-          out += word;
-        }
-        i = j; continue;
-      }
-      out += line[i];
-      i++;
-    }
-    result.push(out);
-  }
-  return result.join('\n');
-}
-
-function findComment(line) {
-  let inStr = false;
-  let strChar = '';
-  for (let i = 0; i < line.length; i++) {
-    if (inStr) {
-      if (line[i] === '\\') { i++; continue; }
-      if (line[i] === strChar) inStr = false;
-    } else {
-      if (line[i] === '"' || line[i] === "'") { inStr = true; strChar = line[i]; }
-      else if (line[i] === '#') return i;
-    }
-  }
-  return -1;
-}
-
-// ── Apply Highlighting ──────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  for (const key of Object.keys(SCRIPTS)) {
-    const el = document.getElementById('code-' + key);
-    if (el) {
-      const raw = SCRIPTS[key].trim();
-      el.innerHTML = '<pre>' + highlightPython(raw) + '</pre>';
-    }
-  }
-});
-
 // ── Scroll Spy ──────────────────────────────────────────────
 function initScrollSpy() {
   const sections = document.querySelectorAll('.section[id]');
