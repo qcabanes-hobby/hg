@@ -197,10 +197,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </div>
 </section>
 
-<section class="section" id="abstract">
+<div class="section" id="abstract">
 <div class="section-header"><span class="section-num">01</span><h2 class="st">Abstract</h2></div>
 <p>This report presents the complete design of an underwater acoustic OFDM modem operating in the 20-40 kHz band with a 20 kHz bandwidth, targeting a net data rate of 10 kbps at 100 W transmit power and &minus;100 dBm(A) receiver sensitivity. The design covers eleven key engineering questions: analog bandpass filter design with Butterworth topology, OFDM parameter optimization with 64-point FFT and cyclic prefix, QPSK modulation selection justified by BER performance and spectral efficiency in the underwater channel, piezoelectric transducer RLC modelling with closed-loop digital PI power control, SysML system architecture, platform selection including MCU-only, MCU+FPGA, and co-design options, real-time operating system choice including FreeRTOS and the Embassy async Rust alternative, complete C firmware skeleton with task architecture, simulation and validation strategy, V-model project planning with Gantt schedule, and regulatory certification requirements.</p>
-</section>
+</div>
 
 <section class="section" id="acronyms">
 <div class="section-header"><span class="section-num">01b</span><h2 class="st">Acronyms &amp; Abbreviations</h2></div>
@@ -265,7 +265,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </table></div>
 </section>
 
-<section class="section" id="s1">
+<div class="section" id="s1">
 <div class="section-header"><span class="section-num">02</span><h2 class="st">Problem Statement</h2></div>
 <p>Design a complete underwater acoustic modem capable of reliable digital communication in shallow-to-medium water environments (depth &le; 300 m, range 0.5-5 km). The system must meet the following top-level specifications:</p>
 <div class="tw"><table>
@@ -279,9 +279,9 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <tr><td>Depth Rating</td><td>300 m (IP68)</td><td>Shallow-water operations</td></tr>
 </table></div>
 <p>The modem must be implemented on a resource-constrained embedded platform, operate in real-time, and comply with applicable maritime and EMC certifications.</p>
-</section>
+</div>
 
-<section class="section" id="s2">
+<div class="section" id="s2">
 <div class="section-header"><span class="section-num">03</span><h2 class="st">Methodology</h2></div>
 <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
 <div class="meth-grid">
