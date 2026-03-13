@@ -36,7 +36,7 @@ from collections import deque
 MAX_RANGE_M = 50.0          # maximum radio range in metres
 CARRIER_HZ  = 2.4e9         # 2.4 GHz ISM band (Zigbee / IEEE 802.15.4)
 # Friis constant: 20·log10(c / 4π) with c = 3×10⁸ m/s, f in Hz, d in m
-FRIIS_K     = 27.55
+FRIIS_K     = 147.55
 
 
 # ── Node ─────────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ class Node:
     def rssi_to(self, other: "Node") -> float:
         """
         Friis free-space path-loss model (dBm):
-            RSSI = -20·log10(d) - 20·log10(f) + 27.55
+            RSSI = -20·log10(d) - 20·log10(f) + 147.55
         Assumes unity antenna gains and 0 dBm transmit power.
         """
         d = max(self.distance_to(other), 0.1)   # avoid log(0)
@@ -245,7 +245,7 @@ T_HELLO   = 5.0     # HELLO broadcast interval (seconds)
 T_TIMEOUT = 15.0    # entry expiry = 3 missed HELLOs
 MAX_RANGE = 50.0    # radio range (metres)
 FREQ_HZ   = 2.4e9  # carrier frequency for RSSI calculation
-FRIIS_K   = 27.55  # Friis path-loss constant
+FRIIS_K   = 147.55  # Friis path-loss constant
 
 
 # ── Helper functions ──────────────────────────────────────────────────
@@ -445,11 +445,12 @@ Protocol overview:
 """
 import math
 import random
+from collections import deque
 
 # ── Constants ─────────────────────────────────────────────────────────
 MAX_RANGE = 50.0    # metres
 FREQ_HZ   = 2.4e9
-FRIIS_K   = 27.55
+FRIIS_K   = 147.55
 
 
 def distance(pos_a: tuple, pos_b: tuple) -> float:
@@ -495,7 +496,8 @@ class RouterNode:
     def discover_route(self, dst: int):
         """
         Initiate a Route Request flood toward dst.
-        Creates RREQ with hops=0 and path=[self.id], then broadcasts.
+        Uses a BFS queue so that RREQ propagates level-by-level,
+        guaranteeing the first path to reach dst has minimum hops.
         """
         self.seq += 1
         rreq = {
@@ -509,21 +511,28 @@ class RouterNode:
         self.log.append(
             f"  RREQ originated  src={self.id} dst={dst} seq={self.seq} path={rreq['path']}"
         )
-        # Flood to all neighbours
+        # BFS queue: process RREQ messages one hop-level at a time
+        queue = deque()
         for nb_id in self._neighbours():
-            self.nodes[nb_id].receive_rreq(dict(rreq))
+            queue.append((nb_id, dict(rreq)))
+        while queue:
+            target_id, rreq_msg = queue.popleft()
+            forwards = self.nodes[target_id].receive_rreq(rreq_msg)
+            if forwards:
+                queue.extend(forwards)
 
     def receive_rreq(self, rreq: dict):
         """
         Process an incoming RREQ.
-        Discard duplicates; otherwise forward or send RREP if we are the destination.
+        Returns a list of (next_node_id, rreq_copy) to forward via the
+        caller's BFS queue, or None if duplicate / destination reached.
         """
         self.stats["rreq_rx"] += 1
 
         # ── Duplicate check ───────────────────────────────────────
         key = (rreq["src"], rreq["seq"])
         if key in self.seen:
-            return   # already processed this flood wave — discard
+            return None   # already processed this flood wave — discard
         self.seen.add(key)
 
         # ── Update RREQ fields ────────────────────────────────────
@@ -551,17 +560,19 @@ class RouterNode:
             )
             prev_hop = rreq["path"][-2]
             self.nodes[prev_hop].receive_rrep(rrep)
+            return None   # destination reached — stop forwarding
 
-        else:
-            # Forward RREQ to neighbours not already in the path
-            self.stats["rreq_tx"] += 1
-            self.log.append(
-                f"  RREQ forwarded   src={rreq['src']} dst={rreq['dst']} "
-                f"hops={rreq['hops']} path={rreq['path']}"
-            )
-            for nb_id in self._neighbours():
-                if nb_id not in rreq["path"]:
-                    self.nodes[nb_id].receive_rreq(dict(rreq))
+        # Forward RREQ to neighbours not already in the path
+        self.stats["rreq_tx"] += 1
+        self.log.append(
+            f"  RREQ forwarded   src={rreq['src']} dst={rreq['dst']} "
+            f"hops={rreq['hops']} path={rreq['path']}"
+        )
+        forwards = []
+        for nb_id in self._neighbours():
+            if nb_id not in rreq["path"]:
+                forwards.append((nb_id, dict(rreq)))
+        return forwards
 
     def receive_rrep(self, rrep: dict):
         """
@@ -1005,7 +1016,7 @@ from typing import Any, Callable, Optional
 # ── Constants ────────────────────────────────────────────────────────
 MAX_RANGE  = 50.0    # metres
 FREQ_HZ    = 2.4e9  # carrier frequency
-FRIIS_K    = 27.55  # Friis path-loss constant
+FRIIS_K    = 147.55  # Friis path-loss constant
 HELLO_INT  = 5.0    # HELLO broadcast interval (virtual seconds)
 HELLO_TOUT = 15.0   # neighbour entry expiry (3 missed HELLOs)
 SPEED_OF_LIGHT = 3e8  # m/s — for propagation delay
@@ -1105,6 +1116,7 @@ class SimNode:
         self.counters = {
             "hello_tx":  0, "hello_rx":  0,
             "rreq_tx":   0, "rreq_rx":   0,
+            "rrep_rx":   0,
             "data_tx":   0, "data_rx":   0,
             "data_fwd":  0,
             "hops_seen": [],  # list of discovered hop counts
@@ -1206,7 +1218,7 @@ class SimNode:
 
     # ── RREP handler ──────────────────────────────────────────────
     def _rx_rrep(self, pkt: dict):
-        self.counters["hello_rx"] += 1   # reusing counter for simplicity
+        self.counters["rrep_rx"] += 1
         self._log("RREP", f"received RREP from {pkt['src']} path={pkt['path']}")
         self.rt[pkt["src"]] = pkt["path"]   # install route
 
@@ -1741,17 +1753,17 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <div class="tw"><table>
     <thead><tr><th>Parameter</th><th>Value</th><th>Justification</th></tr></thead>
     <tbody>
-      <tr><td>Carrier frequency <em>f</em></td><td>2.4 GHz</td><td>ISM band (Zigbee / IEEE 802.15.4 <a href="#ref-6" class="cite">[6]</a>)</td></tr>
+      <tr><td>Carrier frequency <em>f</em></td><td>2.4 GHz</td><td>ISM band (Zigbee / IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a>)</td></tr>
       <tr><td>Antenna gain G<sub>t</sub> = G<sub>r</sub></td><td>1 (0 dBi)</td><td>Omnidirectional — conservative worst-case</td></tr>
       <tr><td>Transmit power P<sub>t</sub></td><td>0 dBm (normalised)</td><td>Relative RSSI comparison only</td></tr>
-      <tr><td>Constant K</td><td>27.55</td><td>20·log₁₀(c / 4π) with d in metres, f in Hz</td></tr>
+      <tr><td>Constant K</td><td>147.55</td><td>20·log₁₀(c / 4π) with d in metres, f in Hz</td></tr>
       <tr><td>Edge weight</td><td>1 (hop count)</td><td>Routing objective is minimum hops → unit-weight BFS is optimal</td></tr>
     </tbody>
   </table></div>
   <p><strong>Why weight = 1?</strong> The problem statement explicitly requests a route with a <em>minimum number of hops</em>. Assigning unit weight to every edge turns the shortest-path problem into a BFS problem, guaranteeing that the AODV RREQ flood finds the path crossing the fewest intermediate nodes — minimising latency, energy, and collision probability.</p>
   <p><strong>Solution plan:</strong> a <code>Node</code> class storing <code>id</code>, <code>(x,y)</code> position, and a neighbour table <code>{id → RSSI dBm}</code>; a <code>MeshNetwork</code> class wrapping an adjacency list with <code>add_node</code>, <code>build_edges</code> (iff distance ≤ 50 m), and <code>bfs</code> methods; and an ASCII canvas renderer for topology visualisation.</p>
   <h3 class="sub">④ Implementation — click ▶ Run</h3>
-  <div class="formula">RSSI (dBm) = −20·log₁₀(d) − 20·log₁₀(f) + 27.55</div>
+  <div class="formula">RSSI (dBm) = −20·log₁₀(d) − 20·log₁₀(f) + 147.55</div>
   <p>The output includes a full edge table, BFS shortest path, and an <strong>ASCII topology diagram</strong> with nodes at their physical positions.</p>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">mesh_graph.py · prettified + ASCII topology</span>
@@ -1981,7 +1993,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   </table></div>
   <h3 class="sub">② Selection</h3>
   <div class="chosen"><span class="chosen-lbl">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
-  <div class="chosen"><span class="chosen-lbl">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-6" class="cite">[6]</a> or mesh Wi-Fi <a href="#ref-4" class="cite">[4]</a> hardware.</p></div>
+  <div class="chosen"><span class="chosen-lbl">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
   <h3 class="sub">③ Solution Planning</h3>
   <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with TTL-scoped flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
   <h3 class="sub">④ Run all 4 scenarios</h3>
@@ -2061,9 +2073,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <div class="bib-item" id="ref-4"><div class="bib-num"><a href="#ref-4" class="bib-link">[4]</a></div><div class="bib-text"><em>I. F. Akyildiz, X. Wang, W. Wang</em>, "Wireless mesh networks: a survey," <em>Computer Networks</em>, vol. 47, no. 4, pp. 445–487, Mar. 2005. doi: <a href="https://doi.org/10.1016/j.comnet.2004.12.001" target="_blank" class="bib-link">10.1016/j.comnet.2004.12.001</a></div></div>
     <div class="bib-item" id="ref-5"><div class="bib-num"><a href="#ref-5" class="bib-link">[5]</a></div><div class="bib-text"><em>D. B. Johnson, D. A. Maltz, J. Broch</em>, "DSR: The Dynamic Source Routing Protocol for Multihop Wireless Ad Hoc Networks," in <em>Ad Hoc Networking</em>, Addison-Wesley, 2001, pp. 139–172.</div></div>
     <div class="bib-item" id="ref-6"><div class="bib-num"><a href="#ref-6" class="bib-link">[6]</a></div><div class="bib-text">IEEE Std 802.11s-2011, "IEEE Standard for Information Technology — Telecommunications and Information Exchange Between Systems — Wireless LAN MAC and PHY Specifications Amendment 10: Mesh Networking," IEEE, 2011.</div></div>
+    <div class="bib-item" id="ref-7"><div class="bib-num"><a href="#ref-7" class="bib-link">[7]</a></div><div class="bib-text">IEEE Std 802.15.4-2015, "IEEE Standard for Low-Rate Wireless Networks," IEEE, 2015. doi: <a href="https://doi.org/10.1109/IEEESTD.2016.7460875" target="_blank" class="bib-link">10.1109/IEEESTD.2016.7460875</a></div></div>
   </div>
   <hr class="div">
-  <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Mesh Network Routing Algorithm · Interactive Report v4 · Pyodide WebAssembly · Claude Sonnet 4</p>
+  <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Mesh Network Routing Algorithm · Interactive Report v4 · Pyodide WebAssembly</p>
 </section>
 
 </main>
