@@ -262,7 +262,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
 <tr><th>Technique</th><th>Diagram Types</th><th>Formality</th><th>Tool Support</th></tr>
-<tr><td>SysML 1.6<a href="#ref-4" class="cite">[4]</a></td><td>BDD, IBD, Use Case, Requirements, Activity, State Machine, Sequence, Parametric</td><td>High — OMG standard</td><td>Cameo, Papyrus, Enterprise Architect</td></tr>
+<tr><td>SysML 1.6</td><td>BDD, IBD, Use Case, Requirements, Activity, State Machine, Sequence, Parametric</td><td>High — OMG standard</td><td>Cameo, Papyrus, Enterprise Architect</td></tr>
 <tr><td>UML 2.5</td><td>Class, Component, Deployment, Use Case, Sequence, State, Activity</td><td>High — OMG standard</td><td>Broad IDE support</td></tr>
 <tr><td>Capella / Arcadia</td><td>Operational, System, Logical, Physical architecture layers</td><td>Medium-High — MBSE method</td><td>Capella (Eclipse-based)</td></tr>
 <tr><td>Informal block diagrams</td><td>Free-form boxes and arrows</td><td>Low</td><td>Any drawing tool</td></tr>
@@ -273,7 +273,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>UML 2.5:</strong> Excellent for software, but lacks native requirement and parametric diagram types needed to model mass, buoyancy, and sensor constraints in a single model.</p>
 <p><strong>Capella/Arcadia:</strong> Powerful for full MBSE lifecycle but introduces heavy methodology overhead for a single-system report; not easily reproducible in document form.</p>
 <p><strong>Informal diagrams:</strong> Quick but lack traceability between requirements, structure, and behavior — critical for validating that all 3 DOF are covered.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>SysML 1.6</strong> — The standard provides Block Definition Diagrams for system decomposition, Internal Block Diagrams for port/flow connectivity, Use Case diagrams for operational scenarios, and Requirement Diagrams for traceability. This combination covers all four diagram types requested while maintaining formal traceability between physical constraints (50 kg mass, pump states, PWM range) and functional behavior<a href="#ref-4" class="cite">[4]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>SysML 1.6</strong> — The standard provides Block Definition Diagrams for system decomposition, Internal Block Diagrams for port/flow connectivity, Use Case diagrams for operational scenarios, and Requirement Diagrams for traceability. This combination covers all four diagram types requested while maintaining formal traceability between physical constraints (50 kg mass, pump states, PWM range) and functional behavior.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
 <p>We model the UUV system using four SysML diagram types. The <strong>Block Definition Diagram (BDD)</strong> captures the system hierarchy: the top-level UUV block contains sub-blocks for the Propulsion Subsystem (2 motors, 2 H-bridges), Ballast Subsystem (pump, tank, valve), Sensor Suite (IMU, magnetometer, pressure sensor), Navigation Controller (RL agent), and Power Supply. Each block carries value properties such as <code>mass: Real = 50 kg</code>, <code>maxRPM: Integer</code>, etc.</p>
@@ -596,11 +596,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>Fused navigation state:</strong> Compact after sensor fusion — bearing, bearing error, heading rate, depth, depth error, depth rate, forward speed, pitch, roll. More sample-efficient since the agent focuses on control, not perception.</p>
 <p><strong>Image-based:</strong> Completely unnecessary — we have low-dimensional sensor data, not camera feeds. Would massively increase training time.</p>
 <p><strong>Hybrid state + error:</strong> Augments fused state with integral and derivative of tracking errors, giving the agent direct access to PID-like signals — most information-rich without excessive dimensionality.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Hybrid fused state + error terms</strong> — 12-dimensional observation: [bearing_error, depth_error, heading_rate, depth_rate, pitch, roll, forward_speed, ∫e_ψ, ∫e_z, d_wp, ė_ψ, ė_z]. Action space is 3D: [left_motor PWM ∈ [-1,1], right_motor PWM ∈ [-1,1], pump_command ∈ {-1, 0, 1}]<a href="#ref-5" class="cite">[5]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Hybrid fused state + error terms</strong> — 12-dimensional observation: [bearing_error, depth_error, heading_rate, depth_rate, pitch, roll, forward_speed, ∫e_ψ, ∫e_z, d_wp, ė_ψ, ė_z]. Action space is 3D continuous: [left_motor PWM, right_motor PWM, pump_command] ∈ [-1,1]³, with pump discretized to {-1, 0, 1} at execution via hysteresis thresholds<a href="#ref-5" class="cite">[5]</a>.</p></div>
 
 <h3 class="sub">③ Solution Planning — Observation Space</h3>
 <div class="formula">Observation: o = [e_ψ, e_z, ψ̇, ż, θ, φ, v_x, ∫e_ψ dt, ∫e_z dt, d_wp, ė_ψ, ė_z] ∈ ℝ¹²</div>
-<div class="formula">Action: a = [u_L, u_R, u_P] ∈ [-1,1]² × {-1, 0, 1}</div>
+<div class="formula">Action: a = [u_L, u_R, u_P] ∈ [-1,1]³   (pump discretized to {-1, 0, 1} at execution)</div>
 
 <div class="tw"><table>
 <tr><th>Parameter</th><th>Symbol</th><th>Range</th><th>Units</th><th>Justification</th></tr>
@@ -620,6 +620,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <h3 class="sub">④ Discussion</h3>
 <p>The observation vector is designed to provide the RL agent with a PID-like information set: the error terms give proportional signals, the derivatives give rate-of-change (derivative signals), and the integral terms provide accumulated error for steady-state correction. This allows the RL agent to <em>discover</em> nonlinear combinations of these signals that outperform classical PID tuning, while not burdening it with raw sensor fusion.</p>
+<p><strong>Note on redundancy:</strong> When waypoint targets are constant between transitions, ė_ψ = d/dt(ψ_target − ψ) = −ψ̇ and similarly ė_z = −ż, making dimensions 11–12 linearly dependent on dimensions 3–4. The two pairs diverge only at waypoint transitions (where the target changes discontinuously). If observation dimensionality becomes a concern for embedded inference, these redundant dimensions can be removed with minimal impact on policy quality.</p>
 <p>The action space mixes continuous (motor PWM) and discrete (pump). For the TD3 algorithm (Q6), we treat the pump as a continuous variable in [-1, 1] and apply rounding to {-1, 0, 1} at execution time with hysteresis thresholds at ±0.33. This avoids the complexity of hybrid action space algorithms while preserving differentiability for policy gradient updates.</p>
 <p>All observation dimensions are normalized to [-1, 1] before feeding the neural network, using the known physical bounds listed in the parameter table. This normalization is critical for stable gradient-based training — without it, dimensions with large ranges (e.g., d_wp ∈ [0, 1000]) would dominate the loss gradients over small-range dimensions (e.g., ψ̇ ∈ [-2, 2]).</p>
 </section>
@@ -634,7 +635,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>Complementary Filter</td><td>Low — single α</td><td>O(1)</td><td>Yes</td><td>Good for attitude</td></tr>
 <tr><td>Extended Kalman Filter<a href="#ref-4" class="cite">[4]</a></td><td>Medium — Q, R matrices</td><td>O(n³)</td><td>Yes</td><td>Excellent with tuning</td></tr>
 <tr><td>Unscented Kalman Filter</td><td>Medium — covariances</td><td>~3× EKF</td><td>Yes</td><td>Better nonlinear</td></tr>
-<tr><td>Madgwick AHRS<a href="#ref-4" class="cite">[4]</a></td><td>Low — single β</td><td>O(1)</td><td>Yes</td><td>Very good attitude</td></tr>
+<tr><td>Madgwick AHRS</td><td>Low — single β</td><td>O(1)</td><td>Yes</td><td>Very good attitude</td></tr>
 <tr><td>Particle Filter</td><td>High — distribution</td><td>O(N particles)</td><td>Yes</td><td>Best multimodal</td></tr>
 </table></div>
 
@@ -727,7 +728,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>Multi-objective weighted sum:</strong> Natural fit for our problem with explicit trade-offs between bearing tracking, depth tracking, energy, and time.</p>
 <p><strong>HER:</strong> Powerful for sparse goal-reaching but unnecessary when dense shaping is straightforward.</p>
 <p><strong>Potential-based shaping:</strong> Guarantees the shaped reward preserves optimal policies — a theoretical safeguard against reward hacking.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum with potential-based shaping</strong> — The error terms use shaping: R_shaped = γ·Φ(s') - Φ(s), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. Combined with energy penalty and terminal bonuses, this provides dense feedback while preserving optimality<a href="#ref-5" class="cite">[5]</a><a href="#ref-3" class="cite">[3]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum with potential-based shaping</strong> — The error terms use shaping: R_shaped = γ·Φ(s') - Φ(s), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. Combined with energy penalty and terminal bonuses, this provides dense feedback while preserving optimality of the shaping component<a href="#ref-9" class="cite">[9]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
 <div class="formula">R(s, a, s') = w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp − w₄·‖a‖² − w₅·Δt + R_bonus</div>
@@ -785,7 +786,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="svg-caption">Figure 6 — Reward function architecture. Weighted sum of error improvements + terminal bonus + time penalty = total scalar reward.</div>
 </div>
 <p>The weight hierarchy (w₁=3.0 > w₂=2.0 > w₃=1.0) encodes the priority: bearing accuracy is more critical than depth accuracy (the vehicle can adjust depth more easily than heading in currents), and both are more important than forward speed. The energy penalty (w₄=0.05) is intentionally small — it should discourage actuator saturation but not prevent aggressive maneuvers during course corrections. The time penalty (w₅=0.01) creates a constant negative baseline that encourages the agent to reach waypoints quickly rather than hover in a low-error state.</p>
-<p>The potential-based shaping guarantee (from Ng et al., 1999) ensures that the optimal policy under the shaped reward R' is identical to the optimal policy under the true task reward R — preventing pathological behaviors where the agent exploits the shaping signal instead of genuinely solving the task. This is particularly important during the early stages of training when the policy is far from optimal.</p>
+<p>The potential-based shaping guarantee<a href="#ref-9" class="cite">[9]</a> ensures that adding the shaped error-reduction terms (w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp) does not alter the optimal policy defined by the base reward (energy penalty + time penalty + terminal bonuses). Formally, the guarantee applies to the shaping component F(s,s') = γ·Φ(s') − Φ(s), which our error-reduction terms approximate for γ ≈ 1. The energy, time, and terminal terms define the actual task objective and are not part of the shaping — they shape <em>what</em> is optimal, while the potential-based terms only shape <em>how fast</em> the agent learns it.</p>
 </section>
 <!-- ══ Q6 — RL Algorithm ═════════════════ -->
 <section class="section" id="s8">
@@ -796,7 +797,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><th>Algorithm</th><th>Prior Knowledge</th><th>On/Off Policy</th><th>Action Space</th><th>Sample Efficiency</th></tr>
 <tr><td>DQN<a href="#ref-1" class="cite">[1]</a></td><td>None</td><td>Off-policy</td><td>Discrete only</td><td>Moderate</td></tr>
 <tr><td>DDPG<a href="#ref-2" class="cite">[2]</a></td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Good</td></tr>
-<tr><td>TD3 (Twin Delayed DDPG)</td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Very good</td></tr>
+<tr><td>TD3 (Twin Delayed DDPG)<a href="#ref-7" class="cite">[7]</a></td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Very good</td></tr>
 <tr><td>PPO<a href="#ref-3" class="cite">[3]</a></td><td>None</td><td>On-policy</td><td>Both</td><td>Moderate</td></tr>
 <tr><td>SAC (Soft Actor-Critic)</td><td>None</td><td>Off-policy</td><td>Continuous</td><td>Excellent</td></tr>
 </table></div>
@@ -807,9 +808,9 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>TD3:</strong> Addresses DDPG's issues with twin critics, delayed policy updates, and target policy smoothing. Significantly more stable.</p>
 <p><strong>PPO:</strong> Very stable on-policy training but requires ~10× more samples than off-policy methods. Since UUV simulation is expensive, sample efficiency matters.</p>
 <p><strong>SAC:</strong> Maximum-entropy framework with automatic temperature tuning. Best sample efficiency but adds entropy tuning complexity.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>TD3 (Twin Delayed DDPG)</strong> — Three stability improvements: (1) twin Q-networks reducing overestimation, (2) delayed policy updates (every 2 critic updates), (3) target policy smoothing. Provides the robustness needed for safety-sensitive UUV control. Pump command treated as continuous [-1,1] with rounding at execution<a href="#ref-2" class="cite">[2]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>TD3 (Twin Delayed DDPG)</strong> — Three stability improvements: (1) twin Q-networks reducing overestimation, (2) delayed policy updates (every 2 critic updates), (3) target policy smoothing. Provides the robustness needed for safety-sensitive UUV control. Pump command treated as continuous [-1,1] with rounding at execution<a href="#ref-7" class="cite">[7]</a><a href="#ref-2" class="cite">[2]</a>.</p></div>
 
-<h3 class="sub">③ Solution Planning — TD3 Pseudocode</h3>
+<h3 class="sub">③ Solution Planning — TD3 Pseudocode<a href="#ref-7" class="cite">[7]</a></h3>
 <div class="code-card">
 <div class="code-toolbar"><span class="code-lang">PSEUDOCODE</span><span class="code-file">td3_algorithm.txt</span></div>
 <pre class="code-body" style="color:var(--text)">
@@ -865,7 +866,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <pre class="code-body" id="code-q6ref"></pre>
 </div>
 
-<p style="margin-top:24px"><strong>Live Demonstration:</strong> Pure-Python TD3 implementation trained on a simplified UUV environment (bearing + depth control). Mirrors the Keras architecture above with twin critics, delayed policy updates, and target smoothing.</p>
+<p style="margin-top:24px"><strong>Live Demonstration:</strong> Pure-Python TD3 implementation trained on a simplified UUV environment (bearing + depth control). Mirrors the Keras architecture above with twin critics, delayed policy updates, and target smoothing. <strong>Note:</strong> This demo uses per-sample SGD with finite-difference actor gradients — convergence is significantly slower than the Keras reference above which uses proper batch training with automatic differentiation. The demo validates the algorithm structure, not training performance.</p>
 <div class="code-card">
 <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">td3_demo.py · toy UUV training</span><button class="run-btn" onclick="runScript('q6')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button></div>
 <pre class="code-body" id="code-q6"></pre>
@@ -873,7 +874,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </div>
 
 <div class="analysis"><div class="analysis-title">📊 Implementation Notes</div><ul>
-<li>The actor network uses 2 hidden layers of 256 ReLU units and a tanh output layer producing actions in [-1, 1] — a standard architecture for continuous control<a href="#ref-2" class="cite">[2]</a>.</li>
+<li>The actor network uses 2 hidden layers of 256 ReLU units with Layer Normalization after each hidden layer, and a tanh output layer producing actions in [-1, 1] — a standard architecture for continuous control<a href="#ref-7" class="cite">[7]</a><a href="#ref-2" class="cite">[2]</a>. Layer Normalization stabilizes training across the diverse observation scales (angles in radians vs. distances in meters).</li>
 <li>Twin critics Q₁ and Q₂ receive the concatenation of state and action as input, each producing a scalar Q-value. The minimum of both is used for target computation, reducing overestimation bias.</li>
 <li>Delayed policy update (d=2) means the actor is updated only every 2nd critic update, preventing the actor from exploiting transient critic inaccuracies.</li>
 <li>Soft target update with τ=0.005 ensures slow tracking of the main networks, stabilizing the Bellman targets.</li>
@@ -903,10 +904,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>Curriculum learning:</strong> Start with easy scenarios (calm water, nearby waypoints) and progressively increase difficulty. Highly effective for navigation tasks where the agent needs basic control before handling disturbances.</p>
 <p><strong>Transfer learning:</strong> Pre-train on simplified dynamics, then fine-tune on high-fidelity physics. High setup cost but significant payoff.</p>
 <p><strong>Parallel rollouts:</strong> Linear speedup in wall-clock time. Easily implemented with vectorized environments in frameworks like Stable Baselines3.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Combined: PER + Curriculum Learning + LR Scheduling</strong> — These three are complementary: PER improves <em>which</em> experiences to learn from, curriculum improves <em>which</em> scenarios to practice, and LR scheduling improves <em>how</em> to update weights. Expected combined speedup: 5–15× over vanilla TD3<a href="#ref-5" class="cite">[5]</a><a href="#ref-3" class="cite">[3]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Combined: PER + Curriculum Learning + LR Scheduling</strong> — These three are complementary: PER improves <em>which</em> experiences to learn from, curriculum improves <em>which</em> scenarios to practice, and LR scheduling improves <em>how</em> to update weights. Expected combined speedup: 5–15× over vanilla TD3<a href="#ref-8" class="cite">[8]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
-<div class="formula">PER Priority:    p_i = |δ_i| + ε,  where δ_i = TD-error for transition i</div>
+<div class="formula">PER Priority<a href="#ref-8" class="cite">[8]</a>:    p_i = |δ_i| + ε,  where δ_i = TD-error for transition i</div>
 <div class="formula">Sampling Prob:   P(i) = p_i^α / Σ_k p_k^α,    α=0.6</div>
 <div class="formula">IS Weight:       w_i = (N · P(i))^(-β) / max_j(w_j),    β: 0.4 → 1.0</div>
 <div class="formula">Cosine LR:       η(t) = η_min + 0.5·(η_max − η_min)·(1 + cos(π·t/T))</div>
@@ -1022,22 +1023,15 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>STM32N6 with NPU:</strong> The newer STM32 line with an integrated Ethos-U65 NPU accelerates INT8/INT16 inference by 10–50× over software execution. If the actor network needs to grow beyond 2 layers (e.g., for more complex environments), this provides headroom without increasing power.</p>
 <p><strong>FPGA + NPU co-processor:</strong> Maximum flexibility for custom quantized layer implementations. Useful when: (a) the RL agent requires a non-standard neural layer not supported by off-the-shelf hardware; (b) the quantized network needs custom bit-widths (e.g., 4-bit weights); (c) additional acceleration is needed for sensor fusion DSP alongside NN inference. However, development time is significantly higher (HDL design, timing closure).</p>
 <p><strong>DSP processor:</strong> Excellent for fixed-point arithmetic and sensor processing (FFT, filtering), but lacks dedicated NN acceleration. Could serve as a co-processor for sensor fusion while the MCU runs the NN, but adds board complexity.</p>
-<p><strong>Jetson Nano:</strong> Powerful GPU inference but draws 5–10 W — a significant fraction of the UUV's power budget (100 Wh battery = 10 hours at 10 W vs. 66+ hours at 1.5 W). Overkill for a small 2-layer actor network. The Linux OS also introduces non-deterministic latency spikes.</p>
+<p><strong>Jetson Nano:</strong> Powerful GPU inference but draws 5–10 W versus ~1 W for the STM32H7. While motors and pump dominate total system power, the ~8 W difference is still meaningful for a 100 Wh battery over long missions. Overkill for a small 2-layer actor network. The Linux OS also introduces non-deterministic latency spikes.</p>
 <p><strong>Raspberry Pi 5:</strong> No hardware acceleration for NN inference. CPU-only TFLite is slower and more power-hungry than the STM32 solution for equivalent network sizes.</p>
 
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>STM32H7 MCU with INT8 quantized neural network</strong> — The optimal trade-off for this 50 kg UUV application. The 2-layer, 256-unit TD3 actor network quantized to INT8 fits in < 200 KB flash and executes in < 1 ms, meeting the 100 Hz requirement with 90% margin. Power draw of ~1 W maximizes battery endurance. STM32Cube.AI handles the Keras-to-C conversion automatically. Hardware DSP instructions handle complementary filter computations (Q4). micro-ROS provides ROS 2 integration (Q10). <strong>If FP16 support is needed</strong>, the STM32H7's FPU handles FP32 natively; for dedicated FP16, the newer STM32N6 with Ethos-U65 is the upgrade path. <strong>If the network grows</strong> or requires custom quantized layers, an FPGA co-processor (e.g., Lattice iCE40 or Xilinx Artix) can be added as a NN accelerator alongside the STM32 host<a href="#ref-6" class="cite">[6]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>STM32H7 MCU with INT8 quantized neural network</strong> — The 2-layer, 256-unit TD3 actor network quantized to INT8 fits in < 200 KB flash and executes in < 1 ms on the Cortex-M7 at 480 MHz, meeting the 100 Hz control loop with 90% margin. Power draw of ~1 W maximizes battery endurance. STM32Cube.AI handles the Keras-to-C conversion automatically. Hardware DSP instructions handle complementary filter computations (Q4). micro-ROS provides ROS 2 integration (Q10). The STM32N6 with Ethos-U65 NPU is a strong alternative with faster INT8/INT16 inference, but the STM32H7's more mature toolchain and broader documentation make it the lower-risk choice for initial deployment<a href="#ref-6" class="cite">[6]</a>.</p></div>
 
-<h3 class="sub">③ Solution Planning — Decision Matrix</h3>
-<div class="tw"><table>
-<tr><th>Criterion (weight)</th><th>STM32H7</th><th>STM32N6+NPU</th><th>FPGA+NPU</th><th>DSP</th><th>Jetson Nano</th><th>RPi 5</th></tr>
-<tr><td>Inference speed (0.25)</td><td>4 — INT8 < 1ms</td><td>5 — NPU accel</td><td>5 — custom</td><td>3 — manual</td><td>5 — GPU</td><td>2 — CPU</td></tr>
-<tr><td>Power efficiency (0.30)</td><td>5 — ~1W</td><td>5 — ~1.5W</td><td>3 — 3-10W</td><td>2 — 5-15W</td><td>2 — 5-10W</td><td>3 — 3-7W</td></tr>
-<tr><td>Real-time guarantee (0.15)</td><td>5 — bare metal</td><td>5 — bare metal</td><td>5 — HW timing</td><td>4 — RTOS</td><td>2 — Linux</td><td>2 — Linux</td></tr>
-<tr><td>ROS compatibility (0.15)</td><td>4 — micro-ROS</td><td>4 — micro-ROS</td><td>2 — custom bridge</td><td>2 — limited</td><td>5 — full ROS 2</td><td>5 — full ROS 2</td></tr>
-<tr><td>Dev ecosystem (0.10)</td><td>4 — Cube.AI</td><td>3 — newer, less docs</td><td>2 — HDL expertise</td><td>3 — TI tools</td><td>5 — extensive</td><td>4 — broad</td></tr>
-<tr><td>Cost (0.05)</td><td>5 — $20</td><td>4 — $40</td><td>2 — $100+</td><td>3 — $80</td><td>3 — $150</td><td>4 — $75</td></tr>
-<tr><td><strong>Weighted Score</strong></td><td><strong>4.55</strong></td><td><strong>4.35</strong></td><td><strong>3.35</strong></td><td><strong>2.70</strong></td><td><strong>3.25</strong></td><td><strong>2.90</strong></td></tr>
-</table></div>
+<h3 class="sub">③ Solution Planning</h3>
+<p>The key selection criteria for this 50 kg UUV are <strong>power efficiency</strong> (100 Wh battery must also drive motors and pump), <strong>real-time determinism</strong> (100 Hz control loop with hard deadline), <strong>inference capability</strong> (2-layer 256-unit INT8 actor network), and <strong>ROS 2 compatibility</strong> (Q10). Cost and toolchain maturity are secondary but relevant for a first deployment.</p>
+<p>The <strong>STM32H7</strong> and <strong>STM32N6+NPU</strong> both excel on the primary criteria: sub-2W power, bare-metal real-time guarantees, and micro-ROS support. The STM32N6 offers a dedicated Ethos-U65 NPU for faster INT8/INT16 inference, giving it an edge if the network grows. However, the STM32H7 has a more mature toolchain (STM32Cube.AI), broader community documentation, and a proven track record in embedded ML inference — making it the lower-risk choice for initial deployment. The STM32N6 is the natural upgrade path.</p>
+<p>The <strong>FPGA+NPU</strong> option provides maximum flexibility for custom quantization but demands HDL expertise and significantly longer development cycles. The <strong>Jetson Nano</strong> and <strong>Raspberry Pi 5</strong> offer rich ecosystems and full ROS 2 support, but their Linux-based OSes cannot guarantee deterministic control loop timing, and their 3–10W compute draw — while small relative to total system power dominated by motors and pump — is unnecessary for a network that fits in < 200 KB. The <strong>DSP</strong> option lacks dedicated NN support and is better suited as a co-processor for advanced sensor fusion than as a primary inference platform.</p>
 
 <h3 class="sub">④ Discussion — Architecture Options</h3>
 <p><strong>Baseline configuration (recommended):</strong> A single STM32H7 runs both sensor fusion and RL inference. The Cortex-M7 at 480 MHz with FPU executes the complementary filter at < 50 μs per iteration and the INT8 actor network at < 1 ms, leaving ample margin within the 10 ms control period. STM32Cube.AI converts the Keras model (Q6) to optimized C code with INT8 quantization, typically achieving < 5% accuracy loss versus FP32.</p>
@@ -1193,11 +1187,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>2</td><td>RL Architecture</td><td>Gymnasium-style API</td><td>5-module architecture with clean agent-env boundary</td></tr>
 <tr><td>3</td><td>Variable Space</td><td>Hybrid fused state + error</td><td>12D observation, 3D action (2 continuous + 1 discrete)</td></tr>
 <tr><td>4</td><td>Sensor Processing</td><td>Complementary filter + pressure</td><td>4-stage pipeline at 100 Hz, α=0.98</td></tr>
-<tr><td>5</td><td>Reward Strategy</td><td>Multi-obj. + potential shaping</td><td>5-term weighted reward preserving optimality</td></tr>
+<tr><td>5</td><td>Reward Strategy</td><td>Multi-obj. + potential shaping</td><td>5-term weighted reward; shaping component preserves optimality</td></tr>
 <tr><td>6</td><td>RL Algorithm</td><td>TD3 (Twin Delayed DDPG)</td><td>Keras implementation: twin critics + delayed updates</td></tr>
 <tr><td>7</td><td>Convergence</td><td>PER + Curriculum + LR Schedule</td><td>Estimated 3–5× speedup over vanilla TD3</td></tr>
 <tr><td>8</td><td>Training &amp; Eval</td><td>Python sim → Gazebo transfer</td><td>3-phase pipeline, 4 evaluation scenarios</td></tr>
-<tr><td>9</td><td>Platform</td><td>STM32H7 + INT8 quantized NN</td><td>Score 4.55/5, &lt;1ms inference at ~1W</td></tr>
+<tr><td>9</td><td>Platform</td><td>STM32H7 + INT8 quantized NN</td><td>&lt;1ms inference at ~1W, STM32N6 as upgrade path</td></tr>
 <tr><td>10</td><td>ROS Integration</td><td>ROS 2 Humble + micro-ROS</td><td>10-step deployment plan, 7 nodes, 2.4ms timing budget</td></tr>
 </table></div>
 
@@ -1234,6 +1228,18 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="bib-item" id="ref-6">
 <div class="bib-num"><a href="#ref-6" class="bib-link">[6]</a></div>
 <div class="bib-text"><em>M. Quigley, K. Conley, B. Gerkey, J. Faust, T. Foote, J. Leibs, R. Wheeler, A. Y. Ng</em>, "ROS: an open-source Robot Operating System," <em>ICRA Workshop on Open Source Software</em>, 2009. <a href="https://www.ros.org" target="_blank" class="bib-link">ros.org</a></div>
+</div>
+<div class="bib-item" id="ref-7">
+<div class="bib-num"><a href="#ref-7" class="bib-link">[7]</a></div>
+<div class="bib-text"><em>S. Fujimoto, H. van Hoof, D. Megerle</em>, "Addressing Function Approximation Error in Actor-Critic Methods," <em>Proc. ICML</em>, 2018. arXiv: <a href="https://arxiv.org/abs/1802.09477" target="_blank" class="bib-link">1802.09477</a></div>
+</div>
+<div class="bib-item" id="ref-8">
+<div class="bib-num"><a href="#ref-8" class="bib-link">[8]</a></div>
+<div class="bib-text"><em>T. Schaul, J. Quan, I. Antonoglou, D. Silver</em>, "Prioritized Experience Replay," <em>Proc. ICLR</em>, 2016. arXiv: <a href="https://arxiv.org/abs/1511.05952" target="_blank" class="bib-link">1511.05952</a></div>
+</div>
+<div class="bib-item" id="ref-9">
+<div class="bib-num"><a href="#ref-9" class="bib-link">[9]</a></div>
+<div class="bib-text"><em>A. Y. Ng, D. Harada, S. Russell</em>, "Policy invariance under reward transformations: Theory and application to reward shaping," <em>Proc. ICML</em>, pp. 278–287, 1999.</div>
 </div>
 </section>
 
@@ -1413,8 +1419,7 @@ class TD3Agent:
         """Sample batch and perform one training iteration."""
         if len(self.buffer) < BATCH_SIZE:
             return
-        states, actions, rewards, next_states, dones = \\
-            self.buffer.sample()
+        states, actions, rewards, next_states, dones = self.buffer.sample()
         loss1, loss2 = self._train_step(
             states, actions, rewards, next_states, dones)
         self.train_step_counter += 1
@@ -1605,17 +1610,17 @@ class Net:
 
 OBS_DIM = 4
 ACT_DIM = 2
-HIDDEN = 24
+HIDDEN = 32
 GAMMA = 0.99
 TAU = 0.005
-LR_ACTOR = 5e-4
-LR_CRITIC = 1e-3
-NOISE_STD = 0.2
+LR_ACTOR = 1e-3
+LR_CRITIC = 3e-3
+NOISE_STD = 0.15
 TGT_NOISE = 0.2
 NOISE_CLIP = 0.5
 POLICY_DELAY = 2
 BUF_CAP = 4000
-WARMUP = 128
+WARMUP = 64
 
 # Networks
 actor = Net([OBS_DIM, HIDDEN, HIDDEN, ACT_DIM],
@@ -1651,8 +1656,9 @@ def buf_add(s, a, r, ns, d):
 # ══════════════════════════════════════════════════════════════════
 
 env = UUVEnv()
-EPISODES = 80
+EPISODES = 150
 MAX_STEPS = 60
+MINI_BATCH = 8
 train_steps = 0
 rewards_hist = []
 
@@ -1660,7 +1666,9 @@ print("=" * 62)
 print("  TD3 Training on Toy UUV Environment")
 print("  State:  [e_psi, e_z, psi_dot, z_dot]")
 print("  Action: [differential_thrust, pump_cmd]")
-print("  Networks: actor 4->24->24->2, critics (4+2)->24->24->1")
+print("  Networks: actor 4->32->32->2, critics (4+2)->32->32->1")
+print(f"  Episodes: {EPISODES}, mini-batch: {MINI_BATCH}")
+print("  Note: Pure-Python SGD — convergence is limited vs Keras/GPU")
 print("=" * 62)
 
 for ep in range(EPISODES):
@@ -1678,35 +1686,37 @@ for ep in range(EPISODES):
         ep_reward += r
         s = ns
 
-        # Train (single-sample SGD, every other step)
-        if len(buf) >= WARMUP and t % 2 == 0:
+        # Train (mini-batch SGD, every step after warmup)
+        if len(buf) >= WARMUP:
             train_steps += 1
-            sb, ab, rb, nsb, db = random.choice(buf)
+            samples = random.sample(buf, min(MINI_BATCH, len(buf)))
 
-            # Target action with smoothing noise
-            a_t = actor_tgt.fwd(nsb)
-            a_t = [max(-1.0, min(1.0,
-                    a_t[i] + max(-NOISE_CLIP, min(NOISE_CLIP,
-                    random.gauss(0, TGT_NOISE)))))
-                   for i in range(ACT_DIM)]
+            for sb, ab, rb, nsb, db in samples:
+                # Target action with smoothing noise
+                a_t = actor_tgt.fwd(nsb)
+                a_t = [max(-1.0, min(1.0,
+                        a_t[i] + max(-NOISE_CLIP, min(NOISE_CLIP,
+                        random.gauss(0, TGT_NOISE)))))
+                       for i in range(ACT_DIM)]
 
-            # Target Q = min of twin critics
-            q1_t = c1_tgt.fwd(nsb + a_t)[0]
-            q2_t = c2_tgt.fwd(nsb + a_t)[0]
-            y = rb + GAMMA * (0.0 if db else 1.0) * min(q1_t, q2_t)
+                # Target Q = min of twin critics
+                q1_t = c1_tgt.fwd(nsb + a_t)[0]
+                q2_t = c2_tgt.fwd(nsb + a_t)[0]
+                y = rb + GAMMA * (0.0 if db else 1.0) * min(q1_t, q2_t)
 
-            # Update critic 1
-            q1 = critic1.fwd(sb + ab)[0]
-            critic1.bwd([2.0 * (q1 - y)], LR_CRITIC)
+                # Update critic 1
+                q1 = critic1.fwd(sb + ab)[0]
+                critic1.bwd([2.0 * (q1 - y) / MINI_BATCH], LR_CRITIC)
 
-            # Update critic 2
-            q2 = critic2.fwd(sb + ab)[0]
-            critic2.bwd([2.0 * (q2 - y)], LR_CRITIC)
+                # Update critic 2
+                q2 = critic2.fwd(sb + ab)[0]
+                critic2.bwd([2.0 * (q2 - y) / MINI_BATCH], LR_CRITIC)
 
             # Delayed actor update
             if train_steps % POLICY_DELAY == 0:
-                a_cur = actor.fwd(sb)
-                q_val = critic1.fwd(sb + a_cur)[0]
+                sb0, ab0, _, _, _ = samples[0]
+                a_cur = actor.fwd(sb0)
+                q_val = critic1.fwd(sb0 + a_cur)[0]
 
                 # dQ/da via finite differences
                 eps_fd = 1e-3
@@ -1714,7 +1724,7 @@ for ep in range(EPISODES):
                 for i in range(ACT_DIM):
                     a_p = a_cur[:]
                     a_p[i] += eps_fd
-                    q_p = critic1.fwd(sb + a_p)[0]
+                    q_p = critic1.fwd(sb0 + a_p)[0]
                     grad_a.append((q_p - q_val) / eps_fd)
 
                 # Backprop through actor (maximize Q → negate gradient)
@@ -1729,10 +1739,10 @@ for ep in range(EPISODES):
             break
 
     rewards_hist.append(ep_reward)
-    if (ep + 1) % 10 == 0:
-        avg = sum(rewards_hist[-10:]) / 10
-        best = max(rewards_hist[-10:])
-        print(f"  Ep {ep + 1:3d}  |  avg(10) = {avg:7.2f}"
+    if (ep + 1) % 15 == 0:
+        avg = sum(rewards_hist[-15:]) / 15
+        best = max(rewards_hist[-15:])
+        print(f"  Ep {ep + 1:3d}  |  avg(15) = {avg:7.2f}"
               f"  |  best = {best:6.2f}")
 
 
