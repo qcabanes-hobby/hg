@@ -128,6 +128,9 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 /* Parameter table */
 .param-table{margin:16px 0}
 
+/* Divider */
+hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
+
 /* Responsive */
 @media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero h1{font-size:30px}.meth-grid{grid-template-columns:1fr}}
 </style>
@@ -275,7 +278,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p>Several equivalent-circuit models have been developed to represent the electrodynamics of Josephson junctions and SQUIDs<a href="#ref-1" class="cite">[1]</a><a href="#ref-3" class="cite">[3]</a>.</p>
   <div class="tw"><table>
     <tr><th>Model</th><th>Complexity</th><th>Accuracy</th><th>Key Assumptions</th></tr>
-    <tr><td>Ideal Josephson Junction</td><td>Low</td><td>Qualitative</td><td>Zero capacitance, zero resistance shunt</td></tr>
+    <tr><td>Ideal Josephson Junction</td><td>Low</td><td>Qualitative</td><td>No capacitance, no shunt resistance</td></tr>
     <tr><td>RSJ (Resistively Shunted Junction)</td><td>Medium</td><td>Good for over-damped</td><td>Neglects junction capacitance</td></tr>
     <tr><td>RCSJ (Resistively &amp; Capacitively Shunted Junction)</td><td>Medium-High</td><td>Excellent</td><td>Lumped-element; thermal noise optional</td></tr>
     <tr><td>Microscopic BCS-based</td><td>Very High</td><td>Exact</td><td>Requires numerical many-body computation</td></tr>
@@ -470,7 +473,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
   <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
   <ul>
-    <li><strong>Ideal sinusoidal:</strong> V(Φ) = V_max |cos(πΦ/Φ₀)|. Captures the Φ₀-periodic structure and is analytically tractable. Accurate enough for understanding magnetometer operation and the flux-locked loop principle.</li>
+    <li><strong>Ideal sinusoidal:</strong> V(Φ) ≈ V_min + ΔV·sin²(πΦ/Φ₀). Voltage is minimum at integer Φ₀ (maximum critical current, near-zero voltage when biased close to I_c) and maximum at half-integer Φ₀. Captures the Φ₀-periodic structure and is analytically tractable. Accurate enough for understanding magnetometer operation and the flux-locked loop principle.</li>
     <li><strong>Numerical RCSJ:</strong> Solves the coupled differential equations for both junctions at each flux value. Most accurate but computationally expensive and opaque for pedagogical purposes.</li>
     <li><strong>Small-signal linearisation:</strong> Expands V(Φ) around the operating point: δV = V_Φ · δΦ, where V_Φ = ∂V/∂Φ is the transfer coefficient. Essential for understanding the flux-locked loop but requires the full V(Φ) curve as input.</li>
     <li><strong>Thermal noise-rounded:</strong> Adds a noise-rounding parameter Γ = 2πk_BT/I_cΦ₀ that smooths the V(Φ) cusps. More realistic for practical SQUIDs at finite temperature<a href="#ref-4" class="cite">[4]</a>.</li>
@@ -486,6 +489,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="formula">V(Φ) = R · √(I_bias² − (2I_c · cos(π Φ / Φ₀))²)    for I_bias > 2I_c|cos(πΦ/Φ₀)|</div>
   <p>In the simplified sinusoidal approximation, this reduces to:</p>
   <div class="formula">V(Φ) ≈ V_min + ΔV · sin²(πΦ/Φ₀)    where V_min = R·√(I_bias² − 4I_c²) ≈ 75 µV,  V_max = R·I_bias = 125 µV,  ΔV = 50 µV</div>
+  <p><strong>Screening caveat:</strong> The above sinusoidal approximation assumes β_L = 2LI_c/Φ₀ ≪ 1 (negligible screening). At the practical optimum β_L ≈ 1, circulating screening currents reduce the modulation depth ΔV below the ideal value, since the loop inductance partially shields the applied flux from the junctions. Optimised SQUIDs therefore trade modulation depth for noise performance, with ΔV typically 30&ndash;50% of the unscreened prediction<a href="#ref-2" class="cite">[2]</a>.</p>
 
   <p><strong>2. Transfer coefficient:</strong> The maximum sensitivity occurs at the steepest slope of V(Φ), at Φ = (2n+1)Φ₀/4:</p>
   <div class="formula">V_Φ = ∂V/∂Φ|_max = π ΔV    [V/Φ₀]</div>
@@ -697,15 +701,15 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
       <line x1="85" y1="80" x2="90" y2="80" stroke="#94a3b8" stroke-width="1"/>
       <text x="78" y="84" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">100</text>
       <!-- sqrt(T) scaling line -->
-      <!-- Data: T=0.01K->0.2fT (x=90,y=298), T=4.2->3fT (x=435,y=183), T=77->30fT (x=488,y=93) -->
-      <path d="M90,298 L195,260 L300,227 L405,183 L435,175 L488,133" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+      <!-- Data: T=0.01K->0.2fT (x=90,y=298), T=4.2->3fT (x=365,y=183), T=77->30fT (x=488,y=93) -->
+      <path d="M90,298 L195,260 L300,227 L365,183 L405,167 L488,133" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
       <!-- Data points -->
       <circle cx="90" cy="298" r="5" fill="#00d4ff"/>
       <text x="105" y="293" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~0.2 fT/&radic;Hz</text>
       <text x="105" y="305" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">(near quantum limit)</text>
-      <circle cx="435" cy="175" r="5" fill="#00d4ff"/>
-      <text x="440" y="168" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~3 fT/&radic;Hz</text>
-      <text x="440" y="180" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">LTS @ 4.2 K</text>
+      <circle cx="365" cy="183" r="5" fill="#00d4ff"/>
+      <text x="370" y="176" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~3 fT/&radic;Hz</text>
+      <text x="370" y="198" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">LTS @ 4.2 K</text>
       <circle cx="488" cy="133" r="5" fill="#00d4ff"/>
       <text x="440" y="120" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">~30 fT/&radic;Hz</text>
       <text x="440" y="132" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">HTS @ 77 K</text>
@@ -720,32 +724,36 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <svg viewBox="0 0 560 280" width="560" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
       <text x="280" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Comparative Field Sensitivity</text>
       <text x="280" y="265" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">Field sensitivity (fT/&radic;Hz) &mdash; log scale</text>
-      <!-- Bars (horizontal, log scale: 1fT=120px, 10fT=280px, 100fT=380px, 10000fT=500px) -->
-      <!-- LTS SQUID: ~3 fT -->
+      <!-- Bars (horizontal, log scale: 0.1fT=x120, each decade=84px, 5 decades to 10000fT=x540) -->
+      <!-- LTS SQUID: ~3 fT → log10(3/0.1)=1.477 decades → 124px -->
       <text x="115" y="72" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">LTS SQUID</text>
-      <rect x="120" y="58" width="195" height="24" rx="4" fill="#00d4ff" opacity="0.8"/>
-      <text x="322" y="75" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="9">~3</text>
-      <!-- HTS SQUID: ~50 fT -->
+      <rect x="120" y="58" width="124" height="24" rx="4" fill="#00d4ff" opacity="0.8"/>
+      <text x="250" y="75" fill="#00d4ff" font-family="JetBrains Mono,monospace" font-size="9">~3</text>
+      <!-- HTS SQUID: ~50 fT → log10(50/0.1)=2.699 decades → 227px -->
       <text x="115" y="112" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">HTS SQUID</text>
-      <rect x="120" y="98" width="310" height="24" rx="4" fill="#8b5cf6" opacity="0.8"/>
-      <text x="436" y="115" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="9">~50</text>
-      <!-- Fluxgate: ~10,000 fT -->
+      <rect x="120" y="98" width="227" height="24" rx="4" fill="#8b5cf6" opacity="0.8"/>
+      <text x="353" y="115" fill="#8b5cf6" font-family="JetBrains Mono,monospace" font-size="9">~50</text>
+      <!-- Fluxgate: ~10,000 fT → log10(10000/0.1)=5.0 decades → 420px -->
       <text x="115" y="152" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Fluxgate</text>
       <rect x="120" y="138" width="420" height="24" rx="4" fill="#f59e0b" opacity="0.8"/>
       <text x="545" y="155" fill="#f59e0b" font-family="JetBrains Mono,monospace" font-size="9">~10,000</text>
-      <!-- OPM: ~10 fT -->
+      <!-- OPM: ~10 fT → log10(10/0.1)=2.0 decades → 168px -->
       <text x="115" y="192" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">OPM</text>
-      <rect x="120" y="178" width="240" height="24" rx="4" fill="#10d880" opacity="0.8"/>
-      <text x="366" y="195" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="9">~10</text>
-      <!-- Scale markers -->
+      <rect x="120" y="178" width="168" height="24" rx="4" fill="#10d880" opacity="0.8"/>
+      <text x="294" y="195" fill="#10d880" font-family="JetBrains Mono,monospace" font-size="9">~10</text>
+      <!-- Scale markers: 0.1=x120, 1=x204, 10=x288, 100=x372, 1000=x456, 10000=x540 -->
       <line x1="120" y1="220" x2="120" y2="230" stroke="#4f6480" stroke-width="1"/>
       <text x="120" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">0.1</text>
-      <line x1="230" y1="220" x2="230" y2="230" stroke="#4f6480" stroke-width="1"/>
-      <text x="230" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">1</text>
-      <line x1="340" y1="220" x2="340" y2="230" stroke="#4f6480" stroke-width="1"/>
-      <text x="340" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">100</text>
-      <line x1="450" y1="220" x2="450" y2="230" stroke="#4f6480" stroke-width="1"/>
-      <text x="450" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">10,000</text>
+      <line x1="204" y1="220" x2="204" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="204" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">1</text>
+      <line x1="288" y1="220" x2="288" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="288" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">10</text>
+      <line x1="372" y1="220" x2="372" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="372" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">100</text>
+      <line x1="456" y1="220" x2="456" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="456" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">1,000</text>
+      <line x1="540" y1="220" x2="540" y2="230" stroke="#4f6480" stroke-width="1"/>
+      <text x="540" y="242" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">10,000</text>
     </svg>
     <div class="svg-caption">Figure 6 &mdash; Comparative field sensitivity across magnetometer technologies.</div>
   </div>
@@ -1294,6 +1302,9 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     </div>
   </div>
 </section>
+
+<hr class="div">
+<p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">SQUID Magnetometry &middot; Static Report</p>
 
 </main>
 

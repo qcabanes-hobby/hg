@@ -58,12 +58,15 @@ section.section{margin-bottom:72px;scroll-margin-top:calc(var(--hdr-h) + 24px)}
 .hero h1 em{color:var(--cyan);font-style:normal}
 .hero-sub{font-size:15px;color:var(--text2);max-width:560px;line-height:1.65;margin-bottom:28px}
 .hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta span::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cyan)}
 .pill{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:4px 14px;border-radius:20px;border:1px solid var(--border2);color:var(--text2)}
 
 /* Section Headings */
 .section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px}
 h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2}
 h3.sub{font-family:var(--display);font-size:17px;font-weight:600;color:var(--cyan);margin:32px 0 12px}
+h4.subsub{font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);margin:24px 0 10px}
 .section-num{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:6px;padding:3px 10px;white-space:nowrap;margin-top:5px;letter-spacing:.08em}
 .section-num.v{color:var(--violet);background:var(--violet-dim);border-color:var(--violet)}
 .section-num.g{color:var(--green);background:var(--green-dim);border-color:var(--green)}
@@ -158,6 +161,9 @@ pre.out-body.err-out{color:#ff7070}
 /* Misc */
 code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
 
+/* Divider */
+hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
+
 /* Responsive */
 @media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero h1{font-size:30px}.meth-grid{grid-template-columns:1fr}}
 </style>
@@ -217,10 +223,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="hero">
   <div class="hero-tag">Technical Report · Version 1 · Browser-Only · WebAssembly</div>
   <h1>Reinforcement Learning Navigation<br><em>for Unmanned Underwater Vehicles</em></h1>
-  <p class="hero-sub">Model-free depth and bearing control of a 50 kg UUV using differential thrust motors and ballast pump, with IMU and pressure sensor feedback.</p>
+  <p class="hero-sub">Model-free depth and bearing control of a 50 kg UUV using differential thrust motors and ballast pump, with AHRS and pressure sensor feedback.</p>
   <div class="hero-meta">
     <span>Python 3.12 · Pyodide</span><span>RL + Marine Control</span>
-    <span>10 Questions · TD3 Agent</span><span>IMU + Pressure Sensor Fusion</span>
+    <span>10 Questions · TD3 Agent</span><span>AHRS + Pressure Sensor</span>
   </div>
 </div>
 </section>
@@ -1327,6 +1333,9 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="bib-text"><em>A. Y. Ng, D. Harada, S. Russell</em>, "Policy invariance under reward transformations: Theory and application to reward shaping," <em>Proc. ICML</em>, pp. 278–287, 1999. <a href="https://dl.acm.org/doi/10.5555/645528.657613" target="_blank" class="bib-link">dl.acm.org</a></div>
 </div>
 </section>
+
+<hr class="div">
+<p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">UUV RL Navigation &middot; Interactive Report &middot; Pyodide WebAssembly</p>
 
 </main><!-- end main -->
 <!-- ══ PYTHON SCRIPT: Q6 Keras Reference (display only) ═══════ -->

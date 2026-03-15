@@ -81,6 +81,8 @@ li{margin-bottom:6px}
 /* Analysis */
 .analysis{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:16px 0}
 .analysis-title{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.analysis ul li{position:relative;padding-left:18px;margin-bottom:6px;list-style:none}
+.analysis ul li::before{content:'\2192';position:absolute;left:0;color:var(--amber);font-size:11px}
 
 /* Inline code */
 code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
@@ -2924,7 +2926,7 @@ c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup
 <h4 class="subsub">BER Performance Analysis</h4>
 <p>The BER of M-PSK modulations in AWGN is given by:</p>
 <div class="formula">
-P<sub>b</sub> &asymp; (1/(2&middot;log&#8322;M)) &middot; erfc(&radic;(log&#8322;M &middot; E<sub>b</sub>/N<sub>0</sub>) &middot; sin(&pi;/M))
+P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot; E<sub>b</sub>/N<sub>0</sub>) &middot; sin(&pi;/M))
 </div>
 <p>For the candidate modulations at BER = 10<sup>&minus;4</sup>:</p>
 <div class="tw"><table>
@@ -14671,7 +14673,7 @@ z
 <p>Two primary approaches are evaluated for the modem real-time software architecture:</p>
 <div class="tw"><table>
 <tr><th>Approach</th><th>Language</th><th>Scheduling</th><th>RT Guarantees</th><th>Certification</th><th>Ecosystem Maturity</th></tr>
-<tr><td><strong>FreeRTOS</strong></td><td>C</td><td>Preemptive priority</td><td>Hard real-time</td><td>IEC 61508 available</td><td>20+ years, massive</td></tr>
+<tr><td><strong>FreeRTOS</strong></td><td>C</td><td>Preemptive priority</td><td>Hard real-time</td><td>IEC 61508 via SafeRTOS&dagger;</td><td>20+ years, massive</td></tr>
 <tr><td>Embassy (Async Rust)</td><td>Rust</td><td>Cooperative async</td><td>Soft real-time</td><td>None yet</td><td>~3 years, growing</td></tr>
 </table></div>
 
@@ -14693,7 +14695,7 @@ z
 <h4 class="subsub">IPC and Synchronization</h4>
 <p>Inter-task communication uses FreeRTOS primitives: queues for data passing (Tx symbol queue depth 8, Rx frame queue depth 4, host command queue depth 16), a mutex with priority inheritance for the DMA ping-pong buffer, and an event group for global state flags (TX_DONE, RX_FRAME_RDY, POWER_FAULT, HOST_CMD).</p>
 
-<p><strong>Advantages:</strong> 20+ years of maturity with a massive deployed base. Hard real-time guarantees via preemptive priority scheduling. IEC 61508 pre-certified kernel available for safety-critical applications. Native STM32 integration and extensive tooling (GDB, SystemView). Very large developer pool. CMSIS-DSP library is highly optimized for Cortex-M.</p>
+<p><strong>Advantages:</strong> 20+ years of maturity with a massive deployed base. Hard real-time guarantees via preemptive priority scheduling. IEC 61508 SIL 3 pre-certified kernel available via SafeRTOS (a commercially licensed safety variant by WITTENSTEIN, derived from the FreeRTOS code base &mdash; not the open-source FreeRTOS itself). Native STM32 integration and extensive tooling (GDB, SystemView). Very large developer pool. CMSIS-DSP library is highly optimized for Cortex-M.</p>
 <p><strong>Limitations:</strong> Written in C, so memory safety relies on developer discipline (no compile-time protection against buffer overflows, use-after-free, or data races). Context switch latency of ~1-2 &mu;s (preemptive).</p>
 
 <h4 class="subsub">Option B: Embassy (Async Rust, Bare Metal)</h4>
