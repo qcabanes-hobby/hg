@@ -781,7 +781,7 @@ class Event(Enum):
     SEND_REQ         = auto()   # application wants to send a packet
     RREQ_RX          = auto()   # received a Route Request to forward
     RREP_RX          = auto()   # received a Route Reply
-    ROUTE_FOUND      = auto()   # RREQ/RREP cycle completed successfully
+    ROUTE_FOUND      = auto()   # RREQ flood dispatched — awaiting RREP
     ROUTE_TIMEOUT    = auto()   # RREP not received within timeout window
     DATA_RX          = auto()   # DATA packet arrived for this node
     TX_DONE          = auto()   # radio MAC confirms packet was transmitted
@@ -906,7 +906,8 @@ class NodeFSM:
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  DEMO — exercise all 16 defined transitions
+#  DEMO — exercise 15 of 16 defined transitions
+#  (WAIT_RREP, ROUTE_TIMEOUT) → ERROR is not exercised
 # ══════════════════════════════════════════════════════════════════════
 fsm = NodeFSM(node_id=42)
 
@@ -1642,7 +1643,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   </div>
   <div class="nav-group">
     <span class="nav-group-label">Appendix</span>
-    <a class="nav-item" href="#s8"><span class="nav-num">08</span><span class="nav-dot"></span>AI Disclosure</a>
+    <a class="nav-item" href="#s8"><span class="nav-num">08</span><span class="nav-dot"></span>AI Usage Disclosure</a>
     <a class="nav-item" href="#s9"><span class="nav-num">09</span><span class="nav-dot"></span>Conclusion</a>
     <a class="nav-item" href="#s10"><span class="nav-num">10</span><span class="nav-dot"></span>Bibliography</a>
   </div>
@@ -1726,7 +1727,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
   <div class="meth-grid">
     <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey existing algorithms and protocols with a comparison table. Include inline citations to foundational references.</div></div>
-    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><div class="meth-desc">Per-technique pros/cons specific to this mesh network problem. Conclude with a CHOSEN box justifying the selected approach.</div></div>
+    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis &amp; Selection</div><div class="meth-desc">Per-technique pros/cons specific to this mesh network problem. Conclude with a CHOSEN box justifying the selected approach.</div></div>
     <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, data structures, mathematical derivations, and design decisions. Diagrams where applicable.</div></div>
     <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Commented, runnable Python with annotated output. Click Run to execute in the browser via Pyodide.</div></div>
   </div>

@@ -162,7 +162,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <a href="#s7" class="nav-item"><span class="nav-num">Q5</span><span class="nav-dot"></span>Cryostat Design</a>
 
   <div class="nav-group-label">Appendix</div>
-  <a href="#s8" class="nav-item"><span class="nav-num">08</span><span class="nav-dot"></span>AI Disclosure</a>
+  <a href="#s8" class="nav-item"><span class="nav-num">08</span><span class="nav-dot"></span>AI Usage Disclosure</a>
   <a href="#s9" class="nav-item"><span class="nav-num">09</span><span class="nav-dot"></span>Conclusion</a>
   <a href="#s10" class="nav-item"><span class="nav-num">10</span><span class="nav-dot"></span>Bibliography</a>
 </nav>
@@ -175,7 +175,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <!-- ── HERO ────────────────────────────────────────────── -->
 <section class="section" id="hero">
   <div class="hero">
-    <div class="hero-tag">Technical Report · SQUID &amp; Quantum Magnetometry</div>
+    <div class="hero-tag">Technical Report · Version 2 · Static HTML</div>
     <h1>SQUID &amp; Quantum<br><em>Magnetometry</em></h1>
     <p class="hero-sub">Superconducting Quantum Interference Devices — Physics, Models, and Engineering</p>
     <div class="hero-meta">
@@ -253,7 +253,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p>Every question follows a rigorous four-step methodology designed to move from survey through selection to validated implementation.</p>
   <div class="meth-grid">
     <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey ≥ 3 existing techniques with a comparison table of key properties, supported by published references.</div></div>
-    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><div class="meth-desc">Evaluate each technique with specific pros/cons. End with a justified CHOSEN selection box.</div></div>
+    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis &amp; Selection</div><div class="meth-desc">Evaluate each technique with specific pros/cons. End with a justified CHOSEN selection box.</div></div>
     <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, mathematical derivations, parameter tables, and class/interface design before any code.</div></div>
     <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Technical figures, numerical results, and output analysis linking results to theory.</div></div>
   </div>
@@ -628,12 +628,12 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <ul>
     <li><strong>Low-Temperature Superconductor (LTS) SQUIDs:</strong> Achieve the ultimate sensitivity of ~1 fT/√Hz with Nb-based junctions at 4.2 K. The requirement for liquid helium cooling is the primary practical limitation. However, for applications demanding the lowest noise floor (MEG, fundamental physics), there is no substitute<a href="#ref-2" class="cite">[2]</a>.</li>
     <li><strong>High-Temperature Superconductor (HTS) SQUIDs:</strong> YBCO-based devices operate at 77 K (liquid nitrogen), reducing cost and complexity. However, the higher operating temperature increases thermal noise by a factor of ~√(77/4.2) ≈ 4.3, and grain-boundary junctions have less reproducible critical currents.</li>
-    <li><strong>Fluxgate magnetometers:</strong> Room-temperature operation with ~10 pT/√Hz sensitivity. Adequate for geophysics and navigation but three orders of magnitude less sensitive than LTS SQUIDs.</li>
+    <li><strong>Fluxgate magnetometers:</strong> Room-temperature operation with ~10 pT/√Hz sensitivity. Adequate for geophysics and navigation but over three orders of magnitude less sensitive than LTS SQUIDs.</li>
     <li><strong>Optically pumped magnetometers:</strong> Emerging technology with ~10 fT/√Hz in zero-field. Competitive with SQUIDs in some applications but limited bandwidth and requires magnetic shielding.</li>
   </ul>
   <div class="chosen">
     <div class="chosen-label">CHOSEN</div>
-    <p><strong>LTS SQUID analysis framework</strong> for establishing the fundamental sensitivity limits. The energy sensitivity ε = S_Φ/(2L) = 8k_BTL/R sets the quantum-limited performance. We model the noise spectral density and its temperature dependence to quantify the key performance criteria: spectral noise density S_Φ^(1/2), energy sensitivity ε, slew rate, and dynamic range<a href="#ref-4" class="cite">[4]</a>.</p>
+    <p><strong>LTS SQUID analysis framework</strong> for establishing the fundamental sensitivity limits. The energy sensitivity ε = S_Φ/(2L) = 8k_BTL/R sets the thermal noise-limited performance. We model the noise spectral density and its temperature dependence to quantify the key performance criteria: spectral noise density S_Φ^(1/2), energy sensitivity ε, slew rate, and dynamic range<a href="#ref-4" class="cite">[4]</a>.</p>
   </div>
 
   <h3 class="sub">③ Solution Planning</h3>
@@ -749,11 +749,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <h4 class="subsub">Noise Parameters vs Temperature</h4>
   <div class="tw"><table>
     <tr><th>Temperature (K)</th><th>S_&Phi;^(1/2) (&mu;&Phi;&#8320;/&radic;Hz)</th><th>S_B^(1/2) (fT/&radic;Hz)</th><th>&epsilon; (J/Hz)</th><th>Ratio to &hbar;/2</th></tr>
-    <tr><td>0.01</td><td>0.07</td><td>0.14</td><td>&ge; 5.3 &times; 10&#8315;&#179;&#8309; (&hbar;/2 floor)</td><td>~1&times; (quantum-limited)</td></tr>
+    <tr><td>0.01</td><td>~0.05*</td><td>~0.10*</td><td>&ge; 5.3 &times; 10&#8315;&#179;&#8309; (&hbar;/2 floor)</td><td>~1&times; (quantum-limited)</td></tr>
     <tr><td>4.2</td><td>1.53</td><td>3.2</td><td>9.3 &times; 10&#8315;&#179;&#179;</td><td>~180&times;</td></tr>
     <tr><td>77</td><td>6.56</td><td>13.6</td><td>1.7 &times; 10&#8315;&#179;&#185;</td><td>~3,300&times;</td></tr>
   </table></div>
-  <p style="font-size:12px;color:var(--text3);margin-top:4px"><strong>Note:</strong> S_&Phi;^(1/2) and S_B^(1/2) columns use representative <em>measured</em> values (~2.3&times; above the idealized Tesche&ndash;Clarke prediction), reflecting practical noise contributions. The &epsilon; column uses the theoretical expression &epsilon; = 8k_BTL/R, which gives the fundamental thermal limit. Practical energy sensitivity is correspondingly ~5&times; higher than the tabulated &epsilon; values.</p>
+  <p style="font-size:12px;color:var(--text3);margin-top:4px"><strong>Note:</strong> S_&Phi;^(1/2) and S_B^(1/2) columns use representative <em>measured</em> values (~2.3&times; above the idealized Tesche&ndash;Clarke prediction), reflecting practical noise contributions. The &epsilon; column uses the theoretical expression &epsilon; = 8k_BTL/R, which gives the fundamental thermal limit. Practical energy sensitivity is correspondingly ~5&times; higher than the tabulated &epsilon; values. *At 0.01 K the thermal formula predicts values below the quantum noise floor; the listed S_&Phi;^(1/2) and S_B^(1/2) are quantum-limited estimates consistent with &epsilon; = &hbar;/2.</p>
 
   <!-- LTS vs HTS summary -->
   <h4 class="subsub">LTS vs HTS Performance Summary</h4>
@@ -798,7 +798,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p><strong>Type tags:</strong> <code>CLASSIFICATION</code></p>
 
   <h3 class="sub">① State of the Art</h3>
-  <p>SQUID fabrication leverages thin-film deposition, lithographic patterning, and controlled tunnel-barrier formation. The key challenge is producing junctions with reproducible critical currents<a href="#ref-3" class="cite">[3]</a><a href="#ref-6" class="cite">[6]</a>.</p>
+  <p>SQUID fabrication leverages thin-film deposition, lithographic patterning, and controlled tunnel-barrier formation. The key challenge is producing junctions with reproducible critical currents<a href="#ref-6" class="cite">[6]</a>.</p>
   <div class="tw"><table>
     <tr><th>Technique</th><th>Key Properties</th><th>Pros</th><th>Cons</th></tr>
     <tr><td>Nb/AlOx/Nb tri-layer</td><td>LTS, tunnel junction, I_c controllable via Al thickness</td><td>Best reproducibility, mature process, sub-1% I_c spread</td><td>Requires UHV deposition, 4.2 K operation</td></tr>

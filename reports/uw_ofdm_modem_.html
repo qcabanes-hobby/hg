@@ -269,7 +269,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <tr><th>Parameter</th><th>Specification</th><th>Rationale</th></tr>
 <tr><td>Frequency Band</td><td>10-100 kHz (usable: 20-40 kHz)</td><td>Trade-off: absorption vs. transducer size <a href="#ref-7" class="cite">[7]</a></td></tr>
 <tr><td>Bandwidth</td><td>20 kHz</td><td>Supports &ge; 10 kbps with QPSK-OFDM <a href="#ref-14" class="cite">[14]</a></td></tr>
-<tr><td>Tx Power</td><td>100 W (50 dBm)</td><td>Link budget for 5 km range <a href="#ref-1" class="cite">[1]</a></td></tr>
+<tr><td>Tx Power</td><td>100 W electrical (50 dBm)</td><td>Link budget for 5 km range; ~50 W acoustic at 50% transducer efficiency <a href="#ref-1" class="cite">[1]</a></td></tr>
 <tr><td>Rx Sensitivity</td><td>&minus;100 dBm(A)</td><td>Adequate for ambient noise floor <a href="#ref-5" class="cite">[5]</a></td></tr>
 <tr><td>Data Rate</td><td>&ge; 10 kbps net</td><td>Telemetry + low-rate video <a href="#ref-2" class="cite">[2]</a></td></tr>
 <tr><td>BER Target</td><td>&lt; 10<sup>&minus;4</sup> after FEC</td><td>Acceptable for encoded data streams</td></tr>
@@ -283,7 +283,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
 <div class="meth-grid">
   <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey existing techniques with a comparison table. Include inline citations to foundational references from IEEE J. Oceanic Engineering and related publications.</div></div>
-  <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><div class="meth-desc">Per-technique pros/cons specific to this UW OFDM modem problem. Conclude with a CHOSEN box justifying the selected approach.</div></div>
+  <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis &amp; Selection</div><div class="meth-desc">Per-technique pros/cons specific to this UW OFDM modem problem. Conclude with a CHOSEN box justifying the selected approach.</div></div>
   <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, data structures, mathematical derivations, and design decisions. Diagrams where applicable.</div></div>
   <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Detailed design with component values, firmware architecture, simulation strategy, and V-model test planning.</div></div>
 </div>
@@ -330,7 +330,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 
 <h3 class="sub">Assumptions</h3>
 <ul>
-<li>Usable band 20-40 kHz: optimal trade-off between Thorp absorption (increases above ~50 kHz) and transducer size (impractical below ~10 kHz) <a href="#ref-8" class="cite">[8]</a> <a href="#ref-7" class="cite">[7]</a>.</li>
+<li>Usable band 20-40 kHz: optimal trade-off between Thorp absorption (increases with frequency, already ~8 dB/km at 30 kHz) and transducer size (impractical below ~10 kHz) <a href="#ref-8" class="cite">[8]</a> <a href="#ref-7" class="cite">[7]</a>.</li>
 <li>Op-amps: low-noise, high-bandwidth (e.g., OPA1612 or AD8066), GBW &ge; 50 MHz.</li>
 <li>Component tolerances: 1% resistors, 2% C0G/NP0 capacitors, yielding &lt; 0.3 dB passband deviation.</li>
 <li>Tx filter placed after DAC and before PA; Rx filter after LNA and before ADC.</li>
@@ -2808,13 +2808,13 @@ L 74.396955 398.75335
 </ul>
 
 <h3 class="sub">Harmonic Distortion Constraints on Amplifier Stages</h3>
-<p>The Total Harmonic Distortion (THD) constraints on the amplifier stages are critical for OFDM systems because harmonic products create in-band interference that cannot be removed by filtering. OFDM signals have a high Peak-to-Average Power Ratio (PAPR) of approximately 10&ndash;12 dB for 64 subcarriers, making the system particularly vulnerable to nonlinear distortion.</p>
+<p>The Total Harmonic Distortion (THD) constraints on the amplifier stages are critical for OFDM systems because harmonic products create in-band interference that cannot be removed by filtering. OFDM signals have a high Peak-to-Average Power Ratio (PAPR) of approximately 7&ndash;9 dB for 64 subcarriers (QPSK, 0.1% CCDF), making the system particularly vulnerable to nonlinear distortion.</p>
 
 <h4 class="subsub">Emitter Amplifier (PA) THD Constraint</h4>
 <ul>
-<li><strong>THD &lt; &minus;40 dB (1% distortion)</strong> at full output power (100 W). This ensures that harmonic products fall below the noise floor at the receiver after propagation loss.</li>
+<li><strong>THD &lt; &minus;40 dB (1% distortion)</strong> at full output power (100 W electrical). This ensures that harmonic products fall below the noise floor at the receiver after propagation loss.</li>
 <li><strong>Rationale:</strong> With a typical link budget providing 15&ndash;20 dB SNR at the receiver, Tx harmonics at &minus;40 dBc are received at &minus;55 to &minus;60 dBc relative to the desired signal, well below the demodulation threshold. The critical concern is that the 2nd harmonic of the lower band edge (2 &times; 20 kHz = 40 kHz) falls at the upper edge of the 20&ndash;40 kHz Rx passband, while the 2nd harmonic of the upper band edge (2 &times; 40 kHz = 80 kHz) is rejected by the Rx BPF. Third harmonics (60&ndash;120 kHz) fall entirely above the Rx passband and are suppressed by the BPF roll-off.</li>
-<li><strong>Implementation:</strong> Class-AB output stage biased at 15&ndash;20% quiescent current, with pre-distortion and output back-off. OFDM PAPR of 10&ndash;12 dB requires either (a) a PA sized with &ge;10 dB total back-off from P<sub>1dB</sub>, or (b) PAPR reduction (clipping, SLM) to limit peaks to 6&ndash;8 dB above average before a 3&ndash;4 dB back-off. The Tx BPF after the PA provides additional harmonic suppression.</li>
+<li><strong>Implementation:</strong> Class-AB output stage biased at 15&ndash;20% quiescent current, with pre-distortion and output back-off. OFDM PAPR of 7&ndash;9 dB requires either (a) a PA sized with &ge;8 dB total back-off from P<sub>1dB</sub>, or (b) PAPR reduction (clipping, SLM) to limit peaks to 5&ndash;6 dB above average before a 2&ndash;3 dB back-off. The Tx BPF after the PA provides additional harmonic suppression.</li>
 <li><strong>Intermodulation distortion (IMD):</strong> OIP3 &ge; +60 dBm to ensure 3rd-order intermodulation products remain below &minus;40 dBc across the 20 kHz signal bandwidth.</li>
 </ul>
 
@@ -2830,7 +2830,7 @@ L 74.396955 398.75335
 <tr><th>Parameter</th><th>Tx PA</th><th>Rx LNA</th><th>Rationale</th></tr>
 <tr><td>THD target</td><td>&lt; &minus;40 dB</td><td>&lt; &minus;50 dB</td><td>Rx more sensitive to distortion</td></tr>
 <tr><td>IP3</td><td>OIP3 &ge; +60 dBm</td><td>IIP3 &ge; &minus;10 dBm</td><td>Intermodulation rejection</td></tr>
-<tr><td>PAPR headroom</td><td>&ge;10 dB total (or 3&ndash;4 dB with PAPR reduction)</td><td>AGC-controlled</td><td>OFDM peak handling</td></tr>
+<tr><td>PAPR headroom</td><td>&ge;8 dB total (or 2&ndash;3 dB with PAPR reduction)</td><td>AGC-controlled</td><td>OFDM peak handling</td></tr>
 <tr><td>HD2 suppression</td><td>&ge; 45 dB</td><td>&ge; 55 dB</td><td>2nd harmonic in Rx band</td></tr>
 <tr><td>HD3 suppression</td><td>&ge; 40 dB</td><td>&ge; 50 dB</td><td>3rd harmonic near Rx band</td></tr>
 </table></div>
@@ -2897,7 +2897,7 @@ R<sub>raw</sub> = N<sub>data</sub> &times; b &times; (1/T<sub>sym</sub>) = 48 &t
 R<sub>coded</sub> = 24,000 &times; 0.5 = 12 kbps (rate-1/2 FEC)<br>
 R<sub>net</sub> &asymp; 12 &times; 0.85 = <strong>10.2 kbps</strong> (net, after protocol overhead)
 </div>
-<p>This meets the 10 kbps target. The rate-1/2 convolutional code (constraint length K=7) provides ~3 dB coding gain at BER = 10<sup>&minus;4</sup>, reducing required E<sub>b</sub>/N<sub>0</sub> from 8.4 dB (uncoded QPSK) to ~5.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
+<p>This meets the 10 kbps target. The rate-1/2 convolutional code (constraint length K=7) provides ~5 dB coding gain at BER = 10<sup>&minus;4</sup>, reducing required E<sub>b</sub>/N<sub>0</sub> from 8.4 dB (uncoded QPSK) to ~3.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
 
 <h4 class="subsub">f) Sound Speed Profile</h4>
 <p>Sound speed computed via Mackenzie equation <a href="#ref-9" class="cite">[9]</a>:</p>
@@ -2923,7 +2923,7 @@ c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup
 <h4 class="subsub">BER Performance Analysis</h4>
 <p>The BER of M-PSK modulations in AWGN is given by:</p>
 <div class="formula">
-P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot; E<sub>b</sub>/N<sub>0</sub>) &middot; sin(&pi;/M))
+P<sub>b</sub> &asymp; (1/(2&middot;log&#8322;M)) &middot; erfc(&radic;(log&#8322;M &middot; E<sub>b</sub>/N<sub>0</sub>) &middot; sin(&pi;/M))
 </div>
 <p>For the candidate modulations at BER = 10<sup>&minus;4</sup>:</p>
 <div class="tw"><table>
@@ -5078,7 +5078,7 @@ z
 <h3 class="sub">④ Solution &amp; Discussion</h3>
 
 <h4 class="subsub">Closed-Loop Digital Power Control</h4>
-<p>The transmit power must be precisely controlled to maintain the specified 100 W output across varying load impedance (due to temperature, biofouling, and acoustic coupling changes). We implement a <strong>closed-loop digital PI controller</strong> operating at 10 kHz update rate, discretized using the <strong>Tustin (bilinear) transform</strong> for minimal frequency-domain distortion <a href="#ref-4" class="cite">[4]</a>.</p>
+<p>The transmit power must be precisely controlled to maintain the specified 100 W electrical output across varying load impedance (due to temperature, biofouling, and acoustic coupling changes). We implement a <strong>closed-loop digital PI controller</strong> operating at 10 kHz update rate, discretized using the <strong>Tustin (bilinear) transform</strong> for minimal frequency-domain distortion <a href="#ref-4" class="cite">[4]</a>.</p>
 
 <p>The complete control loop includes: (1) a power reference setpoint P<sub>ref</sub>, (2) a summing junction computing the error e[n] = P<sub>ref</sub> &minus; P<sub>meas</sub>[n], (3) the PI corrector C(z), (4) a DAC converting the digital control signal to an analog voltage, (5) the Class-AB power amplifier, (6) the piezoelectric transducer (plant), and (7) a feedback path through a power sensor and ADC.</p>
 
@@ -8788,7 +8788,7 @@ z
 
 <p>The four top-level subsystems are:</p>
 <ul>
-<li><strong>Tx Subsystem:</strong> Handles OFDM modulation (IFFT), digital-to-analog conversion, bandpass filtering (Butterworth 4th-order), power amplification (Class-AB, 100 W), and acoustic transduction via the PZT-4 piezoelectric element.</li>
+<li><strong>Tx Subsystem:</strong> Handles OFDM modulation (IFFT), digital-to-analog conversion, bandpass filtering (Butterworth 4th-order), power amplification (Class-AB, 100 W electrical), and acoustic transduction via the PZT-4 piezoelectric element (~50 W acoustic at 50% transducer efficiency).</li>
 <li><strong>Rx Subsystem:</strong> Encompasses the hydrophone (PVdF or PZT), low-noise amplifier (NF &lt; 3 dB) with automatic gain control, bandpass filtering (Butterworth 6th-order), ADC, and OFDM demodulation (FFT + equalization + QPSK demapping).</li>
 <li><strong>Control &amp; DSP:</strong> The central processing unit (STM32H743 @ 480 MHz) running FreeRTOS, responsible for OFDM engine, PI power control, host interface management, and diagnostic monitoring.</li>
 <li><strong>Power &amp; Housing:</strong> The 24 V DC power supply unit with multiple regulated rails (3.3/5/12 V), IP68-rated enclosure, SubConn underwater connectors, and passive thermal management for 300 m depth rating.</li>
@@ -14657,10 +14657,10 @@ z
 <tr><td>MCU (Cortex-M7 @ 480 MHz)</td><td>~350 mW</td><td>Active DSP mode</td></tr>
 <tr><td>ADC/DAC peripherals</td><td>~50 mW</td><td>Continuous sampling</td></tr>
 <tr><td>LNA + Rx BPF</td><td>~80 mW</td><td>OPA1612 stages</td></tr>
-<tr><td>PA (Class-AB, 100 W acoustic)</td><td>~150 W peak</td><td>Duty-cycled, ~20% average; OFDM PAPR of 10&ndash;12 dB means instantaneous peaks can exceed 150 W &mdash; PA must be sized with headroom or PAPR reduction (e.g., clipping, SLM) is assumed</td></tr>
+<tr><td>PA (Class-AB, 100 W electrical)</td><td>~630 W peak</td><td>Duty-cycled, ~20% average; OFDM PAPR of ~8 dB (factor &times;6.3) means instantaneous peaks reach ~630 W &mdash; PA must be sized with headroom or PAPR reduction (e.g., clipping, SLM) is assumed</td></tr>
 <tr><td>Misc (regulators, relay, LEDs)</td><td>~20 mW</td><td>Quiescent</td></tr>
 </table></div>
-<p>In receive-only mode, total system consumption is approximately 500 mW. During transmission, the PA dominates at up to 150 W peak (average electrical), but OFDM&rsquo;s 10&ndash;12 dB PAPR drives instantaneous electrical peaks significantly higher. Average power depends on the transmit duty cycle.</p>
+<p>In receive-only mode, total system consumption is approximately 500 mW. During transmission, the PA dominates at 100 W average electrical, with OFDM&rsquo;s ~8 dB PAPR driving instantaneous electrical peaks to ~630 W. Average power depends on the transmit duty cycle.</p>
 </section>
 
 <section class="section" id="s9">
@@ -15314,7 +15314,7 @@ z
  <span class="deco">memset</span>(bits, <span class="num">0</span>, max_bits / <span class="num">8</span> + <span class="num">1</span>);
  <span class="kw">for</span> (<span class="cls">uint16_t</span> d = <span class="num">0</span>; d &lt; OFDM_NDATA &amp;&amp; bpos + <span class="num">2</span> &lt;= max_bits; d++) {
  <span class="cls">uint8_t</span> k = data_map[d];
- <span class="cls">uint8_t</span> sym = ((freq_I[k] &lt; <span class="num">0</span>) ? <span class="num">2</span> : <span class="num">0</span>) | ((freq_Q[k] &lt; <span class="num">0</span>) ? <span class="num">1</span> : <span class="num">0</span>);
+ <span class="cls">uint8_t</span> sym = ((freq_I[k] &lt; <span class="num">0</span>) ? <span class="num">1</span> : <span class="num">0</span>) | ((freq_Q[k] &lt; <span class="num">0</span>) ? <span class="num">2</span> : <span class="num">0</span>);
  bits[bpos/<span class="num">8</span>] |= (sym &lt;&lt; (bpos % <span class="num">8</span>));
  bpos += <span class="num">2</span>;
  }
@@ -15726,7 +15726,7 @@ z
 <tr><td>Doppler resilience</td><td>MATLAB</td><td>v = 0-5 m/s relative</td><td>BER &lt; 10<sup>&minus;3</sup> at 3 m/s</td></tr>
 <tr><td>RTOS real-time</td><td>Python DES</td><td>All tasks, worst-case load</td><td>No deadline miss in 10<sup>6</sup> symbols</td></tr>
 <tr><td>Fault tolerance</td><td>Python DES</td><td>Random faults, 1% rate</td><td>Recovery within 100 ms</td></tr>
-<tr><td>Analog front-end</td><td>LTspice</td><td>BPF + PA, 100 W output</td><td>THD &lt; &minus;40 dB, NF &lt; 3 dB</td></tr>
+<tr><td>Analog front-end</td><td>LTspice</td><td>BPF + PA, 100 W electrical output</td><td>THD &lt; &minus;40 dB, NF &lt; 3 dB</td></tr>
 <tr><td>Multipath channel (short-range)</td><td>Bellhop</td><td>Shallow water, 50 m depth, 500 m range</td><td>Delay spread &lt; 0.8 ms (base CP, short-range scenario)</td></tr>
 <tr><td>Multipath channel (long-range)</td><td>Bellhop</td><td>Shallow water, 50 m depth, 5 km range</td><td>Adaptive CP mode maintains BER &lt; 10<sup>&minus;3</sup></td></tr>
 </table></div>
@@ -18580,7 +18580,7 @@ z
 <p><strong>Estimated cost:</strong> &euro;5,000-15,000 (EMC testing + documentation). <strong>Timeline:</strong> 2-4 weeks for testing, 4-6 weeks total including documentation.</p>
 
 <h4 class="subsub">2. IP68 Ingress Protection (IEC 60529)</h4>
-<p>The IP68 rating certifies the enclosure against dust ingress (6 = totally dust-tight) and water immersion (8 = continuous immersion beyond 1 m, conditions specified by manufacturer). For our 300 m depth rating, the enclosure must withstand 30 bar hydrostatic pressure continuously. Testing involves:</p>
+<p>The IP68 rating certifies the enclosure against dust ingress (6 = totally dust-tight) and water immersion (8 = continuous immersion beyond 1 m, conditions specified by manufacturer). For our 300 m depth rating, the enclosure must withstand 31 bar absolute (30 bar gauge + 1 bar atmospheric) hydrostatic pressure continuously. Testing involves:</p>
 <ul>
 <li>Dust test: 8 hours in a dust chamber with circulating talcum powder.</li>
 <li>Pressure test: Sustained immersion at 300 m equivalent pressure (31 bar) for a minimum of 4 hours, followed by functional verification.</li>
@@ -18593,7 +18593,7 @@ z
 <p><strong>Estimated cost:</strong> &euro;8,000-20,000 (comprehensive environmental + EMC testing). <strong>Timeline:</strong> 4-8 weeks.</p>
 
 <h4 class="subsub">4. IEC 62368-1 — Audio/Video, IT and Communication Technology Equipment Safety</h4>
-<p>This is the successor to IEC 60065 and IEC 60950-1, covering electrical safety for ICT equipment. Key requirements include: energy hazard assessment (the 100 W PA output is a potential energy source), insulation and creepage distances, thermal management (no accessible surface above 70&deg;C), and protection against electric shock. Relevant for any equipment with significant power output.</p>
+<p>This is the successor to IEC 60065 and IEC 60950-1, covering electrical safety for ICT equipment. Key requirements include: energy hazard assessment (the 100 W electrical PA output is a potential energy source), insulation and creepage distances, thermal management (no accessible surface above 70&deg;C), and protection against electric shock. Relevant for any equipment with significant power output.</p>
 <p><strong>Estimated cost:</strong> &euro;5,000-12,000. <strong>Timeline:</strong> 3-6 weeks.</p>
 
 <h4 class="subsub">5. REACH Regulation (EC 1907/2006)</h4>
@@ -18658,7 +18658,7 @@ z
 
 <section class="section" id="s15">
 <div class="section-header"><span class="section-num g">15</span><h2 class="st">Conclusion</h2></div>
-<p>This report has presented a comprehensive design for an underwater acoustic OFDM modem meeting the specified requirements of 10 kbps net data rate, 100 W transmit power, and &minus;100 dBm(A) receiver sensitivity in the 20-40 kHz band. The key design decisions are:</p>
+<p>This report has presented a comprehensive design for an underwater acoustic OFDM modem meeting the specified requirements of 10 kbps net data rate, 100 W electrical transmit power, and &minus;100 dBm(A) receiver sensitivity in the 20-40 kHz band. The key design decisions are:</p>
 <ul>
 <li><strong>Analog front-end:</strong> Butterworth bandpass filters (4th-order Tx, 6th-order Rx) providing maximally flat passband response suitable for OFDM subcarrier uniformity.</li>
 <li><strong>OFDM parameters:</strong> 64-point FFT, 48 data subcarriers, 312.5 Hz spacing, 25% cyclic prefix, yielding 4 ms symbol duration and robust multipath tolerance.</li>
