@@ -137,7 +137,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      TOP BAR
      ══════════════════════════════════════════════════════════ -->
 <header id="topbar">
-  <div class="title-bar">SQUID MAGNETOMETRY <span>— Technical Report v2</span></div>
+  <div class="title-bar">SQUID MAGNETOMETRY <span>— Technical Report v2.0</span></div>
   <div class="runtime-badge">
     <span class="dot"></span><span>HTML &middot; Static Report</span>
   </div>
@@ -179,7 +179,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <h1>SQUID &amp; Quantum<br><em>Magnetometry</em></h1>
     <p class="hero-sub">Superconducting Quantum Interference Devices — Physics, Models, and Engineering</p>
     <div class="hero-meta">
-      <span>Report v1.0</span><span>March 2026</span>
+      <span>Report v2.0</span><span>March 2026</span>
       <span>Superconductivity</span><span>Josephson Junctions</span>
       <span>Cryogenics</span><span>Precision Measurement</span>
     </div>
@@ -298,11 +298,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="tw"><table>
     <tr><th>Parameter</th><th>Symbol</th><th>Typical Value</th><th>Justification</th></tr>
     <tr><td>Critical current</td><td>I_c</td><td>10 µA</td><td>Typical Nb/AlOx/Nb junction</td></tr>
-    <tr><td>Shunt resistance</td><td>R</td><td>5 Ω</td><td>Typical Nb junction shunt; gives β_c ≪ 1 (over-damped)</td></tr>
+    <tr><td>Shunt resistance</td><td>R</td><td>5 Ω</td><td>Typical Nb junction shunt; gives β_c &lt; 1 (over-damped)</td></tr>
     <tr><td>Junction capacitance</td><td>C</td><td>0.5 pF</td><td>Typical thin-film junction area ~1 µm²</td></tr>
     <tr><td>Flux quantum</td><td>Φ₀</td><td>2.068 × 10⁻¹⁵ Wb</td><td>Fundamental constant h/2e</td></tr>
     <tr><td>Loop inductance</td><td>L</td><td>100 pH</td><td>Typical for 100 µm² loop area</td></tr>
-    <tr><td>Stewart–McCumber param.</td><td>β_c</td><td>0.076</td><td>2πI_c R²C/Φ₀ ≪ 1 → strongly over-damped</td></tr>
+    <tr><td>Stewart–McCumber param.</td><td>β_c</td><td>0.38</td><td>2πI_c R²C/Φ₀ &lt; 1 → moderately over-damped</td></tr>
   </table></div>
 
   <h3 class="sub">④ Solution &amp; Discussion</h3>
@@ -439,7 +439,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <div class="analysis-title">Key Observations</div>
     <ul>
       <li>The I-V curve transitions from zero voltage at I_bias &lt; I_c to a linear (ohmic) region at I_bias >> I_c, consistent with the RCSJ model prediction<a href="#ref-3" class="cite">[3]</a>.</li>
-      <li>The Stewart-McCumber parameter β_c = 2πI_cR²C/Φ₀ ≈ 0.076 ≪ 1 confirms the strongly over-damped regime, meaning no hysteresis in the I-V curve — essential for DC SQUID operation.</li>
+      <li>The Stewart-McCumber parameter β_c = 2πI_cR²C/Φ₀ ≈ 0.38 &lt; 1 confirms the moderately over-damped regime, meaning no hysteresis in the I-V curve — essential for DC SQUID operation.</li>
       <li>At I_bias = I_c, the junction is at the critical point; the voltage transitions smoothly from zero to the normal-state slope V/R.</li>
       <li>The critical current modulation between Phi_ext = 0 and Phi_ext = Phi_0/2 is the basis of flux-to-voltage transduction in the DC SQUID.</li>
     </ul>
@@ -483,7 +483,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="formula">V(Φ) ≈ V_max · |cos(π Φ / Φ₀)|    where V_max = R · √(I_bias² − 4I_c²)</div>
 
   <p><strong>2. Transfer coefficient:</strong> The maximum sensitivity occurs at the steepest slope of V(Φ), at Φ = (2n+1)Φ₀/4:</p>
-  <div class="formula">V_Φ = ∂V/∂Φ|_max = π V_max / Φ₀    [V/Φ₀]</div>
+  <div class="formula">V_Φ = ∂V/∂Φ|_max = π V_max    [V/Φ₀]</div>
   <p>Typical values range from 100 µV/Φ₀ to 1 mV/Φ₀ depending on junction parameters<a href="#ref-2" class="cite">[2]</a>.</p>
 
   <p><strong>3. Flux-Locked Loop (FLL):</strong> To linearise the periodic response, the SQUID is operated in a feedback loop. A modulation flux is applied, and the feedback current through a coil maintains the SQUID at its operating point. The feedback current is proportional to the input flux, providing a linear output over many Φ₀<a href="#ref-5" class="cite">[5]</a>.</p>
@@ -492,7 +492,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
     <tr><td>Bias current</td><td>I_bias</td><td>25 µA</td><td>~2.5 × I_c for optimal V_Φ</td></tr>
     <tr><td>Max voltage swing</td><td>V_max</td><td>~75 µV</td><td>R·√(I²_bias − 4I²_c) = 5·√(625−400) µV</td></tr>
-    <tr><td>Transfer coefficient</td><td>V_Φ</td><td>~114 µV/Φ₀</td><td>πV_max/Φ₀ (within typical 100–1000 µV/Φ₀ range)</td></tr>
+    <tr><td>Transfer coefficient</td><td>V_Φ</td><td>~236 µV/Φ₀</td><td>πV_max (within typical 100–1000 µV/Φ₀ range)</td></tr>
     <tr><td>Flux quantum</td><td>Φ₀</td><td>2.068 × 10⁻¹⁵ Wb</td><td>h/2e</td></tr>
     <tr><td>Dynamic range (FLL)</td><td>—</td><td>~10⁶ Φ₀</td><td>Limited by feedback electronics</td></tr>
   </table></div>
@@ -631,7 +631,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   </ul>
   <div class="chosen">
     <div class="chosen-label">CHOSEN</div>
-    <p><strong>LTS SQUID analysis framework</strong> for establishing the fundamental sensitivity limits. The energy sensitivity ε = S_Φ/(2L) ≈ 16k_BT√(LC) sets the quantum-limited performance. We model the noise spectral density and its temperature dependence to quantify the key performance criteria: spectral noise density S_Φ^(1/2), energy sensitivity ε, slew rate, and dynamic range<a href="#ref-4" class="cite">[4]</a>.</p>
+    <p><strong>LTS SQUID analysis framework</strong> for establishing the fundamental sensitivity limits. The energy sensitivity ε = S_Φ/(2L) = 8k_BTL/R sets the quantum-limited performance. We model the noise spectral density and its temperature dependence to quantify the key performance criteria: spectral noise density S_Φ^(1/2), energy sensitivity ε, slew rate, and dynamic range<a href="#ref-4" class="cite">[4]</a>.</p>
   </div>
 
   <h3 class="sub">③ Solution Planning</h3>
@@ -751,6 +751,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>4.2</td><td>1.53</td><td>3.1</td><td>9.3 &times; 10&#8315;&#179;&#179;</td><td>~180&times;</td></tr>
     <tr><td>77</td><td>6.56</td><td>13.4</td><td>1.7 &times; 10&#8315;&#179;&#185;</td><td>~3,300&times;</td></tr>
   </table></div>
+  <p style="font-size:12px;color:var(--text3);margin-top:4px"><strong>Note:</strong> S_&Phi;^(1/2) and S_B^(1/2) columns use representative <em>measured</em> values (~2.3&times; above the idealized Tesche&ndash;Clarke prediction), reflecting practical noise contributions. The &epsilon; column uses the theoretical expression &epsilon; = 8k_BTL/R, which gives the fundamental thermal limit. Practical energy sensitivity is correspondingly ~5&times; higher than the tabulated &epsilon; values.</p>
 
   <!-- LTS vs HTS summary -->
   <h4 class="subsub">LTS vs HTS Performance Summary</h4>
@@ -944,9 +945,9 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><th>Rank</th><th>Technique</th><th>Weighted Score (/5.00)</th><th>Primary Advantage</th></tr>
     <tr><td>1</td><td>Nb/AlOx/Nb tri-layer</td><td>4.05</td><td>Best reproducibility + sensitivity</td></tr>
     <tr><td>2</td><td>Hypres Nb foundry</td><td>3.70</td><td>Complex circuit integration</td></tr>
-    <tr><td>3</td><td>YBCO grain-boundary</td><td>3.10</td><td>77 K operation (LN&#8322; cooling)</td></tr>
+    <tr><td>3</td><td>YBCO grain-boundary</td><td>3.05</td><td>77 K operation (LN&#8322; cooling)</td></tr>
     <tr><td>4</td><td>Shadow evaporation</td><td>2.80</td><td>Ultra-small junctions</td></tr>
-    <tr><td>5</td><td>FIB milling</td><td>1.60</td><td>Rapid prototyping only</td></tr>
+    <tr><td>5</td><td>FIB milling</td><td>1.55</td><td>Rapid prototyping only</td></tr>
   </table></div>
 
   <!-- Application recommendations -->
@@ -1130,7 +1131,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   </table></div>
 
   <!-- LHe reserve table -->
-  <h4 class="subsub">LHe Reserve Requirements (with 50% safety margin)</h4>
+  <h4 class="subsub">Cryogen Reserve Requirements</h4>
   <div class="tw"><table>
     <tr><th>Duration</th><th>LHe Volume (L)</th><th>LHe Cost ($)</th><th>LN&#8322; Volume (L)</th><th>LN&#8322; Cost ($)</th></tr>
     <tr><td>1 month</td><td>~48</td><td>~960</td><td>~27</td><td>~14</td></tr>
@@ -1138,6 +1139,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>6 months</td><td>~290</td><td>~5,800</td><td>~162</td><td>~81</td></tr>
     <tr><td>12 months</td><td>~580</td><td>~11,600</td><td>~324</td><td>~162</td></tr>
   </table></div>
+  <p style="font-size:12px;color:var(--text3);margin-top:4px"><strong>Note:</strong> LHe volumes include a 50% safety margin over the computed boil-off. LN&#8322; volumes are base estimates without additional margin, as the nitrogen shield operates at a higher temperature with more predictable losses and is routinely refilled at shorter intervals.</p>
 
   <!-- Wire sensitivity table -->
   <h4 class="subsub">Sensitivity Analysis: Heat Load vs Number of Wires</h4>
@@ -1197,7 +1199,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="tw"><table>
     <tr><th>Question</th><th>Key Finding</th><th>Selected Approach</th></tr>
     <tr><td>Q1 — Equivalent Model</td><td>RCSJ model is the universal standard for SQUID circuit simulation</td><td>Parallel combination of I_c·sin(φ), R, C with flux quantisation constraint</td></tr>
-    <tr><td>Q2 — Transfer Function</td><td>V(Φ) is Φ₀-periodic with transfer coefficient V_Φ = πV_max/Φ₀</td><td>Sinusoidal approximation + flux-locked loop linearisation</td></tr>
+    <tr><td>Q2 — Transfer Function</td><td>V(Φ) is Φ₀-periodic with transfer coefficient V_Φ = πV_max ≈ 236 µV/Φ₀</td><td>Sinusoidal approximation + flux-locked loop linearisation</td></tr>
     <tr><td>Q3 — Performance</td><td>LTS SQUIDs achieve ~1–5 fT/√Hz; noise scales as √T; ε ≈ 10⁻³³ J/Hz at 4.2 K (~180× above ℏ/2)</td><td>Thermal noise model: S_Φ = 16k_BTL²/R, floored at quantum limit</td></tr>
     <tr><td>Q4 — Fabrication</td><td>Nb/AlOx/Nb tri-layer is the dominant industrial process</td><td>Weighted multi-criteria classification of 5 techniques</td></tr>
     <tr><td>Q5 — Cryostat</td><td>Superinsulated bath cryostat with 10 leads consumes ~1.1 L LHe/day (~290 L for 6 months with margin)</td><td>Heat budget: radiation + conduction + wiring → boil-off rate</td></tr>

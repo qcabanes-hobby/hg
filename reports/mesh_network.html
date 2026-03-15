@@ -34,7 +34,7 @@ from collections import deque
 
 # ── Constants ────────────────────────────────────────────────────────
 MAX_RANGE_M = 50.0          # maximum radio range in metres
-CARRIER_HZ  = 2.4e9         # 2.4 GHz ISM band (Zigbee / IEEE 802.15.4)
+FREQ_HZ     = 2.4e9         # 2.4 GHz ISM band (Zigbee / IEEE 802.15.4)
 # Friis constant: 20·log10(c / 4π) with c = 3×10⁸ m/s, f in Hz, d in m
 FRIIS_K     = 147.55
 
@@ -60,7 +60,7 @@ class Node:
         Assumes unity antenna gains and 0 dBm transmit power.
         """
         d = max(self.distance_to(other), 0.1)   # avoid log(0)
-        return -20 * math.log10(d) - 20 * math.log10(CARRIER_HZ) + FRIIS_K
+        return -20 * math.log10(d) - 20 * math.log10(FREQ_HZ) + FRIIS_K
 
 
 # ── MeshNetwork ───────────────────────────────────────────────────────
@@ -1116,7 +1116,7 @@ class SimNode:
         self.counters = {
             "hello_tx":  0, "hello_rx":  0,
             "rreq_tx":   0, "rreq_rx":   0,
-            "rrep_rx":   0,
+            "rrep_tx":   0, "rrep_rx":   0,
             "data_tx":   0, "data_rx":   0,
             "data_fwd":  0,
             "hops_seen": [],  # list of discovered hop counts
@@ -1198,7 +1198,7 @@ class SimNode:
 
         if self.id == pkt["dst"]:
             # We are the destination: send RREP back along the path
-            self.counters["rreq_tx"] += 1
+            self.counters["rrep_tx"] += 1
             rrep = {
                 "type": "RREP",
                 "src":  self.id,
@@ -1337,7 +1337,7 @@ def build_sim(positions: dict, rng: random.Random) -> tuple:
 # ── Metrics printer ───────────────────────────────────────────────────
 def print_metrics(nodes: dict):
     """Print per-node message counters after a scenario."""
-    hdr = f"  {'Node':>5}  {'H_TX':>5}  {'H_RX':>5}  {'Q_TX':>5}  {'Q_RX':>5}  {'D_TX':>5}  {'D_RX':>5}  {'FWD':>5}  {'AvgHops':>7}"
+    hdr = f"  {'Node':>5}  {'H_TX':>5}  {'H_RX':>5}  {'Q_TX':>5}  {'Q_RX':>5}  {'P_TX':>5}  {'P_RX':>5}  {'D_TX':>5}  {'D_RX':>5}  {'FWD':>5}  {'AvgHops':>7}"
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
     for nid in sorted(nodes):
@@ -1347,6 +1347,7 @@ def print_metrics(nodes: dict):
         print(
             f"  {nid:>5}  {c['hello_tx']:>5}  {c['hello_rx']:>5}  "
             f"{c['rreq_tx']:>5}  {c['rreq_rx']:>5}  "
+            f"{c['rrep_tx']:>5}  {c['rrep_rx']:>5}  "
             f"{c['data_tx']:>5}  {c['data_rx']:>5}  "
             f"{c['data_fwd']:>5}  {avg:>7}"
         )
@@ -1851,6 +1852,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>AODV <a href="#ref-1" class="cite">[1]</a>:</strong> broadcasts RREQ only when needed; RREP unicasts the shortest path back. Hop-optimality is guaranteed because the first RREP to arrive at the source has crossed the fewest hops — the BFS property of simultaneous flooding with unit weights.</li>
   </ul>
   <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
+  <p><strong>Note:</strong> This implementation uses source-routed paths (similar to DSR) rather than per-node routing tables as in RFC 3561 AODV. This simplification maintains AODV's route-discovery semantics (RREQ flood + RREP unicast) while using explicit path headers for forwarding.</p>
   <h3 class="sub">③ Protocol Operation</h3>
   <p><strong>Phase 1 — Route Discovery:</strong> source broadcasts <code>RREQ(src, dst, seq, hops=0, path=[src])</code>. Each node increments <code>hops</code>, appends its ID to <code>path</code>, and re-broadcasts (duplicate-suppressed by a <code>seen_rreqs</code> set). The destination sends a unicast <code>RREP</code> back along the recorded path, carrying the complete hop-optimal route.</p>
   <p><strong>Phase 2 — Data Forwarding:</strong> source installs the route from the RREP and forwards <code>DATA</code> packets hop-by-hop. Intermediate nodes also acquire reverse-path entries during RREQ propagation — these are free routing table entries obtained as a by-product of the flood.</p>
@@ -1884,7 +1886,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <tr><td>Hierarchical FSM</td><td>Nested states</td><td>Complex stacks (LTE RRC)</td></tr>
     </tbody>
   </table></div>
-  <h3 class="sub">② Selection</h3>
+  <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
   <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
   <h3 class="sub">③ FSM Diagram</h3>
   <div id="fsm-wrap">
@@ -1980,7 +1982,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 
 <section class="section" id="s7">
   <div class="section-header"><span class="section-num v">Q5</span><h2 class="st">Discrete-Event Simulator</h2></div>
-  <h3 class="sub">① Platform Comparison</h3>
+  <h3 class="sub">① State of the Art</h3>
   <div class="tw"><table>
     <thead><tr><th>Platform</th><th>Type</th><th>Radio model</th><th>Scalability</th><th>Learning curve</th></tr></thead>
     <tbody>
@@ -1991,7 +1993,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <tr><td>Mininet-WiFi</td><td>Emulation</td><td>Basic mac80211</td><td>Low</td><td>Medium</td></tr>
     </tbody>
   </table></div>
-  <h3 class="sub">② Selection</h3>
+  <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
   <div class="chosen"><span class="chosen-label">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
   <div class="chosen"><span class="chosen-label">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
   <h3 class="sub">③ Solution Planning</h3>

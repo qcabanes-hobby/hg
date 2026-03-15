@@ -197,10 +197,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </div>
 </section>
 
-<div class="section" id="abstract">
+<section class="section" id="abstract">
 <div class="section-header"><span class="section-num">01</span><h2 class="st">Abstract</h2></div>
 <p>This report presents the complete design of an underwater acoustic OFDM modem operating in the 20-40 kHz band with a 20 kHz bandwidth, targeting a net data rate of 10 kbps at 100 W transmit power and &minus;100 dBm(A) receiver sensitivity. The design covers eleven key engineering questions: analog bandpass filter design with Butterworth topology, OFDM parameter optimization with 64-point FFT and cyclic prefix, QPSK modulation selection justified by BER performance and spectral efficiency in the underwater channel, piezoelectric transducer RLC modelling with closed-loop digital PI power control, SysML system architecture, platform selection including MCU-only, MCU+FPGA, and co-design options, real-time operating system choice including FreeRTOS and the Embassy async Rust alternative, complete C firmware skeleton with task architecture, simulation and validation strategy, V-model project planning with Gantt schedule, and regulatory certification requirements.</p>
-</div>
+</section>
 
 <section class="section" id="acronyms">
 <div class="section-header"><span class="section-num">01b</span><h2 class="st">Acronyms &amp; Abbreviations</h2></div>
@@ -265,7 +265,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </table></div>
 </section>
 
-<div class="section" id="s1">
+<section class="section" id="s1">
 <div class="section-header"><span class="section-num">02</span><h2 class="st">Problem Statement</h2></div>
 <p>Design a complete underwater acoustic modem capable of reliable digital communication in shallow-to-medium water environments (depth &le; 300 m, range 0.5-5 km). The system must meet the following top-level specifications:</p>
 <div class="tw"><table>
@@ -279,9 +279,9 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <tr><td>Depth Rating</td><td>300 m (IP68)</td><td>Shallow-water operations</td></tr>
 </table></div>
 <p>The modem must be implemented on a resource-constrained embedded platform, operate in real-time, and comply with applicable maritime and EMC certifications.</p>
-</div>
+</section>
 
-<div class="section" id="s2">
+<section class="section" id="s2">
 <div class="section-header"><span class="section-num">03</span><h2 class="st">Methodology</h2></div>
 <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
 <div class="meth-grid">
@@ -290,9 +290,9 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, data structures, mathematical derivations, and design decisions. Diagrams where applicable.</div></div>
   <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Detailed design with component values, firmware architecture, simulation strategy, and V-model test planning.</div></div>
 </div>
-</div>
+</section>
 
-<div class="section" id="s3">
+<section class="section" id="s3">
 <div class="section-header"><span class="section-num v">Q1</span><h2 class="st">Analog Filter Design</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -2837,9 +2837,9 @@ L 74.396955 398.75335
 <tr><td>HD2 suppression</td><td>&ge; 45 dB</td><td>&ge; 55 dB</td><td>2nd harmonic in Rx band</td></tr>
 <tr><td>HD3 suppression</td><td>&ge; 40 dB</td><td>&ge; 50 dB</td><td>3rd harmonic near Rx band</td></tr>
 </table></div>
-</div>
+</section>
 
-<div class="section" id="s4">
+<section class="section" id="s4">
 <div class="section-header"><span class="section-num v">Q2</span><h2 class="st">OFDM Parameter Design</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -2853,7 +2853,7 @@ L 74.396955 398.75335
 </table></div>
 
 <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
-<p>The 64-point FFT provides the optimal compromise for this modem design: 312.5 Hz spacing is wide enough to tolerate Doppler shifts of ~60 Hz (relative velocity 3 m/s at 30 kHz) while maintaining sufficient spectral granularity for channel equalization. Larger FFTs (128, 256) suffer from Doppler-induced ICI in the underwater channel <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>, while a 32-point FFT wastes spectral efficiency with too-wide subcarrier spacing.</p>
+<p>The 64-point FFT provides the optimal compromise for this modem design: 312.5 Hz spacing is wide enough to tolerate Doppler shifts of ~57 Hz (relative velocity 3 m/s at the BPF geometric center f<sub>0</sub> = 28.28 kHz) while maintaining sufficient spectral granularity for channel equalization. Larger FFTs (128, 256) suffer from Doppler-induced ICI in the underwater channel <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>, while a 32-point FFT wastes spectral efficiency with too-wide subcarrier spacing.</p>
 
 <div class="chosen"><div class="chosen-label">CHOSEN</div>
 <p><strong>64-point FFT</strong> with 48 data subcarriers, 4 pilots, 12 null/guard subcarriers, and 25% cyclic prefix &mdash; yielding 312.5 Hz subcarrier spacing, 4.0 ms symbol duration, and ~10.2 kbps net data rate with QPSK + rate-1/2 FEC.</p>
@@ -2869,21 +2869,25 @@ L 74.396955 398.75335
 <p>Useful symbol duration: T<sub>u</sub> = 1/&Delta;f = <strong>3.2 ms</strong>. The CP must exceed maximum channel delay spread. For shallow water at 1-5 km range, multipath delay spread ranges from 0.5 ms (short range, benign geometry) to 20 ms (long range, surface-reflected paths) <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a> <a href="#ref-16" class="cite">[16]</a>.</p>
 <p>We choose <strong>CP = 25%</strong> (16 samples), giving T<sub>CP</sub> = 16/20,000 = <strong>0.8 ms</strong>. Total: T<sub>sym</sub> = 3.2 + 0.8 = <strong>4.0 ms</strong>.</p>
 <div class="warn">
-<div class="label">Design trade-off</div>
-<p>The 0.8 ms CP accommodates delay spreads up to 0.8 ms (~1.2 m path difference at 1500 m/s). For longer-range deployments, CP can be increased to 50% (1.6 ms) at reduced throughput. Adaptive CP based on channel sounding is also viable <a href="#ref-12" class="cite">[12]</a>.</p>
+<div class="label">Range-dependent CP design</div>
+<p>The 0.8 ms base CP is designed for <strong>short-to-medium range (&lt; 1 km)</strong> deployments where multipath delay spreads are typically &lt; 1 ms <a href="#ref-10" class="cite">[10]</a>. At these ranges, the 0.8 ms guard interval provides adequate ISI suppression (~1.2 m maximum path-length difference at 1500 m/s).</p>
+<p>For the full <strong>5 km range requirement</strong>, delay spreads can reach 10&ndash;20 ms due to surface- and bottom-reflected multipath <a href="#ref-1" class="cite">[1]</a> <a href="#ref-16" class="cite">[16]</a>, far exceeding the 0.8 ms CP. An <strong>adaptive CP strategy is mandatory</strong> for long-range operation. Practical approaches include: (a) increasing FFT size to N=256 or N=512 with 25% CP, yielding guard intervals of 3.2&ndash;6.4 ms at the cost of reduced Doppler tolerance and lower data rate; or (b) dynamic CP selection based on real-time channel sounding, switching between short-CP (0.8 ms, high throughput) and long-CP modes as range and channel conditions dictate <a href="#ref-12" class="cite">[12]</a>.</p>
 </div>
 
 <h4 class="subsub">c) Subcarrier Spacing Analysis</h4>
-<p>312.5 Hz spacing is a deliberate compromise. Narrower spacing (e.g., 78 Hz with N=256) would suffer from Doppler-induced ICI. Relative Doppler: v/c &asymp; 3/1500 = 2&times;10<sup>&minus;3</sup>, causing ~60 Hz offset at 30 kHz &mdash; nearly 20% of a 312.5 Hz subcarrier <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>. Wider spacing provides Doppler margin.</p>
+<p>312.5 Hz spacing is a deliberate compromise. Narrower spacing (e.g., 78 Hz with N=256) would suffer from Doppler-induced ICI. Relative Doppler: v/c &asymp; 3/1500 = 2&times;10<sup>&minus;3</sup>, causing ~57 Hz offset at the band center of 28.28 kHz (or ~60 Hz at the upper subcarriers near 40 kHz) &mdash; up to 19% of a 312.5 Hz subcarrier <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>. Wider spacing provides Doppler margin.</p>
 
 <h4 class="subsub">d) Noise Model</h4>
-<p>Ambient noise PSD is the sum of four components (all in dB re &mu;Pa&sup2;/Hz, <strong>f in kHz</strong>) <a href="#ref-7" class="cite">[7]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
+<p>Ambient noise PSD comprises four components, each expressed in dB re &mu;Pa&sup2;/Hz (<strong>f in kHz</strong>) <a href="#ref-7" class="cite">[7]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
 <div class="formula">
-N(f) = N<sub>turb</sub>(f) + N<sub>ship</sub>(f) + N<sub>wind</sub>(f) + N<sub>thermal</sub>(f)<br>
-Turbulence: 17 &minus; 30&middot;log&#8321;&#8320;(f)<br>
-Shipping (s=0.5): 40 + 20&middot;(s&minus;0.5) + 26&middot;log&#8321;&#8320;(f) &minus; 60&middot;log&#8321;&#8320;(f+0.03)<br>
-Wind (w=10 m/s): 50 + 7.5&middot;&radic;w + 20&middot;log&#8321;&#8320;(f) &minus; 40&middot;log&#8321;&#8320;(f+0.4)<br>
-Thermal: &minus;15 + 20&middot;log&#8321;&#8320;(f)
+N<sub>turb</sub>(f) = 17 &minus; 30&middot;log&#8321;&#8320;(f)<br>
+N<sub>ship</sub>(f) = 40 + 20&middot;(s&minus;0.5) + 26&middot;log&#8321;&#8320;(f) &minus; 60&middot;log&#8321;&#8320;(f+0.03) &nbsp; [s=0.5]<br>
+N<sub>wind</sub>(f) = 50 + 7.5&middot;&radic;w + 20&middot;log&#8321;&#8320;(f) &minus; 40&middot;log&#8321;&#8320;(f+0.4) &nbsp; [w=10 m/s]<br>
+N<sub>thermal</sub>(f) = &minus;15 + 20&middot;log&#8321;&#8320;(f)
+</div>
+<p>Since each component is in dB, they must be summed in the power domain (not added as dB values):</p>
+<div class="formula">
+N<sub>total</sub>(f) = 10&middot;log&#8321;&#8320;(10<sup>N<sub>turb</sub>/10</sup> + 10<sup>N<sub>ship</sub>/10</sup> + 10<sup>N<sub>wind</sub>/10</sup> + 10<sup>N<sub>thermal</sub>/10</sup>) &nbsp; [dB re &mu;Pa&sup2;/Hz]
 </div>
 <p>In the 20-40 kHz band, wind-driven surface noise dominates, with typical aggregate PSD of 40-50 dB re &mu;Pa&sup2;/Hz.</p>
 
@@ -2910,9 +2914,9 @@ c = 1448.96 + 4.591&middot;T &minus; 0.05304&middot;T&sup2; + 2.374&times;10<sup
 <div class="chosen-label">OFDM parameter summary</div>
 <p>FFT: 64 | Data: 48 SC | Pilots: 4 SC | &Delta;f: 312.5 Hz | T<sub>u</sub>: 3.2 ms | CP: 25% (0.8 ms) | T<sub>sym</sub>: 4.0 ms | Mod: QPSK | FEC: Rate-1/2 | Net: ~10.2 kbps</p>
 </div>
-</div>
+</section>
 
-<div class="section" id="s5">
+<section class="section" id="s5">
 <div class="section-header"><span class="section-num v">Q3</span><h2 class="st">Modulation Scheme Selection</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -2925,7 +2929,7 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 </div>
 <p>For the candidate modulations at BER = 10<sup>&minus;4</sup>:</p>
 <div class="tw"><table>
-<tr><th>Modulation</th><th>Bits/Symbol</th><th>E<sub>b</sub>/N<sub>0</sub> for BER=10<sup>&minus;4</sup></th><th>Spectral Eff. (bps/Hz)</th><th>Raw Rate (20 kHz BW)</th></tr>
+<tr><th>Modulation</th><th>Bits/Symbol</th><th>E<sub>b</sub>/N<sub>0</sub> for BER=10<sup>&minus;4</sup></th><th>Spectral Eff. (bps/Hz)</th><th>OFDM Data Rate</th></tr>
 <tr><td>BPSK</td><td>1</td><td>8.4 dB</td><td>1.0</td><td>12 kbps</td></tr>
 <tr><td><strong>QPSK</strong></td><td>2</td><td>8.4 dB</td><td>2.0</td><td>24 kbps</td></tr>
 <tr><td>8-PSK</td><td>3</td><td>12.0 dB</td><td>3.0</td><td>36 kbps</td></tr>
@@ -2976,9 +2980,9 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 <div class="chosen"><div class="chosen-label">CHOSEN</div>
 <p><strong>QPSK</strong> is selected as the primary modulation scheme, providing the optimal balance of spectral efficiency (2 bps/Hz), robustness to the underwater channel (8.4 dB E<sub>b</sub>/N<sub>0</sub> uncoded), and implementation simplicity on the embedded platform. BPSK fallback ensures graceful degradation. This choice is supported by extensive experimental evidence from multiple research groups <a href="#ref-12" class="cite">[12]</a> <a href="#ref-13" class="cite">[13]</a> <a href="#ref-14" class="cite">[14]</a> <a href="#ref-15" class="cite">[15]</a> <a href="#ref-18" class="cite">[18]</a>.</p>
 </div>
-</div>
+</section>
 
-<div class="section" id="s6">
+<section class="section" id="s6">
 <div class="section-header"><span class="section-num v">Q4</span><h2 class="st">Transducer RLC Model &amp; Digital Control Loop</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -2995,7 +2999,7 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 <p>For this modem design, the BVD model offers sufficient accuracy with minimal complexity, making it ideal for control loop design and real-time impedance estimation. The Mason and KLM models provide better wideband accuracy but add unnecessary complexity for a transducer operating near its fundamental resonance. FEA is reserved for transducer mechanical design, not for control system modelling.</p>
 
 <div class="chosen"><div class="chosen-label">CHOSEN</div>
-<p><strong>Butterworth-Van Dyke (BVD) equivalent circuit</strong> &mdash; provides a lumped-element RLC network representation suitable for closed-loop digital power control design, with sufficient accuracy for the moderate-Q piezoelectric transducer operating near 30 kHz resonance.</p>
+<p><strong>Butterworth-Van Dyke (BVD) equivalent circuit</strong> &mdash; provides a lumped-element RLC network representation suitable for closed-loop digital power control design, with sufficient accuracy for the moderate-Q piezoelectric transducer operating near its 30 kHz series resonance (intentionally offset above the 28.28 kHz BPF geometric center to compensate for higher absorption at upper band frequencies).</p>
 </div>
 
 <h3 class="sub">③ Solution Planning</h3>
@@ -3006,7 +3010,7 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 <li><strong>Motional arm (series RLC):</strong> R&#8321; (mechanical losses, typically 5-50 &Omega;), L&#8321; (effective vibrating mass, 10-100 mH), and C&#8321; (mechanical compliance, 0.1-10 nF). These represent the acoustic resonance of the transducer.</li>
 <li><strong>Clamped capacitance (parallel C&#8320;):</strong> The electrical capacitance of the piezoelectric element when mechanically blocked (1-50 nF). This dominates the impedance far from resonance.</li>
 </ul>
-<p>The series resonance frequency is f<sub>s</sub> = 1/(2&pi;&radic;(L&#8321;C&#8321;)) &asymp; 30 kHz, placed at the center of our operating band. The parallel resonance f<sub>p</sub> = f<sub>s</sub>&radic;(1 + C&#8321;/C&#8320;) is slightly higher. The quality factor Q = 2&pi;f<sub>s</sub>L&#8321;/R&#8321; &asymp; 10-50, indicating moderate bandwidth suitable for wideband OFDM transmission.</p>
+<p>The series resonance frequency is f<sub>s</sub> = 1/(2&pi;&radic;(L&#8321;C&#8321;)) &asymp; 30 kHz. Note that this is slightly above the BPF geometric center frequency (f<sub>0</sub> = &radic;(20&times;40) = 28.28 kHz); placing the transducer resonance at 30 kHz is a deliberate design choice that optimizes electroacoustic sensitivity in the upper portion of the 20&ndash;40 kHz band, where absorption losses are higher and additional transmit efficiency is most beneficial. The parallel resonance f<sub>p</sub> = f<sub>s</sub>&radic;(1 + C&#8321;/C&#8320;) is slightly higher. The quality factor Q = 2&pi;f<sub>s</sub>L&#8321;/R&#8321; &asymp; 10-50, indicating moderate bandwidth suitable for wideband OFDM transmission.</p>
 
 <div class="fig-container">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="572.4pt" height="257.278125pt" viewBox="0 0 572.4 257.278125" xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -8759,9 +8763,9 @@ z
 <div class="label">Stability and performance</div>
 <p>With K<sub>p</sub>=0.8 and K<sub>i</sub>=120 at T<sub>s</sub>=100 &mu;s, the closed-loop system achieves: settling time &lt; 5 ms, overshoot &lt; 10%, steady-state error &lt; 0.5%, and phase margin &gt; 45&deg;. The 10 kHz control rate provides adequate bandwidth for tracking load impedance variations (which occur on timescales of seconds to minutes) while keeping CPU overhead minimal (~2% of a 480 MHz Cortex-M7 cycle budget).</p>
 </div>
-</div>
+</section>
 
-<div class="section" id="s7">
+<section class="section" id="s7">
 <div class="section-header"><span class="section-num v">Q5</span><h2 class="st">SysML System Architecture</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -14581,9 +14585,9 @@ z
 
 <h4 class="subsub">Hardware/Software Partition</h4>
 <p>The HW/SW boundary is drawn at the ADC/DAC interfaces. All signal processing (FFT/IFFT, channel equalization, QPSK mapping, FEC encoding/decoding) is performed in software on the Cortex-M7 core using CMSIS-DSP library functions. The only hardware-accelerated functions are: DMA transfers (ping-pong buffering for ADC/DAC), hardware timers for precise sampling clocks, and optional CORDIC coprocessor for trigonometric computations in the FFT butterfly.</p>
-</div>
+</section>
 
-<div class="section" id="s8">
+<section class="section" id="s8">
 <div class="section-header"><span class="section-num v">Q6</span><h2 class="st">Platform Architecture</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -14659,8 +14663,9 @@ z
 <tr><td>Misc (regulators, relay, LEDs)</td><td>~20 mW</td><td>Quiescent</td></tr>
 </table></div>
 <p>In receive-only mode, total system consumption is approximately 500 mW. During transmission, the PA dominates at up to 150 W peak, but average power depends on the transmit duty cycle.</p>
+</section>
 
-<div class="section" id="s9">
+<section class="section" id="s9">
 <div class="section-header"><span class="section-num v">Q7</span><h2 class="st">RTOS Selection &amp; Bare Metal Alternatives</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -14707,9 +14712,9 @@ z
 
 <h3 class="sub">④ Firmware Architecture</h3>
 <p>The detailed task architecture, priority assignments, and IPC mechanisms are specified in the FreeRTOS task table and IPC diagrams presented above. The architecture ensures deterministic worst-case latency for the Rx chain (highest priority, event-driven from DMA ISR) while maintaining responsive host interface communication and background diagnostics.</p>
-</div>
+</section>
 
-<div class="section" id="s10">
+<section class="section" id="s10">
 <div class="section-header"><span class="section-num v">Q8</span><h2 class="st">C Firmware Skeleton</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -15672,9 +15677,9 @@ z
 <div class="label">Implementation notes</div>
 <p>All files compile under ARM GCC (arm-none-eabi-gcc) with <code>-std=c11 -Wall -Wextra -Os</code>. The BSP layer (bsp.h) is an abstraction over the STM32 HAL; a concrete implementation (bsp.c) would map to STM32H743-specific HAL calls. The total code footprint is estimated at ~15 KB Flash and ~8 KB RAM (excluding RTOS kernel and stack allocations).</p>
 </div>
-</div>
+</section>
 
-<div class="section" id="s11">
+<section class="section" id="s11">
 <div class="section-header"><span class="section-num v">Q9</span><h2 class="st">Simulation &amp; Validation Strategy</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -15730,9 +15735,9 @@ z
 <div class="label">Tool selection rationale</div>
 <p>MATLAB/Simulink is chosen for system-level simulation due to its mature signal processing toolbox and Bellhop integration <a href="#ref-14" class="cite">[14]</a>. Python DES provides flexibility for software architecture validation without requiring embedded hardware. LTspice offers free, high-fidelity analog simulation. Bellhop is the industry-standard ray tracer for underwater acoustic propagation modelling <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a>.</p>
 </div>
-</div>
+</section>
 
-<div class="section" id="s12">
+<section class="section" id="s12">
 <div class="section-header"><span class="section-num v">Q10</span><h2 class="st">Test Plan &amp; Project Schedule</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -18534,9 +18539,9 @@ z
 
 <p>The AI-augmented schedule achieves approximately 29% reduction (12 months to 8.5 months) while maintaining all quality gates and review milestones. The primary acceleration comes from SW/FW development (42% reduction through code generation and automated review) and documentation phases (33% reduction). Hardware design and environmental testing see smaller gains as these remain fundamentally hands-on activities requiring physical prototyping and accredited laboratory testing.</p>
 
-</div>
+</section>
 
-<div class="section" id="s13">
+<section class="section" id="s13">
 <div class="section-header"><span class="section-num v">Q11</span><h2 class="st">Certification &amp; Regulatory Compliance</h2></div>
 
 <h3 class="sub">① State of the Art</h3>
@@ -18626,9 +18631,9 @@ z
 <div class="label">Total certification budget estimate</div>
 <p><strong>Minimum (EU market, mandatory only):</strong> &euro;18,000-48,000 over 3-6 months. This covers CE marking, IP68, IEC 60945, REACH, and WEEE. <strong>Full (EU + USA + class approval):</strong> &euro;36,000-98,000 over 6-12 months, adding DNV-GL type approval, FCC, and IEC 62368-1. These estimates assume a single certification cycle; re-testing due to failures adds 20-50% to both cost and time.</p>
 </div>
-</div>
+</section>
 
-<div class="section" id="s14">
+<section class="section" id="s14">
 <div class="section-header"><span class="section-num">12</span><h2 class="st">AI Usage Disclosure</h2></div>
 <p>This report was developed using a structured engineering methodology augmented by AI-assisted tools for literature research, technical content structuring, figure generation, and firmware code scaffolding. AI tools were employed as productivity aids &mdash; analogous to CAD/EDA tools in hardware design &mdash; with all technical decisions, parameter selections, and design validations remaining under engineering oversight.</p>
 
@@ -18649,9 +18654,9 @@ z
 <li>Literature references were curated from well-known publications in the field, but completeness of the survey is not guaranteed; additional domain-specific sources may exist that were not included.</li>
 <li>Firmware code scaffolding represents architectural patterns and is intended as a starting point; production firmware requires rigorous testing, static analysis, and hardware-in-the-loop validation.</li>
 </ul>
-</div>
+</section>
 
-<div class="section" id="s15">
+<section class="section" id="s15">
 <div class="section-header"><span class="section-num">13</span><h2 class="st">Conclusion</h2></div>
 <p>This report has presented a comprehensive design for an underwater acoustic OFDM modem meeting the specified requirements of 10 kbps net data rate, 100 W transmit power, and &minus;100 dBm(A) receiver sensitivity in the 20-40 kHz band. The key design decisions are:</p>
 <ul>
@@ -18665,8 +18670,8 @@ z
 <li><strong>Certification:</strong> Comprehensive regulatory pathway covering CE, IP68, IEC 60945, and optional DNV-GL type approval, estimated at &euro;18-98K over 3-12 months.</li>
 </ul>
 <p>The design provides significant margins in computational performance, power budget, and memory utilization, ensuring headroom for future enhancements such as adaptive modulation, higher-order FEC, and multi-element beamforming.</p>
-</div>
-<div class="section" id="s16">
+</section>
+<section class="section" id="s16">
 <div class="section-header"><span class="section-num">14</span><h2 class="st">Bibliography</h2></div>
 <p style="color:var(--text2);font-size:14px;margin-bottom:16px">The following references are cited throughout this report. Click any inline citation <a href="#ref-1" class="cite">[n]</a> to jump to its entry below.</p>
 <div>
@@ -18745,7 +18750,7 @@ z
 </div>
 <hr class="div">
 <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Underwater Acoustic OFDM Modem &middot; Technical Report v2 &middot; Static HTML &middot; AI-Augmented</p>
-</div>
+</section>
 
 <script>
 // Navigation active state on scroll

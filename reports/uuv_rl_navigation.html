@@ -50,7 +50,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 section.section{margin-bottom:72px;scroll-margin-top:calc(var(--hdr-h) + 24px)}
 
 /* Hero */
-.hero-title{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px}
+.hero{padding:56px 0 44px;border-bottom:1px solid var(--border);margin-bottom:64px;position:relative}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 40% 0%,#00d4ff09,transparent);pointer-events:none}
+.hero-tag{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.hero-tag::before{content:'';width:32px;height:1px;background:var(--cyan)}
+.hero h1{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px}
+.hero h1 em{color:var(--cyan);font-style:normal}
 .hero-sub{font-size:15px;color:var(--text2);max-width:560px;line-height:1.65;margin-bottom:28px}
 .hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
 .pill{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:4px 14px;border-radius:20px;border:1px solid var(--border2);color:var(--text2)}
@@ -153,7 +158,7 @@ pre.out-body.err{color:#ff7070}
 code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
 
 /* Responsive */
-@media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero-title{font-size:30px}.meth-grid{grid-template-columns:1fr}}
+@media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero h1{font-size:30px}.meth-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -165,12 +170,12 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </div>
 
 <!-- ── Top Bar ─────────────────────────── -->
-<div id="topbar">
+<header id="topbar">
 <div class="title-bar">UUV RL NAVIGATION <span>— Interactive Report v1</span></div>
 <div class="runtime-badge loading" id="runtime-badge">
   <span class="dot"></span><span id="badge-text">Loading Python…</span>
 </div>
-</div>
+</header>
 
 <!-- ── Sidebar ─────────────────────────── -->
 <nav id="sidebar">
@@ -202,14 +207,14 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── HERO ─────────────────────────────── -->
 <section class="section" id="hero">
-<h2 class="st"><span class="section-num">00</span>Introduction</h2>
-<h1 class="hero-title">Reinforcement Learning Navigation<br>for Underwater Unmanned Vehicles</h1>
-<p class="hero-sub">Model-free depth and bearing control of a 50 kg UUV using differential thrust motors and ballast pump, with IMU and pressure sensor feedback.</p>
-<div class="hero-meta">
-<span class="pill">Version 1.0</span>
-<span class="pill">10 Questions</span>
-<span class="pill">Python 3.12 / Pyodide</span>
-<span class="pill">RL + Marine Control</span>
+<div class="hero">
+  <div class="hero-tag">Technical Report · Version 1 · Browser-Only · WebAssembly</div>
+  <h1>Reinforcement Learning Navigation<br><em>for Underwater Unmanned Vehicles</em></h1>
+  <p class="hero-sub">Model-free depth and bearing control of a 50 kg UUV using differential thrust motors and ballast pump, with IMU and pressure sensor feedback.</p>
+  <div class="hero-meta">
+    <span>Python 3.12 · Pyodide</span><span>RL + Marine Control</span>
+    <span>10 Questions · TD3 Agent</span><span>IMU + Pressure Sensor Fusion</span>
+  </div>
 </div>
 </section>
 
@@ -256,7 +261,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h2 class="st"><span class="section-num">02</span>Problem Statement</h2>
 <h3 class="sub">System Constraints</h3>
 <p><strong>Actuators:</strong> Two DC motors driven by H-bridges with PWM for differential thrust (yaw + forward), and a ballast pump with three states (water-in, water-out, stopped) for depth control.</p>
-<p><strong>Sensors:</strong> 3-axis accelerometer + gyroscope (IMU), 3-axis magnetometer, and a pressure sensor for depth. Maximum sample rate N<sub>max</sub> readings per second.</p>
+<p><strong>Sensors:</strong> 3-axis accelerometer + gyroscope (IMU), 3-axis magnetometer, and a pressure sensor for depth. Maximum sample rate: 100 Hz.</p>
 <p><strong>Navigation:</strong> A sequence of beacon waypoints, each specifying a target magnetic bearing and target depth. Travel time between beacons must be minimized.</p>
 <p><strong>Assumptions:</strong> External disturbances (currents, waves) are bounded within actuator authority. The transfer function of the plant is unknown — the RL agent must learn to control purely from sensor feedback. The UUV weighs approximately 50 kg.</p>
 
@@ -624,7 +629,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </table></div>
 
 <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
-<p><strong>Raw sensor:</strong> 15-dimensional raw vector (3-axis accel + 3 gyro + 3 mag + 1 pressure + angular rates). Requires the RL agent to learn sensor fusion internally — wasteful given well-understood complementary/Kalman filters.</p>
+<p><strong>Raw sensor:</strong> 10-dimensional raw vector (3-axis accel + 3 gyro + 3 mag + 1 pressure). Requires the RL agent to learn sensor fusion internally — wasteful given well-understood complementary/Kalman filters.</p>
 <p><strong>Fused navigation state:</strong> Compact after sensor fusion — bearing, bearing error, heading rate, depth, depth error, depth rate, forward speed, pitch, roll. More sample-efficient since the agent focuses on control, not perception.</p>
 <p><strong>Image-based:</strong> Completely unnecessary — we have low-dimensional sensor data, not camera feeds. Would massively increase training time.</p>
 <p><strong>Hybrid state + error:</strong> Augments fused state with integral and derivative of tracking errors, giving the agent direct access to PID-like signals — most information-rich without excessive dimensionality.</p>
@@ -701,8 +706,8 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <!-- Stage 1 -->
 <rect x="15" y="40" width="130" height="80" rx="8" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
 <text x="80" y="60" fill="#8b5cf6" font-size="10" text-anchor="middle" font-weight="600">① Raw Acq.</text>
-<text x="80" y="78" fill="#4f6480" font-size="8" text-anchor="middle">accel(3) @ N_max Hz</text>
-<text x="80" y="90" fill="#4f6480" font-size="8" text-anchor="middle">gyro(3) @ N_max Hz</text>
+<text x="80" y="78" fill="#4f6480" font-size="8" text-anchor="middle">accel(3) @ 100 Hz</text>
+<text x="80" y="90" fill="#4f6480" font-size="8" text-anchor="middle">gyro(3) @ 100 Hz</text>
 <text x="80" y="102" fill="#4f6480" font-size="8" text-anchor="middle">mag(3) + press(1)</text>
 <!-- Stage 2 -->
 <rect x="185" y="40" width="160" height="80" rx="8" fill="#161e30" stroke="#f59e0b" stroke-width="1.5"/>
@@ -759,8 +764,8 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>Dense shaped reward:</strong> Proportional to state improvement at every step. Critical for continuous control where immediate feedback on bearing/depth errors is essential.</p>
 <p><strong>Multi-objective weighted sum:</strong> Natural fit for our problem with explicit trade-offs between bearing tracking, depth tracking, energy, and time.</p>
 <p><strong>HER:</strong> Powerful for sparse goal-reaching but unnecessary when dense shaping is straightforward.</p>
-<p><strong>Potential-based shaping:</strong> Guarantees the shaped reward preserves optimal policies — a theoretical safeguard against reward hacking.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum with potential-based shaping</strong> — The error terms use shaping: R_shaped = γ·Φ(s') - Φ(s), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. Combined with energy penalty and terminal bonuses, this provides dense feedback while preserving optimality of the shaping component<a href="#ref-9" class="cite">[9]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
+<p><strong>Potential-based shaping:</strong> Approximates optimal-policy preservation — a theoretical safeguard against reward hacking.</p>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum with potential-based shaping</strong> — The error terms use shaping: R_shaped = γ·Φ(s') - Φ(s), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. Combined with energy penalty and terminal bonuses, this provides dense feedback while approximating optimality preservation of the shaping component<a href="#ref-9" class="cite">[9]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
 <div class="formula">R(s, a, s') = w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp − w₄·‖a‖² − w₅·Δt + R_bonus</div>
@@ -818,7 +823,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="svg-caption">Figure 6 — Reward function architecture. Weighted sum of error improvements + terminal bonus + time penalty = total scalar reward.</div>
 </div>
 <p>The weight hierarchy (w₁=3.0 > w₂=2.0 > w₃=1.0) encodes the priority: bearing accuracy is more critical than depth accuracy (the vehicle can adjust depth more easily than heading in currents), and both are more important than forward speed. The energy penalty (w₄=0.05) is intentionally small — it should discourage actuator saturation but not prevent aggressive maneuvers during course corrections. The time penalty (w₅=0.01) creates a constant negative baseline that encourages the agent to reach waypoints quickly rather than hover in a low-error state.</p>
-<p>The potential-based shaping guarantee<a href="#ref-9" class="cite">[9]</a> ensures that adding the shaped error-reduction terms (w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp) does not alter the optimal policy defined by the base reward (energy penalty + time penalty + terminal bonuses). Formally, the guarantee applies to the shaping component F(s,s') = γ·Φ(s') − Φ(s), which our error-reduction terms approximate for γ ≈ 1. The energy, time, and terminal terms define the actual task objective and are not part of the shaping — they shape <em>what</em> is optimal, while the potential-based terms only shape <em>how fast</em> the agent learns it.</p>
+<p>The potential-based shaping framework<a href="#ref-9" class="cite">[9]</a> approximates optimal-policy preservation when adding the shaped error-reduction terms (w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp) to the base reward (energy penalty + time penalty + terminal bonuses). Formally, the formal shaping condition is F(s,s') = γ·Φ(s') − Φ(s), while our error-reduction terms use Δ|e| = |e(t)| − |e(t+1)| = Φ(s) − Φ(s'). Note: the error-reduction formulation approximates but does not strictly satisfy the formal potential-based shaping condition F(s,s') = γΦ(s') − Φ(s), as it omits the discount factor on the next-state potential. For γ ≈ 1, the approximation is tight. The energy, time, and terminal terms define the actual task objective and are not part of the shaping — they shape <em>what</em> is optimal, while the potential-based terms only shape <em>how fast</em> the agent learns it.</p>
 </section>
 <!-- ══ Q6 — RL Algorithm ═════════════════ -->
 <section class="section" id="s8">
@@ -958,7 +963,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
 <tr><th>Platform</th><th>Simulation Type</th><th>Physics Fidelity</th><th>Scalability</th><th>Learning Curve</th></tr>
-<tr><td>Gazebo + UUV Simulator<a href="#ref-6" class="cite">[6]</a></td><td>Physics-based (ODE/Bullet)</td><td>High — hydrodynamics</td><td>Single instance</td><td>Steep</td></tr>
+<tr><td>Gazebo + UUV Simulator</td><td>Physics-based (ODE/Bullet)</td><td>High — hydrodynamics</td><td>Single instance</td><td>Steep</td></tr>
 <tr><td>Custom Python simulator</td><td>Simplified dynamics</td><td>Low-Medium</td><td>Highly parallelizable</td><td>Low</td></tr>
 <tr><td>Isaac Gym (NVIDIA)</td><td>GPU-accelerated physics</td><td>High</td><td>Thousands parallel</td><td>Medium</td></tr>
 <tr><td>Unity ML-Agents</td><td>Game engine physics</td><td>Medium</td><td>Multiple instances</td><td>Medium</td></tr>
@@ -969,8 +974,8 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>Custom Python simulator:</strong> Simplified 3-DOF dynamics running 1000× faster than real-time. Ideal for rapid prototyping and policy pre-training.</p>
 <p><strong>Isaac Gym:</strong> GPU-accelerated parallel simulation — could train in hours. Requires NVIDIA GPU and significant setup.</p>
 <p><strong>Unity ML-Agents:</strong> Good visual debugging but physics not tuned for underwater dynamics without custom buoyancy/drag.</p>
-<div class="chosen"><div class="chosen-label">PHASE 1</div><p><strong>Custom Python simulator</strong> for rapid prototyping and initial policy training (millions of steps in minutes).</p></div>
-<div class="chosen"><div class="chosen-label">PHASE 2</div><p><strong>Gazebo + UUV Simulator</strong> for fine-tuning and validation with realistic hydrodynamics before real-world deployment<a href="#ref-6" class="cite">[6]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN — Phase 1</div><p><strong>Custom Python simulator</strong> for rapid prototyping and initial policy training (millions of steps in minutes).</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN — Phase 2</div><p><strong>Gazebo + UUV Simulator</strong> for fine-tuning and validation with realistic hydrodynamics before real-world deployment.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
 <p>The training methodology follows a sim-to-real transfer pipeline: train fast in low-fidelity, fine-tune in high-fidelity, deploy on hardware. Four standardized evaluation scenarios validate the policy at each stage:</p>
@@ -1058,7 +1063,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p><strong>Jetson Nano:</strong> Powerful GPU inference but draws 5–10 W versus ~1 W for the STM32H7. While motors and pump dominate total system power, the ~8 W difference is still meaningful for a 100 Wh battery over long missions. Overkill for a small 2-layer actor network. The Linux OS also introduces non-deterministic latency spikes.</p>
 <p><strong>Raspberry Pi 5:</strong> No hardware acceleration for NN inference. CPU-only TFLite is slower and more power-hungry than the STM32 solution for equivalent network sizes.</p>
 
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>STM32H7 MCU with INT8 quantized neural network</strong> — The 2-layer, 256-unit TD3 actor network quantized to INT8 fits in < 200 KB flash and executes in < 1 ms on the Cortex-M7 at 480 MHz, meeting the 100 Hz control loop with 90% margin. Power draw of ~1 W maximizes battery endurance. STM32Cube.AI handles the Keras-to-C conversion automatically. Hardware DSP instructions handle complementary filter computations (Q4). micro-ROS provides ROS 2 integration (Q10). The STM32N6 with Ethos-U65 NPU is a strong alternative with faster INT8/INT16 inference, but the STM32H7's more mature toolchain and broader documentation make it the lower-risk choice for initial deployment<a href="#ref-6" class="cite">[6]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>STM32H7 MCU with INT8 quantized neural network</strong> — The 2-layer, 256-unit TD3 actor network quantized to INT8 fits in < 200 KB flash and executes in < 1 ms on the Cortex-M7 at 480 MHz, meeting the 100 Hz control loop with 90% margin. Power draw of ~1 W maximizes battery endurance. STM32Cube.AI handles the Keras-to-C conversion automatically. Hardware DSP instructions handle complementary filter computations (Q4). micro-ROS provides ROS 2 integration (Q10). The STM32N6 with Ethos-U65 NPU is a strong alternative with faster INT8/INT16 inference, but the STM32H7's more mature toolchain and broader documentation make it the lower-risk choice for initial deployment.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
 <p>The key selection criteria for this 50 kg UUV are <strong>power efficiency</strong> (100 Wh battery must also drive motors and pump), <strong>real-time determinism</strong> (100 Hz control loop with hard deadline), <strong>inference capability</strong> (2-layer 256-unit INT8 actor network), and <strong>ROS 2 compatibility</strong> (Q10). Cost and toolchain maturity are secondary but relevant for a first deployment.</p>
@@ -1085,11 +1090,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </table></div>
 
 <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
-<p><strong>ROS 1 Noetic:</strong> End-of-life in 2025. Centralized roscore is a single point of failure — unacceptable for autonomous underwater operation.</p>
+<p><strong>ROS 1 Noetic:</strong> Reached end-of-life in May 2025. Centralized roscore is a single point of failure — unacceptable for autonomous underwater operation.</p>
 <p><strong>ROS 2 Humble:</strong> DDS middleware provides QoS policies, real-time support, and no central coordinator. Active long-term support.</p>
 <p><strong>MOOS-IvP:</strong> Purpose-built for marine autonomy but smaller ecosystem and limited ML integration.</p>
 <p><strong>micro-ROS:</strong> ROS 2 subset for microcontrollers — essential for integrating the STM32H7 (Q9) into the ROS 2 graph. Uses DDS-XRCE agent on a companion computer or directly over serial/UDP.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>ROS 2 Humble + micro-ROS</strong> — micro-ROS on the STM32H7 handles real-time sensor acquisition, fusion, and RL inference; a micro-ROS agent on a companion device (or Ethernet-connected ground station) bridges to the full ROS 2 graph for logging, monitoring, and mission management<a href="#ref-6" class="cite">[6]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>ROS 2 Humble + micro-ROS</strong> — micro-ROS on the STM32H7 handles real-time sensor acquisition, fusion, and RL inference; a micro-ROS agent on a companion device (or Ethernet-connected ground station) bridges to the full ROS 2 graph for logging, monitoring, and mission management. (The ROS 2 ecosystem builds on the foundations of the original ROS project<a href="#ref-6" class="cite">[6]</a>.)</p></div>
 
 <h3 class="sub">③ ROS 2 Node Architecture</h3>
 <div class="svg-wrap">
@@ -1209,7 +1214,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>2</td><td>RL Architecture</td><td>Gymnasium-style API</td><td>5-module architecture with clean agent-env boundary</td></tr>
 <tr><td>3</td><td>Variable Space</td><td>Hybrid fused state + error</td><td>12D observation, 3D action (2 continuous + 1 discrete)</td></tr>
 <tr><td>4</td><td>Sensor Processing</td><td>Complementary filter + pressure</td><td>4-stage pipeline at 100 Hz, α=0.98</td></tr>
-<tr><td>5</td><td>Reward Strategy</td><td>Multi-obj. + potential shaping</td><td>5-term weighted reward; shaping component preserves optimality</td></tr>
+<tr><td>5</td><td>Reward Strategy</td><td>Multi-obj. + potential shaping</td><td>5-term weighted reward; shaping component approximates optimality preservation</td></tr>
 <tr><td>6</td><td>RL Algorithm</td><td>TD3 (Twin Delayed DDPG)</td><td>Keras implementation: twin critics + delayed updates</td></tr>
 <tr><td>7</td><td>Convergence</td><td>PER + Curriculum + LR Schedule</td><td>Estimated 3–5× speedup over vanilla TD3</td></tr>
 <tr><td>8</td><td>Training &amp; Eval</td><td>Python sim → Gazebo transfer</td><td>3-phase pipeline, 4 evaluation scenarios</td></tr>
@@ -1253,7 +1258,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </div>
 <div class="bib-item" id="ref-7">
 <div class="bib-num"><a href="#ref-7" class="bib-link">[7]</a></div>
-<div class="bib-text"><em>S. Fujimoto, H. van Hoof, D. Megerle</em>, "Addressing Function Approximation Error in Actor-Critic Methods," <em>Proc. ICML</em>, 2018. arXiv: <a href="https://arxiv.org/abs/1802.09477" target="_blank" class="bib-link">1802.09477</a></div>
+<div class="bib-text"><em>S. Fujimoto, H. van Hoof, D. Meger</em>, "Addressing Function Approximation Error in Actor-Critic Methods," <em>Proc. ICML</em>, 2018. arXiv: <a href="https://arxiv.org/abs/1802.09477" target="_blank" class="bib-link">1802.09477</a></div>
 </div>
 <div class="bib-item" id="ref-8">
 <div class="bib-num"><a href="#ref-8" class="bib-link">[8]</a></div>
