@@ -1751,7 +1751,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>Boost Graph / igraph:</strong> high performance but require C++ expertise or native bindings; overkill for a proof-of-concept with N ≤ 254 nodes.</li>
   </ul>
   <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Pure-Python adjacency list with BFS</strong> — zero external dependencies, runs entirely in Pyodide without additional packages. NetworkX is used in the project ZIP for production; the browser version reimplements the same interface with built-in dicts.</p></div>
-  <h3 class="sub">③ Free-Space Path-Loss Model &amp; Solution Plan</h3>
+  <h3 class="sub">③ Solution Planning</h3>
   <p>The RSSI formula is derived from the <strong>Friis transmission equation</strong> <a href="#ref-2" class="cite">[2]</a>. Assuming unity antenna gains and a reference transmit power of 0 dBm:</p>
   <div class="tw"><table>
     <thead><tr><th>Parameter</th><th>Value</th><th>Justification</th></tr></thead>
@@ -1805,7 +1805,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>Periodic HELLO:</strong> minimal overhead, deterministic, sufficient for 1-hop discovery. Standard baseline used by OLSR (RFC 3626 <a href="#ref-3" class="cite">[3]</a>). Timeout = 3 × interval provides automatic link-failure detection.</li>
   </ul>
   <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Periodic HELLO broadcast</strong> (OLSR RFC 3626 <a href="#ref-3" class="cite">[3]</a>) — minimal overhead, deterministic 1-hop discovery, link-failure detection via timeout = 3 × interval.</p></div>
-  <h3 class="sub">③ Protocol Principle</h3>
+  <h3 class="sub">③ Solution Planning</h3>
   <ol class="rl">
     <li>Every <code>T_HELLO = 5 s</code>, a node broadcasts <code>HELLO(id, seq)</code> to all radio neighbours.</li>
     <li>Receivers record sender ID, measured RSSI, and timestamp in their NeighbourTable.</li>
@@ -1855,7 +1855,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   </ul>
   <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
   <p><strong>Note:</strong> This implementation uses source-routed paths (similar to DSR) rather than per-node routing tables as in RFC 3561 AODV. This simplification maintains AODV's route-discovery semantics (RREQ flood + RREP unicast) while using explicit path headers for forwarding.</p>
-  <h3 class="sub">③ Protocol Operation</h3>
+  <h3 class="sub">③ Solution Planning</h3>
   <p><strong>Phase 1 — Route Discovery:</strong> source broadcasts <code>RREQ(src, dst, seq, hops=0, path=[src])</code>. Each node increments <code>hops</code>, appends its ID to <code>path</code>, and re-broadcasts (duplicate-suppressed by a <code>seen_rreqs</code> set). The destination sends a unicast <code>RREP</code> back along the recorded path, carrying the complete hop-optimal route.</p>
   <p><strong>Phase 2 — Data Forwarding:</strong> source installs the route from the RREP and forwards <code>DATA</code> packets hop-by-hop. Intermediate nodes also acquire reverse-path entries during RREQ propagation — these are free routing table entries obtained as a by-product of the flood.</p>
   <h3 class="sub">④ Solution &amp; Discussion</h3>
@@ -1890,7 +1890,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   </table></div>
   <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
   <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
-  <h3 class="sub">③ FSM Diagram</h3>
+  <h3 class="sub">③ Solution Planning</h3>
   <div id="fsm-wrap">
     <svg viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'JetBrains Mono',monospace;">
       <defs>
