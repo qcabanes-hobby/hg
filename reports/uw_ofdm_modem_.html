@@ -15032,17 +15032,17 @@ z
 </svg><div class="svg-caption">Figure: File Dependency Diagram</div></div>
 
 <div class="tab-bar" id="c-tabs">
-<button class="tab-btn active" onclick="showTab('main.c')">main.c</button>
-<button class="tab-btn" onclick="showTab('modem.h')">modem.h</button>
-<button class="tab-btn" onclick="showTab('ofdm_engine.h')">ofdm_engine.h</button>
-<button class="tab-btn" onclick="showTab('ofdm_engine.c')">ofdm_engine.c</button>
-<button class="tab-btn" onclick="showTab('power_ctrl.h')">power_ctrl.h</button>
-<button class="tab-btn" onclick="showTab('power_ctrl.c')">power_ctrl.c</button>
-<button class="tab-btn" onclick="showTab('host_if.h')">host_if.h</button>
-<button class="tab-btn" onclick="showTab('host_if.c')">host_if.c</button>
-<button class="tab-btn" onclick="showTab('diag.h')">diag.h</button>
-<button class="tab-btn" onclick="showTab('diag.c')">diag.c</button>
-<button class="tab-btn" onclick="showTab('bsp.h')">bsp.h</button>
+<button class="tab-btn active" onclick="showTab('main.c', event)">main.c</button>
+<button class="tab-btn" onclick="showTab('modem.h', event)">modem.h</button>
+<button class="tab-btn" onclick="showTab('ofdm_engine.h', event)">ofdm_engine.h</button>
+<button class="tab-btn" onclick="showTab('ofdm_engine.c', event)">ofdm_engine.c</button>
+<button class="tab-btn" onclick="showTab('power_ctrl.h', event)">power_ctrl.h</button>
+<button class="tab-btn" onclick="showTab('power_ctrl.c', event)">power_ctrl.c</button>
+<button class="tab-btn" onclick="showTab('host_if.h', event)">host_if.h</button>
+<button class="tab-btn" onclick="showTab('host_if.c', event)">host_if.c</button>
+<button class="tab-btn" onclick="showTab('diag.h', event)">diag.h</button>
+<button class="tab-btn" onclick="showTab('diag.c', event)">diag.c</button>
+<button class="tab-btn" onclick="showTab('bsp.h', event)">bsp.h</button>
 </div>
 <div class="tab-panel active" id="tab-main.c">
 <div class="code-card">
@@ -18772,10 +18772,10 @@ const observer = new IntersectionObserver((entries) => {
 sections.forEach(s => observer.observe(s));
 
 // Tab switching for C source files
-function showTab(fname) {
+function showTab(fname, evt) {
  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
- event.target.classList.add('active');
+ if (evt && evt.target) evt.target.classList.add('active');
  const panel = document.getElementById('tab-' + fname);
  if (panel) panel.classList.add('active');
 }

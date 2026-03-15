@@ -538,7 +538,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
 <tr><th>Architecture</th><th>Agent-Env Boundary</th><th>Observation Model</th><th>Action Model</th></tr>
-<tr><td>OpenAI Gymnasium<a href="#ref-5" class="cite">[5]</a></td><td>Env.step(action) → obs, reward, done</td><td>Flat vector or image</td><td>Discrete or Box continuous</td></tr>
+<tr><td>OpenAI Gymnasium<a href="#ref-5" class="cite">[5]</a></td><td>Env.step(action) → obs, reward, done, truncated, info</td><td>Flat vector or image</td><td>Discrete or Box continuous</td></tr>
 <tr><td>ROS + Gazebo RL loop</td><td>ROS topics for obs/action</td><td>Sensor topic subscriptions</td><td>Motor command topics</td></tr>
 <tr><td>Custom Actor-Critic<a href="#ref-2" class="cite">[2]</a></td><td>Direct function call</td><td>State vector</td><td>Continuous torque/force</td></tr>
 <tr><td>Hierarchical RL (HRL)</td><td>Multi-level: manager/worker</td><td>Goals + raw state</td><td>Subgoal + primitive action</td></tr>
@@ -626,7 +626,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="svg-caption">Figure 4 — Functional Architecture. Left: Environment boundary (physics, sensors, fusion, reward). Right: RL Agent (actor, twin critics, replay buffer, training loop). Bold arrows = main data loop.</div>
 </div>
 
-<div class="analysis"><div class="analysis-title">📊 Architecture Summary</div><ul>
+<div class="analysis"><div class="analysis-title">Architecture Summary</div><ul>
 <li>5 functional modules with clear data-flow boundaries matching the Gymnasium API contract: <code>step(action) → obs, reward, done, truncated, info</code>.</li>
 <li>Observation path: 10 raw sensor values → complementary filter → 12D fused vector including error terms and their derivatives.</li>
 <li>Action path: 3D vector [u_L, u_R, u_P] from actor tanh output, executed on ESC PWM drivers and pump relay.</li>
@@ -941,7 +941,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="out-panel" id="out-q6"><div class="out-header"><span class="out-label">Output</span><span class="out-status" id="stat-q6"></span></div><pre class="out-body" id="res-q6"></pre></div>
 </div>
 
-<div class="analysis"><div class="analysis-title">📊 Implementation Notes</div><ul>
+<div class="analysis"><div class="analysis-title">Implementation Notes</div><ul>
 <li>The actor network uses 2 hidden layers of 256 ReLU units with Layer Normalization after each hidden layer, and a tanh output layer producing actions in [-1, 1] — a standard architecture for continuous control<a href="#ref-7" class="cite">[7]</a><a href="#ref-2" class="cite">[2]</a>. Layer Normalization stabilizes training across the diverse observation scales (angles in radians vs. distances in meters).</li>
 <li>Twin critics Q₁ and Q₂ receive the concatenation of state and action as input, each producing a scalar Q-value. The minimum of both is used for target computation, reducing overestimation bias.</li>
 <li>Delayed policy update (d=2) means the actor is updated only every 2nd critic update, preventing the actor from exploiting transient critic inaccuracies.</li>
