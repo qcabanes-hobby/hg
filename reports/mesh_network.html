@@ -1550,7 +1550,7 @@ ul.rl li{padding:4px 0 4px 20px;position:relative;color:var(--text2);font-size:1
 ul.rl li::before{content:'▸';position:absolute;left:0;color:var(--cyan);font-size:11px;top:7px}
 ol.rl{padding-left:24px;margin:10px 0}
 ol.rl li{padding:3px 0;color:var(--text2);font-size:14px}
-.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0}
+.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0;overflow-x:auto}
 .code-card{background:#080c16;border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin:20px 0}
 .code-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#0f1520;border-bottom:1px solid var(--border)}
 .code-lang{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.1em}
@@ -1997,10 +1997,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     </tbody>
   </table></div>
   <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
-  <div class="chosen"><div class="chosen-label">PHASE 1</div><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
-  <div class="chosen"><div class="chosen-label">PHASE 2</div><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
+  <div class="chosen"><div class="chosen-label">CHOSEN &mdash; Phase 1</div><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
+  <div class="chosen"><div class="chosen-label">CHOSEN &mdash; Phase 2</div><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
   <h3 class="sub">③ Solution Planning</h3>
-  <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with TTL-scoped flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
+  <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with duplicate-suppressed flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
   <h3 class="sub">④ Solution &amp; Discussion</h3>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">simulator.py · fully commented · 4 scenarios</span>

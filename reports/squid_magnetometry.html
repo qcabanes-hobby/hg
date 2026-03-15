@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SQUID Magnetometry — Static Technical Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07090f;--bg2:#0d1120;--surface:#161e30;--border:#1f2d47;--border2:#2a3d5c;--cyan:#00d4ff;--cyan-dim:#00d4ff18;--violet:#8b5cf6;--violet-dim:#8b5cf618;--green:#10d880;--green-dim:#10d88018;--amber:#f59e0b;--red:#f43f5e;--text:#e2e8f0;--text2:#94a3b8;--text3:#4f6480;--mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;--display:'Syne',sans-serif;--nav-w:260px;--hdr-h:56px}
@@ -79,7 +80,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 .tw td:first-child{color:var(--text);font-weight:500}
 
 /* Formula */
-.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0}
+.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0;overflow-x:auto}
 
 /* Section header (flex pattern) */
 .section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px}
@@ -147,24 +148,28 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
      SIDEBAR
      ══════════════════════════════════════════════════════════ -->
 <nav id="sidebar">
-  <div class="nav-group-label">Overview</div>
-  <a href="#hero" class="nav-item active"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
-  <a href="#abstract" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
-  <a href="#acronyms" class="nav-item"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
-  <a href="#s1" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
-  <a href="#s2" class="nav-item"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
-
-  <div class="nav-group-label">Questions</div>
-  <a href="#s3" class="nav-item"><span class="nav-num">Q1</span><span class="nav-dot"></span>SQUID Equiv. Model</a>
-  <a href="#s4" class="nav-item"><span class="nav-num">Q2</span><span class="nav-dot"></span>Transfer Function</a>
-  <a href="#s5" class="nav-item"><span class="nav-num">Q3</span><span class="nav-dot"></span>Accuracy &amp; Challenges</a>
-  <a href="#s6" class="nav-item"><span class="nav-num">Q4</span><span class="nav-dot"></span>Fabrication Techniques</a>
-  <a href="#s7" class="nav-item"><span class="nav-num">Q5</span><span class="nav-dot"></span>Cryostat Design</a>
-
-  <div class="nav-group-label">Appendix</div>
-  <a href="#s8" class="nav-item"><span class="nav-num">08</span><span class="nav-dot"></span>AI Usage Disclosure</a>
-  <a href="#s9" class="nav-item"><span class="nav-num">09</span><span class="nav-dot"></span>Conclusion</a>
-  <a href="#s10" class="nav-item"><span class="nav-num">10</span><span class="nav-dot"></span>Bibliography</a>
+  <div class="nav-group">
+    <span class="nav-group-label">Overview</span>
+    <a href="#hero" class="nav-item active"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
+    <a href="#abstract" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+    <a href="#acronyms" class="nav-item"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
+    <a href="#s1" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
+    <a href="#s2" class="nav-item"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Questions</span>
+    <a href="#s3" class="nav-item"><span class="nav-num">Q1</span><span class="nav-dot"></span>SQUID Equiv. Model</a>
+    <a href="#s4" class="nav-item"><span class="nav-num">Q2</span><span class="nav-dot"></span>Transfer Function</a>
+    <a href="#s5" class="nav-item"><span class="nav-num">Q3</span><span class="nav-dot"></span>Accuracy &amp; Challenges</a>
+    <a href="#s6" class="nav-item"><span class="nav-num">Q4</span><span class="nav-dot"></span>Fabrication Techniques</a>
+    <a href="#s7" class="nav-item"><span class="nav-num">Q5</span><span class="nav-dot"></span>Cryostat Design</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Appendix</span>
+    <a href="#s8" class="nav-item"><span class="nav-num">08</span><span class="nav-dot"></span>AI Usage Disclosure</a>
+    <a href="#s9" class="nav-item"><span class="nav-num">09</span><span class="nav-dot"></span>Conclusion</a>
+    <a href="#s10" class="nav-item"><span class="nav-num">10</span><span class="nav-dot"></span>Bibliography</a>
+  </div>
 </nav>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -925,11 +930,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
       <text x="130" y="388" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Integration</text>
       <text x="122" y="200" text-anchor="end" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="9">Cost</text>
       <!-- Technique 1: Nb/AlOx/Nb (5,5,2,4,3) - cyan -->
-      <polygon points="280,100 423,204 309,299 239,318 194,219" fill="#00d4ff" fill-opacity="0.15" stroke="#00d4ff" stroke-width="1.5"/>
+      <polygon points="280,100 423,204 315,298 210,347 194,222" fill="#00d4ff" fill-opacity="0.15" stroke="#00d4ff" stroke-width="1.5"/>
       <!-- Technique 2: YBCO (2,3,5,2,4) - violet -->
-      <polygon points="280,190 356,226 368,371 221,284 160,211" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-width="1.5"/>
+      <polygon points="280,190 366,222 368,371 245,298 166,213" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-width="1.5"/>
       <!-- Technique 3: FIB (1,2,2,1,2) - amber -->
-      <polygon points="280,220 308,241 297,298 262,298 252,241" fill="#f59e0b" fill-opacity="0.1" stroke="#f59e0b" stroke-width="1.5"/>
+      <polygon points="280,220 337,232 315,298 262,274 223,232" fill="#f59e0b" fill-opacity="0.1" stroke="#f59e0b" stroke-width="1.5"/>
       <!-- Technique 4: Hypres Nb foundry (4,4,3,4,3) — weighted: 4×0.30+4×0.25+3×0.20+4×0.15+3×0.10 = 3.70 -->
       <!-- Technique 5: Shadow evaporation (4,2,3,2,2) — weighted: 4×0.30+2×0.25+3×0.20+2×0.15+2×0.10 = 2.80 -->
       <!-- Legend -->

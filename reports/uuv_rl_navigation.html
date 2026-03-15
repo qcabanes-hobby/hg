@@ -86,7 +86,7 @@ p strong{color:var(--text)}
 .tw td:first-child{color:var(--text);font-weight:500}
 
 /* Formula */
-.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0;overflow-x:auto;white-space:pre}
+.formula{font-family:var(--mono);font-size:15px;font-weight:600;color:#fff;text-align:center;padding:16px 24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin:16px 0;overflow-x:auto}
 
 /* Code card */
 .code-card{background:#080c16;border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin:20px 0}
@@ -180,13 +180,16 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── Sidebar ─────────────────────────── -->
 <nav id="sidebar">
-<div class="nav-group-label">Overview</div>
+<div class="nav-group">
+<span class="nav-group-label">Overview</span>
 <a href="#hero" class="nav-item active"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
 <a href="#abstract" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
 <a href="#acronyms" class="nav-item"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
 <a href="#s1" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
 <a href="#s2" class="nav-item"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
-<div class="nav-group-label">Questions</div>
+</div>
+<div class="nav-group">
+<span class="nav-group-label">Questions</span>
 <a href="#s3" class="nav-item"><span class="nav-num">Q1</span><span class="nav-dot"></span>SysML Model</a>
 <a href="#s4" class="nav-item"><span class="nav-num">Q2</span><span class="nav-dot"></span>RL Architecture</a>
 <a href="#s5" class="nav-item"><span class="nav-num">Q3</span><span class="nav-dot"></span>Variable Space</a>
@@ -197,10 +200,13 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <a href="#s10" class="nav-item"><span class="nav-num">Q8</span><span class="nav-dot"></span>Training &amp; Eval</a>
 <a href="#s11" class="nav-item"><span class="nav-num">Q9</span><span class="nav-dot"></span>Embedded Platform</a>
 <a href="#s12" class="nav-item"><span class="nav-num">Q10</span><span class="nav-dot"></span>ROS Integration</a>
-<div class="nav-group-label">Appendix</div>
+</div>
+<div class="nav-group">
+<span class="nav-group-label">Appendix</span>
 <a href="#s13" class="nav-item"><span class="nav-num">13</span><span class="nav-dot"></span>AI Usage Disclosure</a>
 <a href="#s14" class="nav-item"><span class="nav-num">14</span><span class="nav-dot"></span>Conclusion</a>
 <a href="#s15" class="nav-item"><span class="nav-num">15</span><span class="nav-dot"></span>Bibliography</a>
+</div>
 </nav>
 
 <!-- ── Main Content ────────────────────── -->
@@ -1228,7 +1234,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </div>
 <p>This report was developed using a structured engineering methodology augmented by AI-assisted tools for literature research, algorithm analysis, code scaffolding, diagram generation, and report formatting. AI tools were employed as productivity aids &mdash; analogous to simulation software in control systems design &mdash; with all technical decisions, parameter selections, and design validations remaining under engineering oversight.</p>
 
-<h3 class="sub">AI Contribution vs Human Responsibility</h3>
+<h3 class="sub">Contribution Breakdown</h3>
 <div class="tw"><table>
 <tr><th>Aspect</th><th>Tool-Assisted</th><th>Engineer-Led</th></tr>
 <tr><td>Problem structuring</td><td>Organized 10 questions into typed categories with methodology</td><td>Original problem definition, constraints, sensor specifications</td></tr>
@@ -1240,7 +1246,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>Report writing</td><td>Full prose, tables, analysis boxes, and formatting</td><td>Technical review, domain expertise validation, final approval</td></tr>
 </table></div>
 
-<h3 class="sub">Limitations &amp; Caveats</h3>
+<h3 class="sub">Limitations</h3>
 <p>• The Keras code is illustrative — it must be validated, tested with real sensor data, and hardened before any real-world UUV deployment.</p>
 <p>• Mathematical models (dynamics, reward functions, convergence estimates) are simplified and omit real-world factors such as nonlinear hydrodynamic coupling, sensor calibration errors, and actuator backlash.</p>
 <p>• AI knowledge has a training cutoff date; recent updates to ROS 2, STM32 firmware, or RL algorithm papers may not be reflected.</p>
