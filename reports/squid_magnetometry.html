@@ -472,7 +472,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   </ul>
   <div class="chosen">
     <div class="chosen-label">CHOSEN</div>
-    <p><strong>Ideal sinusoidal V(Φ) with small-signal linearisation overlay.</strong> The sinusoidal model captures the essential Φ₀-periodicity and enables analytical derivation of the transfer coefficient V_Φ = dV/dΦ = (πV_max/Φ₀)|sin(πΦ/Φ₀)|. Combined with the flux-locked loop concept, this provides a complete understanding of SQUID magnetometer operation without requiring numerical ODE solutions.</p>
+    <p><strong>Ideal sinusoidal V(Φ) with small-signal linearisation overlay.</strong> The sinusoidal model captures the essential Φ₀-periodicity and enables analytical derivation of the transfer coefficient V_Φ = dV/dΦ = (πΔV/Φ₀)|sin(2πΦ/Φ₀)|, where ΔV = V_max − V_min. Combined with the flux-locked loop concept, this provides a complete understanding of SQUID magnetometer operation without requiring numerical ODE solutions.</p>
   </div>
 
   <h3 class="sub">③ Solution Planning</h3>
@@ -480,10 +480,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p><strong>1. Flux-to-voltage transduction:</strong> A DC SQUID biased above its critical current produces a voltage that is periodic in the applied flux with period Φ₀. For an ideal symmetric DC SQUID:</p>
   <div class="formula">V(Φ) = R · √(I_bias² − (2I_c · cos(π Φ / Φ₀))²)    for I_bias > 2I_c|cos(πΦ/Φ₀)|</div>
   <p>In the simplified sinusoidal approximation, this reduces to:</p>
-  <div class="formula">V(Φ) ≈ V_max · |cos(π Φ / Φ₀)|    where V_max = R · √(I_bias² − 4I_c²)</div>
+  <div class="formula">V(Φ) ≈ V_min + ΔV · sin²(πΦ/Φ₀)    where V_min = R·√(I_bias² − 4I_c²) ≈ 75 µV,  V_max = R·I_bias = 125 µV,  ΔV = 50 µV</div>
 
   <p><strong>2. Transfer coefficient:</strong> The maximum sensitivity occurs at the steepest slope of V(Φ), at Φ = (2n+1)Φ₀/4:</p>
-  <div class="formula">V_Φ = ∂V/∂Φ|_max = π V_max    [V/Φ₀]</div>
+  <div class="formula">V_Φ = ∂V/∂Φ|_max = π ΔV    [V/Φ₀]</div>
   <p>Typical values range from 100 µV/Φ₀ to 1 mV/Φ₀ depending on junction parameters<a href="#ref-2" class="cite">[2]</a>.</p>
 
   <p><strong>3. Flux-Locked Loop (FLL):</strong> To linearise the periodic response, the SQUID is operated in a feedback loop. A modulation flux is applied, and the feedback current through a coil maintains the SQUID at its operating point. The feedback current is proportional to the input flux, providing a linear output over many Φ₀<a href="#ref-5" class="cite">[5]</a>.</p>
@@ -491,8 +491,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="tw"><table>
     <tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
     <tr><td>Bias current</td><td>I_bias</td><td>25 µA</td><td>~2.5 × I_c for optimal V_Φ</td></tr>
-    <tr><td>Max voltage swing</td><td>V_max</td><td>~75 µV</td><td>R·√(I²_bias − 4I²_c) = 5·√(625−400) µV</td></tr>
-    <tr><td>Transfer coefficient</td><td>V_Φ</td><td>~236 µV/Φ₀</td><td>πV_max (within typical 100–1000 µV/Φ₀ range)</td></tr>
+    <tr><td>Min voltage (at Φ = nΦ₀)</td><td>V_min</td><td>~75 µV</td><td>R·√(I²_bias − 4I²_c) = 5·√(625−400) µV</td></tr>
+    <tr><td>Max voltage (at Φ = (n+½)Φ₀)</td><td>V_max</td><td>~125 µV</td><td>R·I_bias = 5 × 25 µV</td></tr>
+    <tr><td>Voltage swing</td><td>ΔV</td><td>~50 µV</td><td>V_max − V_min</td></tr>
+    <tr><td>Transfer coefficient</td><td>V_Φ</td><td>~157 µV/Φ₀</td><td>πΔV (within typical 100–1000 µV/Φ₀ range)</td></tr>
     <tr><td>Flux quantum</td><td>Φ₀</td><td>2.068 × 10⁻¹⁵ Wb</td><td>h/2e</td></tr>
     <tr><td>Dynamic range (FLL)</td><td>—</td><td>~10⁶ Φ₀</td><td>Limited by feedback electronics</td></tr>
   </table></div>
@@ -522,10 +524,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
       <text x="35" y="84" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">V_max</text>
       <line x1="75" y1="270" x2="85" y2="270" stroke="#94a3b8" stroke-width="1"/>
       <text x="35" y="274" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">V_min</text>
-      <!-- V(Phi) curve: |cos(pi*Phi/Phi0)| pattern over 2.5 periods -->
+      <!-- V(Phi) curve: sin²(pi*Phi/Phi0) pattern over 2.5 periods -->
       <!-- Period: 172px per Phi_0, half-period = 86px -->
-      <!-- Maxima at 0, 1.0, 2.0 (y=80); Minima at 0.5, 1.5 (y=270) -->
-      <path d="M80,80 C100,80 126,270 166,270 C206,270 220,80 252,80 C284,80 298,270 338,270 C378,270 392,80 424,80 C456,80 468,270 510,270" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+      <!-- Minima at 0, 1.0, 2.0 (y=270); Maxima at 0.5, 1.5 (y=80) -->
+      <path d="M80,270 C100,270 126,80 166,80 C206,80 220,270 252,270 C284,270 298,80 338,80 C378,80 392,270 424,270 C456,270 468,80 510,80" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
       <!-- Phi_0 period marker -->
       <line x1="80" y1="345" x2="252" y2="345" stroke="#f59e0b" stroke-width="1"/>
       <line x1="80" y1="340" x2="80" y2="350" stroke="#f59e0b" stroke-width="1"/>
@@ -598,7 +600,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="analysis">
     <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>The V(&Phi;) curve exhibits clear &Phi;&#8320;-periodicity, with voltage maxima at integer multiples of &Phi;&#8320; and minima at half-integer multiples -- consistent with the cosine dependence from flux quantisation<a href="#ref-1" class="cite">[1]</a>.</li>
+      <li>The V(&Phi;) curve exhibits clear &Phi;&#8320;-periodicity, with voltage minima at integer multiples of &Phi;&#8320; (where supercurrent is maximum) and maxima at half-integer multiples (where supercurrent is fully suppressed) -- consistent with the flux quantisation condition<a href="#ref-1" class="cite">[1]</a>.</li>
       <li>The transfer coefficient V_&Phi; peaks at &Phi; = &Phi;&#8320;/4 and 3&Phi;&#8320;/4 (the steepest slopes), confirming the optimal bias point for magnetometer operation.</li>
       <li>The flux-locked loop maintains the SQUID at its steepest-slope operating point, providing linear output over many flux quanta with bandwidth up to ~10 MHz.</li>
     </ul>
@@ -810,7 +812,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <ul>
     <li><strong>Nb/AlOx/Nb tri-layer:</strong> The gold standard for LTS SQUIDs. Sputter-deposited Nb base, thin Al layer (~5 nm) oxidised in controlled O₂ to form the tunnel barrier, then Nb counter-electrode. Junction critical current density J_c is set by oxidation parameters. Achieves I_c uniformity &lt; 1% across a 150 mm wafer<a href="#ref-6" class="cite">[6]</a>.</li>
     <li><strong>YBCO grain-boundary:</strong> Junctions form at crystallographic discontinuities — either on bicrystal substrates or at lithographically defined step edges. The 77 K operation is advantageous but the junction parameters are inherently less controllable than tunnel junctions.</li>
-    <li><strong>Hypres foundry process:</strong> Standardised Nb-based multi-layer fabrication with 1 kA/cm² J_c<a href="#ref-9" class="cite">[9]</a>. Enables complex SQUID circuits (arrays, digital readout) but with fixed design rules that may not suit all applications.</li>
+    <li><strong>Standardised foundry processes (e.g., MIT Lincoln Lab, Hypres):</strong> Multi-layer Nb fabrication with 1 kA/cm² J_c<a href="#ref-9" class="cite">[9]</a>. Enables complex SQUID circuits (arrays, digital readout) but with fixed design rules that may not suit all applications.</li>
     <li><strong>Shadow evaporation:</strong> Creates Al/AlOx/Al junctions via angle-evaporation through a resist bridge (Dolan bridge technique)<a href="#ref-8" class="cite">[8]</a>. Excellent for single-junction devices and charge-sensitive applications but Al's low T_c (1.2 K) limits use to millikelvin temperatures.</li>
     <li><strong>FIB milling:</strong> Useful for rapid prototyping and research but Ga⁺ implantation degrades superconducting properties. Not suitable for production SQUIDs.</li>
   </ul>

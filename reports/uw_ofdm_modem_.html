@@ -14591,7 +14591,7 @@ z
 <p>Four platform architectures are evaluated for the OFDM modem implementation:</p>
 
 <h4 class="subsub">Option A: MCU-Only (STM32H743)</h4>
-<p>The <strong>STM32H743VIT6</strong> features an ARM Cortex-M7 core at 480 MHz with double-precision FPU, 1 MB SRAM, 2 MB Flash, hardware DMA, and 16-bit ADC/DAC. The CMSIS-DSP library provides optimized fixed-point FFT routines that execute a 64-point complex FFT in approximately 5 &mu;s, well within the 4 ms OFDM symbol period.</p>
+<p>The <strong>STM32H743VIT6</strong> features an ARM Cortex-M7 core at 480 MHz with double-precision FPU, 1 MB SRAM, 2 MB Flash, hardware DMA, 16-bit ADC, and 12-bit DAC. The CMSIS-DSP library provides optimized fixed-point FFT routines that execute a 64-point complex FFT in approximately 5 &mu;s, well within the 4 ms OFDM symbol period.</p>
 <p><strong>Advantages:</strong> Lowest BOM cost (&sim;&euro;8-15 per unit), single development toolchain (STM32CubeIDE + FreeRTOS), extensive ecosystem (HAL, CMSIS-DSP, community), lowest power consumption (~500 mW typical).</p>
 <p><strong>Limitations:</strong> If future requirements demand significantly higher data rates (e.g., 100+ kbps with 256-QAM and large FFT), the MCU may become the bottleneck. No true hardware parallelism for simultaneous Tx/Rx processing.</p>
 
@@ -15338,6 +15338,7 @@ z
  <span class="kw">if</span> (<span class="deco">xQueueReceive</span>(q_tx_symbols, &amp;sym, portMAX_DELAY) == pdTRUE) {
  <span class="deco">xSemaphoreTake</span>(mtx_dma_buf, portMAX_DELAY);
  <span class="deco">bsp_dma_tx_start</span>(sym.I, sym.Q, OFDM_NSYM);
+ <span class="deco">ulTaskNotifyTake</span>(pdTRUE, portMAX_DELAY); <span class="cmt">/* wait for DMA TC ISR */</span>
  <span class="deco">xSemaphoreGive</span>(mtx_dma_buf);
  <span class="deco">xEventGroupSetBits</span>(eg_modem, EVT_TX_DONE);
  }
