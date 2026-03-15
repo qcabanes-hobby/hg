@@ -19,7 +19,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .runtime-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 
 /* Sidebar */
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-top:var(--hdr-h);scrollbar-width:thin;scrollbar-color:var(--border2) transparent;z-index:50}
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-top:var(--hdr-h);scrollbar-width:thin;scrollbar-color:var(--border2) transparent;z-index:50}
 .nav-group{padding:20px 0 8px}
 .nav-group-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;padding:0 20px 6px;display:block}
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;transition:all .15s;text-decoration:none;color:var(--text2);font-size:13px;border-left:2px solid transparent}
@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .nav-item.active .nav-dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
 
 /* Main */
-.main{margin-left:var(--nav-w);padding:calc(var(--hdr-h) + 44px) 60px 80px;max-width:calc(var(--nav-w) + 900px)}
+#main{margin-left:var(--nav-w);padding:calc(var(--hdr-h) + 44px) 60px 80px;max-width:calc(var(--nav-w) + 900px)}
 
 /* Hero */
 .hero{padding:56px 0 44px;border-bottom:1px solid var(--border);margin-bottom:64px;position:relative}
@@ -52,7 +52,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .section-num.v{color:var(--violet);background:var(--violet-dim);border-color:var(--violet)}
 .section-num.g{color:var(--green);background:var(--green-dim);border-color:var(--green)}
 .section-num.a{color:var(--amber);background:#f59e0b12;border-color:var(--amber)}
-h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2;margin:8px 0 18px}
+h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2}
 h3.sub{font-family:var(--display);font-size:17px;font-weight:600;color:var(--cyan);margin:32px 0 12px}
 h4.subsub{font-size:13px;font-weight:600;color:var(--text2);margin:18px 0 8px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
 p{color:var(--text2);margin-bottom:12px}
@@ -79,7 +79,7 @@ li{margin-bottom:6px}
 
 /* Analysis */
 .analysis{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:16px 0}
-.analysis .label{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.analysis-title{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
 
 /* Inline code */
 code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var(--amber);padding:1px 6px;border-radius:4px;border:1px solid var(--border2)}
@@ -102,10 +102,10 @@ pre.code-body .deco{color:#dcdcaa}
 .cite,.cite:visited{font-family:var(--mono);font-size:10px;vertical-align:super;color:var(--cyan);font-weight:600;margin-left:1px;text-decoration:none}
 .cite:hover{text-decoration:underline;color:#e0f7ff}
 
-/* Figure containers */
-.fig-container{margin:20px 0;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow-x:auto}
-.fig-container svg{max-width:100%;height:auto}
-.fig-caption{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:center;margin-top:10px;font-style:italic}
+/* SVG figures */
+.svg-wrap{margin:20px 0;overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.svg-wrap svg{max-width:100%;height:auto;display:block;margin:0 auto}
+.svg-caption{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:12px;text-align:center}
 
 /* ASCII blocks */
 .ascii-block{background:#080c16;border:1px solid var(--border2);border-radius:8px;padding:16px 20px;margin:16px 0;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--green);white-space:pre;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
@@ -123,15 +123,12 @@ pre.code-body .deco{color:#dcdcaa}
 .tab-panel.active{display:block}
 
 /* Methodology cards */
-.meth-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
-.meth-card{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:18px;transition:border-color .2s}
+.meth-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
+.meth-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;transition:border-color .2s}
 .meth-card:hover{border-color:var(--cyan)}
-.meth-num{font-family:var(--display);font-size:30px;font-weight:800;line-height:1;margin-bottom:6px;color:var(--cyan)}
-.meth-card:nth-child(2) .meth-num{color:var(--green)}
-.meth-card:nth-child(3) .meth-num{color:var(--violet)}
-.meth-card:nth-child(4) .meth-num{color:var(--amber)}
-.meth-title{font-weight:600;color:var(--text);font-size:14px;margin-bottom:4px;font-family:var(--mono)}
-.meth-desc{font-size:13px;color:var(--text2)}
+.meth-num{font-family:var(--display);font-size:28px;font-weight:800;color:var(--cyan);margin-bottom:6px}
+.meth-title{font-family:var(--display);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.meth-desc{font-size:12px;color:var(--text3);line-height:1.5}
 
 /* Bibliography */
 .bib-item{display:flex;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);scroll-margin-top:calc(var(--hdr-h) + 12px);border-radius:4px;transition:background .2s,border-left .2s}
@@ -145,11 +142,11 @@ pre.code-body .deco{color:#dcdcaa}
 hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 
 /* Responsive */
-@media(max-width:860px){.sidebar{display:none}.main{margin-left:0;padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero h1{font-size:30px}.meth-grid{grid-template-columns:1fr}}
+@media(max-width:860px){:root{--nav-w:0px}#sidebar{display:none}#main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero h1{font-size:30px}.meth-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<nav class="sidebar">
+<nav id="sidebar">
 <div class="nav-group"><div class="nav-group-label">Overview</div>
 <a class="nav-item active" href="#hero"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
 <a class="nav-item" href="#abstract"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
@@ -179,7 +176,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <span class="dot"></span><span>HTML · Static Report</span>
   </div>
 </header>
-<div class="main">
+<main id="main">
 
 <section class="section" id="hero">
 <div class="hero">
@@ -345,7 +342,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 
 <h4 class="subsub">Bode Diagram</h4>
 <p>The figure below shows the magnitude and phase response of both filters. The green shaded region indicates the 20-40 kHz passband.</p>
-<div class="fig-container">
+<div class="svg-wrap">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="616.830781pt" height="450.01875pt" viewBox="0 0 616.830781 450.01875" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -2782,11 +2779,11 @@ L 74.396955 398.75335
 </svg>
 
 
-<div class="fig-caption">Figure Q1.1 &mdash; Butterworth BPF Bode diagram: Tx (n=4, cyan) and Rx (n=6, violet). Passband: 20-40 kHz.</div>
+<div class="svg-caption">Figure Q1.1 &mdash; Butterworth BPF Bode diagram: Tx (n=4, cyan) and Rx (n=6, violet). Passband: 20-40 kHz.</div>
 </div>
 
 <div class="analysis">
-<div class="label">Design validation</div>
+<div class="analysis-title">Design validation</div>
 <p>The Bode diagram confirms: (a) 0 dB gain at center frequency (28.28 kHz), (b) &minus;3 dB points at 20 and 40 kHz band edges, (c) the 6th-order Rx filter provides ~18 dB/octave steeper roll-off, yielding &gt; 50 dB rejection at 5 kHz and 80 kHz, and (d) monotonic unwrapped phase through the passband with smooth group delay. The Tx 4th-order BPF phase sweeps from +180&deg; to &minus;180&deg;, while the Rx 6th-order BPF sweeps from +270&deg; to &minus;270&deg;, both passing through 0&deg; at the center frequency of 28.28 kHz.</p>
 </div>
 
@@ -3012,7 +3009,7 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 </ul>
 <p>The series resonance frequency is f<sub>s</sub> = 1/(2&pi;&radic;(L&#8321;C&#8321;)) &asymp; 30 kHz. Note that this is slightly above the BPF geometric center frequency (f<sub>0</sub> = &radic;(20&times;40) = 28.28 kHz); placing the transducer resonance at 30 kHz is a deliberate design choice that optimizes electroacoustic sensitivity in the upper portion of the 20&ndash;40 kHz band, where absorption losses are higher and additional transmit efficiency is most beneficial. The parallel resonance f<sub>p</sub> = f<sub>s</sub>&radic;(1 + C&#8321;/C&#8320;) is slightly higher. The quality factor Q = 2&pi;f<sub>s</sub>L&#8321;/R&#8321; &asymp; 10-50, indicating moderate bandwidth suitable for wideband OFDM transmission.</p>
 
-<div class="fig-container">
+<div class="svg-wrap">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="572.4pt" height="257.278125pt" viewBox="0 0 572.4 257.278125" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -5074,7 +5071,7 @@ z
  </defs>
 </svg>
 
-<div class="fig-caption">Figure Q4.1 &mdash; Butterworth-Van Dyke (BVD) equivalent circuit of the piezoelectric transducer.</div>
+<div class="svg-caption">Figure Q4.1 &mdash; Butterworth-Van Dyke (BVD) equivalent circuit of the piezoelectric transducer.</div>
 </div>
 
 <h3 class="sub">④ Digital Control Design</h3>
@@ -5084,7 +5081,7 @@ z
 
 <p>The complete control loop includes: (1) a power reference setpoint P<sub>ref</sub>, (2) a summing junction computing the error e[n] = P<sub>ref</sub> &minus; P<sub>meas</sub>[n], (3) the PI corrector C(z), (4) a DAC converting the digital control signal to an analog voltage, (5) the Class-AB power amplifier, (6) the piezoelectric transducer (plant), and (7) a feedback path through a power sensor and ADC.</p>
 
-<div class="fig-container">
+<div class="svg-wrap">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="689.6175pt" height="312.718125pt" viewBox="0 0 689.6175 312.718125" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -7301,7 +7298,7 @@ z
  </defs>
 </svg>
 
-<div class="fig-caption">Figure Q4.2 &mdash; Closed-loop digital power control block diagram. Sampling: 500 kHz (ADC/DAC), control rate: 10 kHz.</div>
+<div class="svg-caption">Figure Q4.2 &mdash; Closed-loop digital power control block diagram. Sampling: 500 kHz (ADC/DAC), control rate: 10 kHz.</div>
 </div>
 
 <h3 class="sub">PI Corrector Model</h3>
@@ -7318,7 +7315,7 @@ where I[n] = I[n&minus;1] + (K<sub>i</sub>&middot;T<sub>s</sub>/2)&middot;(e[n] 
 </div>
 <p>The controller includes <strong>anti-windup</strong> via output clamping with integrator back-calculation: when the output u[n] saturates (0 &le; u &le; 1), the integrator accumulator is frozen to prevent wind-up. Initial gain tuning is performed using the Ziegler-Nichols method on the linearized plant model, with K<sub>p</sub> &asymp; 0.8 and K<sub>i</sub> &asymp; 120.</p>
 
-<div class="fig-container">
+<div class="svg-wrap">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="593.440312pt" height="284.998125pt" viewBox="0 0 593.440312 284.998125" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -8756,11 +8753,11 @@ z
  </defs>
 </svg>
 
-<div class="fig-caption">Figure Q4.3 &mdash; PI corrector block diagram with Tustin integrator and anti-windup saturation clamp.</div>
+<div class="svg-caption">Figure Q4.3 &mdash; PI corrector block diagram with Tustin integrator and anti-windup saturation clamp.</div>
 </div>
 
 <div class="analysis">
-<div class="label">Stability and performance</div>
+<div class="analysis-title">Stability and performance</div>
 <p>With K<sub>p</sub>=0.8 and K<sub>i</sub>=120 at T<sub>s</sub>=100 &mu;s, the closed-loop system achieves: settling time &lt; 5 ms, overshoot &lt; 10%, steady-state error &lt; 0.5%, and phase margin &gt; 45&deg;. The 10 kHz control rate provides adequate bandwidth for tracking load impedance variations (which occur on timescales of seconds to minutes) while keeping CPU overhead minimal (~2% of a 480 MHz Cortex-M7 cycle budget).</p>
 </div>
 </section>
@@ -8796,7 +8793,7 @@ z
 <li><strong>Power &amp; Housing:</strong> The 24 V DC power supply unit with multiple regulated rails (3.3/5/12 V), IP68-rated enclosure, SubConn underwater connectors, and passive thermal management for 300 m depth rating.</li>
 </ul>
 
-<div class="fig-container">
+<div class="svg-wrap">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="795.6pt" height="592.677969pt" viewBox="0 0 795.6 592.677969" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -14567,7 +14564,7 @@ z
  </defs>
 </svg>
 
-<div class="fig-caption">Figure Q5.1 &mdash; SysML Block Definition Diagram (BDD) of the UW Acoustic OFDM Modem system. Composition relationships (solid arrows) indicate part-of hierarchy.</div>
+<div class="svg-caption">Figure Q5.1 &mdash; SysML Block Definition Diagram (BDD) of the UW Acoustic OFDM Modem system. Composition relationships (solid arrows) indicate part-of hierarchy.</div>
 </div>
 
 <h3 class="sub">④ SysML Diagrams</h3>
@@ -14739,7 +14736,7 @@ z
 <h4 class="subsub">Architecture Overview</h4>
 <p>The firmware is organized into 6 modules (11 source files: .c/.h pairs plus a standalone BSP header), following a layered architecture with clear separation between hardware abstraction, RTOS services, and application logic.</p>
 
-<div class="fig-container"><svg viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+<div class="svg-wrap"><svg viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
 <defs>
 <marker id="arrow-arch" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#2a3d5c" stroke-width="1.5"/></marker>
 </defs>
@@ -14802,12 +14799,12 @@ z
 <rect x="20" y="485" width="780" height="55" rx="10" fill="#161e30" stroke="#2a3d5c" stroke-width="1.5"/>
 <text x="410" y="508" fill="#e2e8f0" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="0.12em">HARDWARE (STM32H743)</text>
 <text x="410" y="527" fill="#8b9eb8" font-size="9.5" text-anchor="middle">Cortex-M7 480 MHz &middot; DMA &middot; ADC/DAC &middot; UART &middot; GPIO &middot; CORDIC</text>
-</svg><div class="fig-caption">Figure: Architecture Overview</div></div>
+</svg><div class="svg-caption">Figure: Architecture Overview</div></div>
 
 <h3 class="sub">④ C Implementation</h3>
 
 <h4 class="subsub">IPC Architecture</h4>
-<div class="fig-container"><svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+<div class="svg-wrap"><svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
 <defs>
 <marker id="arr-ipc" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#00d4ff" stroke-width="1.5"/></marker>
 <marker id="arr-ipc-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#10d880" stroke-width="1.5"/></marker>
@@ -14894,12 +14891,12 @@ z
 <text x="48" y="421" fill="#8b9eb8" font-size="9">Event Group</text>
 <rect x="30" y="430" width="12" height="12" rx="3" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
 <text x="48" y="441" fill="#8b9eb8" font-size="9">Task</text>
-</svg><div class="fig-caption">Figure: IPC Architecture</div></div>
+</svg><div class="svg-caption">Figure: IPC Architecture</div></div>
 
 <h4 class="subsub">Source Files</h4>
 <p>The following C source and header files constitute the complete firmware skeleton. Each file is self-contained with clear dependencies documented in the includes.</p>
 
-<div class="fig-container"><svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+<div class="svg-wrap"><svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
 <defs>
 <marker id="arr-dep" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#2a3d5c" stroke-width="1.5"/></marker>
 </defs>
@@ -15032,7 +15029,7 @@ z
 <text x="348" y="541" fill="#8b9eb8" font-size="9">#include</text>
 <line x1="440" y1="536" x2="470" y2="536" stroke="#2a3d5c" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-dep)"/>
 <text x="478" y="541" fill="#8b9eb8" font-size="9">#include (bsp.h / cross-module)</text>
-</svg><div class="fig-caption">Figure: File Dependency Diagram</div></div>
+</svg><div class="svg-caption">Figure: File Dependency Diagram</div></div>
 
 <div class="tab-bar" id="c-tabs">
 <button class="tab-btn active" onclick="showTab('main.c')">main.c</button>
@@ -15674,7 +15671,7 @@ z
 </div></div>
 
 <div class="analysis">
-<div class="label">Implementation notes</div>
+<div class="analysis-title">Implementation notes</div>
 <p>All files compile under ARM GCC (arm-none-eabi-gcc) with <code>-std=c11 -Wall -Wextra -Os</code>. The BSP layer (bsp.h) is an abstraction over the STM32 HAL; a concrete implementation (bsp.c) would map to STM32H743-specific HAL calls. The total code footprint is estimated at ~15 KB Flash and ~8 KB RAM (excluding RTOS kernel and stack allocations).</p>
 </div>
 </section>
@@ -15733,7 +15730,7 @@ z
 </table></div>
 
 <div class="analysis">
-<div class="label">Tool selection rationale</div>
+<div class="analysis-title">Tool selection rationale</div>
 <p>MATLAB/Simulink is chosen for system-level simulation due to its mature signal processing toolbox and Bellhop integration <a href="#ref-14" class="cite">[14]</a>. Python DES provides flexibility for software architecture validation without requiring embedded hardware. LTspice offers free, high-fidelity analog simulation. Bellhop is the industry-standard ray tracer for underwater acoustic propagation modelling <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a>.</p>
 </div>
 </section>
@@ -15781,7 +15778,7 @@ z
 <h4 class="subsub">Project Schedule (Gantt Chart)</h4>
 <p>The project follows a 12-month schedule with 7 formal review milestones aligned to the V-model phases:</p>
 
-<div class="fig-container">
+<div class="svg-wrap">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="788.14625pt" height="450.01875pt" viewBox="0 0 788.14625 450.01875" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -18396,7 +18393,7 @@ z
  </defs>
 </svg>
 
-<div class="fig-caption">Figure Q10.1 &mdash; 12-month Gantt chart with V-model milestones: KO (Kick-Off), SRR (System Requirements Review), PDR (Preliminary Design Review), CDR (Critical Design Review), TRR (Test Readiness Review), QR (Qualification Review), FAI (Final Acceptance Inspection).</div>
+<div class="svg-caption">Figure Q10.1 &mdash; 12-month Gantt chart with V-model milestones: KO (Kick-Off), SRR (System Requirements Review), PDR (Preliminary Design Review), CDR (Critical Design Review), TRR (Test Readiness Review), QR (Qualification Review), FAI (Final Acceptance Inspection).</div>
 </div>
 
 <h3 class="sub">Milestone Description</h3>
@@ -18430,7 +18427,7 @@ z
 <p><strong>Net schedule:</strong> Traditional 12 months &rarr; AI-augmented ~8.5 months (<strong>29% reduction</strong>).</p>
 
 <h4 class="subsub">AI-Augmented Gantt Chart (8.5 Months)</h4>
-<div class="fig-container">
+<div class="svg-wrap">
 <svg viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
 <defs>
 <style type="text/css">*{stroke-linejoin:round;stroke-linecap:butt}</style>
@@ -18525,7 +18522,7 @@ z
 <text x="330" y="444" fill="#94a3b8" font-size="9">Milestone</text>
 <text x="430" y="444" fill="#10d880" font-size="9" font-weight="600">29% schedule reduction vs. traditional</text>
 </svg>
-<div class="fig-caption">Figure Q10.2 &mdash; AI-augmented 8.5-month Gantt chart with compressed milestones: KO (M0), SRR (M1), PDR (M1.75), CDR (M3.75), TRR (M5.25), QR (M7), FAI (M8.5).</div>
+<div class="svg-caption">Figure Q10.2 &mdash; AI-augmented 8.5-month Gantt chart with compressed milestones: KO (M0), SRR (M1), PDR (M1.75), CDR (M3.75), TRR (M5.25), QR (M7), FAI (M8.5).</div>
 </div>
 
 <h4 class="subsub">Risk Analysis for AI-Augmented Schedule</h4>
@@ -18629,7 +18626,7 @@ z
 </table></div>
 
 <div class="analysis">
-<div class="label">Total certification budget estimate</div>
+<div class="analysis-title">Total certification budget estimate</div>
 <p><strong>Minimum (EU market, mandatory only):</strong> &euro;18,000-48,000 over 3-6 months. This covers CE marking, IP68, IEC 60945, REACH, and WEEE. <strong>Full (EU + USA + class approval):</strong> &euro;36,000-98,000 over 6-12 months, adding DNV-GL type approval, FCC, and IEC 62368-1. These estimates assume a single certification cycle; re-testing due to failures adds 20-50% to both cost and time.</p>
 </div>
 </section>
@@ -18752,6 +18749,8 @@ z
 <hr class="div">
 <p style="text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Underwater Acoustic OFDM Modem &middot; Technical Report v2 &middot; Static HTML &middot; AI-Augmented</p>
 </section>
+
+</main>
 
 <script>
 // Navigation active state on scroll

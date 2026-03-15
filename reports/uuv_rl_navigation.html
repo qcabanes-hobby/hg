@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 /* Sidebar */
 #sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-top:var(--hdr-h);scrollbar-width:thin;scrollbar-color:var(--border2) transparent;z-index:50}
 .nav-group{padding:20px 0 8px}
-.nav-group-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;padding:20px 20px 6px;display:block}
+.nav-group-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;padding:0 20px 6px;display:block}
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;transition:all .15s;text-decoration:none;color:var(--text2);font-size:13px;border-left:2px solid transparent}
 .nav-item:hover{color:var(--text);background:var(--surface)}
 .nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:var(--cyan-dim)}
@@ -107,13 +107,13 @@ pre.code-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4
 
 /* Output panel */
 .out-panel{border-top:1px solid var(--border);background:#040810;display:none}
-.out-panel.show{display:block}
-.out-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#080e1a;border-bottom:1px solid var(--border)}
+.out-panel.visible{display:block}
+.out-header{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#080e1a;border-bottom:1px solid var(--border)}
 .out-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em}
 .out-status{font-family:var(--mono);font-size:10px;letter-spacing:.05em}
 .out-status.ok{color:var(--green)}.out-status.err{color:var(--red)}.out-status.run{color:var(--amber)}
 pre.out-body{padding:14px 20px;font-family:var(--mono);font-size:12px;line-height:1.6;color:#a8ff78;white-space:pre-wrap;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
-pre.out-body.err{color:#ff7070}
+pre.out-body.err-out{color:#ff7070}
 
 /* Analysis */
 .analysis{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:16px 0}
@@ -938,7 +938,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="code-card">
 <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">td3_demo.py · toy UUV training</span><button class="run-btn" onclick="runScript('q6')"><span class="spinner"></span><span class="btn-text">▶ Run</span></button></div>
 <pre class="code-body" id="code-q6"></pre>
-<div class="out-panel" id="out-q6"><div class="out-hdr"><span class="out-label">Output</span><span class="out-status" id="stat-q6"></span></div><pre class="out-body" id="res-q6"></pre></div>
+<div class="out-panel" id="out-q6"><div class="out-header"><span class="out-label">Output</span><span class="out-status" id="stat-q6"></span></div><pre class="out-body" id="res-q6"></pre></div>
 </div>
 
 <div class="analysis"><div class="analysis-title">📊 Implementation Notes</div><ul>
@@ -1941,14 +1941,14 @@ let lp=0;const li=setInterval(()=>{if(pyodide||lp>=90){clearInterval(li);return}
 // ── Run Script ──────────────────────────────────────
 function showOutput(name,text,isError){
   const p=document.getElementById('out-'+name),b=document.getElementById('res-'+name),s=document.getElementById('stat-'+name);
-  if(p)p.classList.add('show');
-  if(b){b.textContent=text;b.className='out-body '+(isError?'err':'ok')}
+  if(p)p.classList.add('visible');
+  if(b){b.textContent=text;b.className='out-body '+(isError?'err-out':'ok')}
   if(s){s.textContent=isError?'✕ Error':'✓ OK';s.className='out-status '+(isError?'err':'ok')}}
 async function runScript(name){
   if(!pyodide){alert('Python is still loading. Please wait.');return}
   const btn=event.currentTarget;btn.classList.add('running');btn.disabled=true;
   const s=document.getElementById('stat-'+name);if(s){s.textContent='⟳ running…';s.className='out-status run'}
-  const p=document.getElementById('out-'+name);if(p)p.classList.add('show');
+  const p=document.getElementById('out-'+name);if(p)p.classList.add('visible');
   await new Promise(r=>setTimeout(r,50));
   pyodide.runPython('import sys\nfrom io import StringIO\n_capture_buf=StringIO()\nsys.stdout=_capture_buf');
   try{pyodide.runPython(SCRIPTS[name])}catch(pyErr){
