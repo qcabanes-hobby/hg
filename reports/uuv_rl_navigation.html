@@ -177,6 +177,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="nav-group-label">Overview</div>
 <a href="#hero" class="nav-item active"><span class="nav-num">00</span><span class="nav-dot"></span>Introduction</a>
 <a href="#abstract" class="nav-item"><span class="nav-num">01</span><span class="nav-dot"></span>Abstract</a>
+<a href="#acronyms" class="nav-item"><span class="nav-num">01b</span><span class="nav-dot"></span>Acronyms</a>
 <a href="#s1" class="nav-item"><span class="nav-num">02</span><span class="nav-dot"></span>Problem Statement</a>
 <a href="#s2" class="nav-item"><span class="nav-num">03</span><span class="nav-dot"></span>Methodology</a>
 <div class="nav-group-label">Questions</div>
@@ -217,6 +218,37 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h2 class="st"><span class="section-num">01</span>Abstract</h2>
 <p>This report addresses the engineering challenge of designing a model-free reinforcement learning controller for an underwater unmanned vehicle (UUV). The vehicle has three degrees of freedom — yaw via differential motor thrust, forward translation via equal motor thrust, and depth via a three-state ballast pump — and is equipped with a 9-axis IMU (accelerometer, gyroscope, magnetometer) plus a pressure sensor. The RL agent must stabilize the trajectory between navigation beacon waypoints defined by magnetic bearing and depth targets, without prior knowledge of the plant transfer function, and subject to bounded external disturbances.</p>
 <p>Across ten questions we develop: (Q1) a SysML system model; (Q2) a functional RL-environment architecture; (Q3) state and action variable spaces; (Q4) sensor fusion and observation preprocessing; (Q5) a multi-objective reward function; (Q6) a complete RL algorithm with pseudocode and Keras implementation; (Q7) convergence acceleration strategies; (Q8) training and evaluation methodology; (Q9) embedded platform selection; and (Q10) ROS integration plan. Each question follows a four-step methodology — state-of-the-art survey, comparative selection, solution planning, and solution discussion — with diagrams and mathematical derivations throughout.</p>
+</section>
+
+<!-- ── ACRONYMS ──────────────────────────── -->
+<section class="section" id="acronyms">
+<h2 class="st"><span class="section-num">01b</span>Acronyms &amp; Abbreviations</h2>
+<div class="tw"><table>
+<thead><tr><th>Acronym</th><th>Full Name</th></tr></thead>
+<tbody>
+<tr><td>AUV</td><td>Autonomous Underwater Vehicle</td></tr>
+<tr><td>BDD</td><td>Block Definition Diagram</td></tr>
+<tr><td>DDPG</td><td>Deep Deterministic Policy Gradient</td></tr>
+<tr><td>DQN</td><td>Deep Q-Network</td></tr>
+<tr><td>FPS</td><td>Frames Per Second</td></tr>
+<tr><td>IBD</td><td>Internal Block Diagram</td></tr>
+<tr><td>IMU</td><td>Inertial Measurement Unit</td></tr>
+<tr><td>INT8</td><td>8-bit Integer (quantization)</td></tr>
+<tr><td>LR</td><td>Learning Rate</td></tr>
+<tr><td>MEMS</td><td>Micro-Electro-Mechanical Systems</td></tr>
+<tr><td>PER</td><td>Prioritized Experience Replay</td></tr>
+<tr><td>PPO</td><td>Proximal Policy Optimization</td></tr>
+<tr><td>PWM</td><td>Pulse Width Modulation</td></tr>
+<tr><td>QAT</td><td>Quantization-Aware Training</td></tr>
+<tr><td>RL</td><td>Reinforcement Learning</td></tr>
+<tr><td>ROS</td><td>Robot Operating System</td></tr>
+<tr><td>RTOS</td><td>Real-Time Operating System</td></tr>
+<tr><td>SAC</td><td>Soft Actor-Critic</td></tr>
+<tr><td>SysML</td><td>Systems Modeling Language</td></tr>
+<tr><td>TD3</td><td>Twin Delayed Deep Deterministic Policy Gradient</td></tr>
+<tr><td>UUV</td><td>Unmanned Underwater Vehicle</td></tr>
+</tbody>
+</table></div>
 </section>
 
 <!-- ── PROBLEM STATEMENT ────────────────── -->
@@ -1142,22 +1174,12 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </section>
 <!-- ══ AI DISCLOSURE ═════════════════════ -->
 <section class="section" id="s13">
-<h2 class="st"><span class="section-num a">AI</span>AI Usage Disclosure</h2>
+<h2 class="st"><span class="section-num a">13</span>AI Usage Disclosure</h2>
 <p>This report was generated with the assistance of <strong>Claude Sonnet 4</strong> by <strong>Anthropic</strong>. The AI was used as a technical co-author to produce structured engineering analysis, diagrams, code generation, and report formatting under human direction and review.</p>
-
-<div class="prompt-box v1">
-<div class="prompt-box-label">Version 1 — Original Problem Prompt</div>
-<p>Create a single-file interactive HTML technical report for an RL agent managing motor drivers and ballast pump of an underwater drone. 10 questions covering SysML model, RL architecture, variable spaces, sensor processing, reward design, algorithm implementation (Keras), convergence, training/evaluation, embedded platform, and ROS integration.</p>
-</div>
-
-<div class="prompt-box v3">
-<div class="prompt-box-label">Version 2 — Revision Feedback</div>
-<p>Revisions: Remove Python implementations from Q1–Q5, Q7–Q10. Replace with SysML SVG figures, block diagrams, and detailed discussion. Q6 should show Keras implementation. Q9 should include FPGA NPU and DSP platforms, and recommend STM32 with quantized neural network. Q10 should be an implementation plan, not code. Fix CSS for main tag, nav-logo, and top bar styles. Fix section numbering.</p>
-</div>
 
 <h3 class="sub">AI Contribution vs Human Responsibility</h3>
 <div class="tw"><table>
-<tr><th>Aspect</th><th>AI Contribution</th><th>Human Responsibility</th></tr>
+<tr><th>Aspect</th><th>Tool-Assisted</th><th>Engineer-Led</th></tr>
 <tr><td>Problem structuring</td><td>Organized 10 questions into typed categories with methodology</td><td>Original problem definition, constraints, sensor specifications</td></tr>
 <tr><td>State-of-the-art survey</td><td>Identified relevant algorithms, papers, and comparison criteria</td><td>Verification of citations, currency of information</td></tr>
 <tr><td>Technique selection</td><td>Comparative analysis and justified CHOSEN recommendations</td><td>Validation against real-world marine engineering experience</td></tr>

@@ -1530,7 +1530,7 @@ h4.subsub{font-size:13px;font-weight:600;color:var(--text2);margin:18px 0 8px;fo
 p{color:var(--text2);margin-bottom:12px}
 p strong{color:var(--text)}
 .chosen{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--cyan);border-radius:8px;padding:14px 16px;margin:16px 0}
-.chosen-lbl{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.1em;white-space:nowrap;padding-top:2px}
+.chosen-label{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cyan);letter-spacing:.1em;white-space:nowrap;padding-top:2px}
 .chosen p{margin:0;font-size:14px}
 .tw{overflow-x:auto;margin:14px 0;border-radius:8px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -1747,7 +1747,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>NetworkX:</strong> richly attributed nodes and edges, built-in BFS/Dijkstra, excellent matplotlib integration — ideal prototype choice. Used in the project ZIP.</li>
     <li><strong>Boost Graph / igraph:</strong> high performance but require C++ expertise or native bindings; overkill for a proof-of-concept with N ≤ 254 nodes.</li>
   </ul>
-  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>Pure-Python adjacency list with BFS</strong> — zero external dependencies, runs entirely in Pyodide without additional packages. NetworkX is used in the project ZIP for production; the browser version reimplements the same interface with built-in dicts.</p></div>
+  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Pure-Python adjacency list with BFS</strong> — zero external dependencies, runs entirely in Pyodide without additional packages. NetworkX is used in the project ZIP for production; the browser version reimplements the same interface with built-in dicts.</p></div>
   <h3 class="sub">③ Free-Space Path-Loss Model &amp; Solution Plan</h3>
   <p>The RSSI formula is derived from the <strong>Friis transmission equation</strong> <a href="#ref-2" class="cite">[2]</a>. Assuming unity antenna gains and a reference transmit power of 0 dBm:</p>
   <div class="tw"><table>
@@ -1801,7 +1801,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>Gossip / epidemic:</strong> non-deterministic; may miss neighbours; unsuitable for safety-critical routing where complete 1-hop knowledge is required.</li>
     <li><strong>Periodic HELLO:</strong> minimal overhead, deterministic, sufficient for 1-hop discovery. Standard baseline used by OLSR (RFC 3626 <a href="#ref-3" class="cite">[3]</a>). Timeout = 3 × interval provides automatic link-failure detection.</li>
   </ul>
-  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>Periodic HELLO broadcast</strong> (OLSR RFC 3626 <a href="#ref-3" class="cite">[3]</a>) — minimal overhead, deterministic 1-hop discovery, link-failure detection via timeout = 3 × interval.</p></div>
+  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Periodic HELLO broadcast</strong> (OLSR RFC 3626 <a href="#ref-3" class="cite">[3]</a>) — minimal overhead, deterministic 1-hop discovery, link-failure detection via timeout = 3 × interval.</p></div>
   <h3 class="sub">③ Protocol Principle</h3>
   <ol class="rl">
     <li>Every <code>T_HELLO = 5 s</code>, a node broadcasts <code>HELLO(id, seq)</code> to all radio neighbours.</li>
@@ -1850,7 +1850,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>DSR <a href="#ref-5" class="cite">[5]</a>:</strong> stores the full path in every data packet header — overhead grows linearly with path length, costly for long chains.</li>
     <li><strong>AODV <a href="#ref-1" class="cite">[1]</a>:</strong> broadcasts RREQ only when needed; RREP unicasts the shortest path back. Hop-optimality is guaranteed because the first RREP to arrive at the source has crossed the fewest hops — the BFS property of simultaneous flooding with unit weights.</li>
   </ul>
-  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
+  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
   <h3 class="sub">③ Protocol Operation</h3>
   <p><strong>Phase 1 — Route Discovery:</strong> source broadcasts <code>RREQ(src, dst, seq, hops=0, path=[src])</code>. Each node increments <code>hops</code>, appends its ID to <code>path</code>, and re-broadcasts (duplicate-suppressed by a <code>seen_rreqs</code> set). The destination sends a unicast <code>RREP</code> back along the recorded path, carrying the complete hop-optimal route.</p>
   <p><strong>Phase 2 — Data Forwarding:</strong> source installs the route from the RREP and forwards <code>DATA</code> packets hop-by-hop. Intermediate nodes also acquire reverse-path entries during RREQ propagation — these are free routing table entries obtained as a by-product of the flood.</p>
@@ -1885,7 +1885,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     </tbody>
   </table></div>
   <h3 class="sub">② Selection</h3>
-  <div class="chosen"><span class="chosen-lbl">CHOSEN</span><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
+  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
   <h3 class="sub">③ FSM Diagram</h3>
   <div id="fsm-wrap">
     <svg viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'JetBrains Mono',monospace;">
@@ -1992,8 +1992,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     </tbody>
   </table></div>
   <h3 class="sub">② Selection</h3>
-  <div class="chosen"><span class="chosen-lbl">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
-  <div class="chosen"><span class="chosen-lbl">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
+  <div class="chosen"><span class="chosen-label">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
+  <div class="chosen"><span class="chosen-label">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
   <h3 class="sub">③ Solution Planning</h3>
   <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with TTL-scoped flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
   <h3 class="sub">④ Run all 4 scenarios</h3>

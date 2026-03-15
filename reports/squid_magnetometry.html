@@ -36,11 +36,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 /* Hero */
 #hero{padding:56px 0 44px;border-bottom:1px solid var(--border);margin-bottom:64px;position:relative}
 #hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 40% 0%,#00d4ff09,transparent);pointer-events:none}
-.hero-title{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px}
-.hero-title em{color:var(--cyan);font-style:normal}
+.hero-tag{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.hero-tag::before{content:'';width:32px;height:1px;background:var(--cyan)}
+.hero h1{font-family:var(--display);font-size:44px;font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px}
+.hero h1 em{color:var(--cyan);font-style:normal}
 .hero-sub{font-size:15px;color:var(--text2);max-width:560px;line-height:1.65;margin-bottom:28px}
-.pills{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
-.pill{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--text3);padding:4px 14px;border-radius:20px;border:1px solid var(--border2)}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--text3)}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta span::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cyan)}
 
 /* Sections */
 .section{margin-bottom:72px;scroll-margin-top:calc(var(--hdr-h) + 24px)}
@@ -94,11 +97,12 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 .analysis ul li::before{content:'\2192';position:absolute;left:0;color:var(--amber);font-size:11px}
 
 /* Methodology cards */
-.meth-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:20px 0}
+.meth-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
 .meth-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;transition:border-color .2s}
 .meth-card:hover{border-color:var(--cyan)}
-.meth-num{font-family:var(--display);font-size:28px;font-weight:800;color:var(--cyan);opacity:.4}
-.meth-title{font-family:var(--display);font-size:15px;font-weight:700;color:#fff;margin:4px 0 8px}
+.meth-num{font-family:var(--display);font-size:28px;font-weight:800;color:var(--cyan);margin-bottom:6px}
+.meth-title{font-family:var(--display);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.meth-desc{font-size:12px;color:var(--text3);line-height:1.5}
 
 /* Prompt boxes */
 .prompt-box{background:#141c14;border:1px solid #2d4a2d;border-left:3px solid var(--green);border-radius:8px;padding:16px 20px;margin:12px 0;font-size:14px;color:#a8d5a8;font-style:italic;line-height:1.7}
@@ -124,7 +128,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 .param-table{margin:16px 0}
 
 /* Responsive */
-@media(max-width:860px){:root{--nav-w:0px}.sidebar{display:none}.main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero-title{font-size:30px}.meth-grid{grid-template-columns:1fr}}
+@media(max-width:860px){:root{--nav-w:0px}.sidebar{display:none}.main{padding:calc(var(--hdr-h)+20px) 20px 60px;max-width:100%}#topbar{padding-left:20px}.hero h1{font-size:30px}.meth-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -170,14 +174,15 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── HERO ────────────────────────────────────────────── -->
 <section class="section" id="hero">
-  <div class="hero-title">SQUID &amp; Quantum Magnetometry</div>
-  <div class="hero-sub">Superconducting Quantum Interference Devices — Physics, Models, and Engineering</div>
-  <p style="font-family:var(--mono);font-size:12px;color:var(--text3);margin-bottom:18px;">Report v1.0 — March 2026</p>
-  <div class="pills">
-    <span class="pill">Superconductivity</span>
-    <span class="pill">Josephson Junctions</span>
-    <span class="pill">Cryogenics</span>
-    <span class="pill">Precision Measurement</span>
+  <div class="hero">
+    <div class="hero-tag">Technical Report · SQUID &amp; Quantum Magnetometry</div>
+    <h1>SQUID &amp; Quantum<br><em>Magnetometry</em></h1>
+    <p class="hero-sub">Superconducting Quantum Interference Devices — Physics, Models, and Engineering</p>
+    <div class="hero-meta">
+      <span>Report v1.0</span><span>March 2026</span>
+      <span>Superconductivity</span><span>Josephson Junctions</span>
+      <span>Cryogenics</span><span>Precision Measurement</span>
+    </div>
   </div>
 </section>
 
@@ -247,10 +252,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="section-header"><span class="section-num">03</span><h2 class="st">Methodology</h2></div>
   <p>Every question follows a rigorous four-step methodology designed to move from survey through selection to validated implementation.</p>
   <div class="meth-grid">
-    <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><p>Survey ≥ 3 existing techniques with a comparison table of key properties, supported by published references.</p></div>
-    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><p>Evaluate each technique with specific pros/cons. End with a justified CHOSEN selection box.</p></div>
-    <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><p>Architecture, mathematical derivations, parameter tables, and class/interface design before any code.</p></div>
-    <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><p>Technical figures, numerical results, and output analysis linking results to theory.</p></div>
+    <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey ≥ 3 existing techniques with a comparison table of key properties, supported by published references.</div></div>
+    <div class="meth-card"><div class="meth-num">②</div><div class="meth-title">Comparative Analysis</div><div class="meth-desc">Evaluate each technique with specific pros/cons. End with a justified CHOSEN selection box.</div></div>
+    <div class="meth-card"><div class="meth-num">③</div><div class="meth-title">Solution Planning</div><div class="meth-desc">Architecture, mathematical derivations, parameter tables, and class/interface design before any code.</div></div>
+    <div class="meth-card"><div class="meth-num">④</div><div class="meth-title">Solution &amp; Discussion</div><div class="meth-desc">Technical figures, numerical results, and output analysis linking results to theory.</div></div>
   </div>
 </section>
 
@@ -1017,7 +1022,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p><strong>LN₂ shield consumption:</strong> The nitrogen radiation shield intercepts the 300 K → 77 K radiative heat load. With a less stringent outer MLI (ε_eff ≈ 5 × 10⁻³ for ~10 layers) and outer shell area A_outer ≈ 0.7 m²<a href="#ref-10" class="cite">[10]</a>:</p>
   <div class="formula">Q_LN₂ = ε_outer · σ · A_outer · (300⁴ − 77⁴) ≈ 1.6 W</div>
   <p>The nitrogen boil-off rate is then:</p>
-  <div class="formula">V_LN₂ = Q_LN₂ / (L_v,N₂ · ρ_LN₂) ≈ 1.6 / (199 × 0.808) ≈ 0.6 L/day</div>
+  <div class="formula">V̇_LN₂ = Q_LN₂ / (L_v,N₂ · ρ_LN₂) = 1.6 / (199 × 10³ × 808 × 10⁻³) ≈ 9.95 × 10⁻⁶ L/s ≈ 0.86 L/day</div>
 
   <div class="tw"><table>
     <tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
@@ -1152,7 +1157,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
       <li>Total heat load (radiation + conduction + wiring) is ~32 mW for a 10-wire system, yielding a helium boil-off rate of ~1.1 L/day (dm/dt = Q/L_v, then V = m/&rho;).</li>
       <li>For 6-month continuous operation (~180 days), the helium reserve with 50% safety margin is ~290 L — exceeding a single 60 L dewar. Practical installations use 100–500 L dewars with periodic refills or closed-cycle cryocooler hybrids to extend hold time.</li>
       <li>Doubling the number of wiring leads (from 10 to 20) increases total heat load by ~60%, highlighting the importance of minimising thermal conduction paths.</li>
-      <li>The LN&#8322; shield consumption (~0.5 L/day from a 50 L reservoir) requires refilling approximately every 3 months, which is the practical refill interval for most installations.</li>
+      <li>The LN&#8322; shield consumption (~0.86 L/day from a 50 L reservoir) requires refilling approximately every 2 months, which is the practical refill interval for most installations.</li>
     </ul>
   </div>
 </section>
