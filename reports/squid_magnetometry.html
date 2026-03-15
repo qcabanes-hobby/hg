@@ -631,9 +631,11 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
   <h3 class="sub">③ Solution Planning</h3>
   <p>The spectral density of flux noise in a DC SQUID is given by<a href="#ref-4" class="cite">[4]</a>:</p>
-  <div class="formula">S_Φ = 16 k_B T L² / R    [Φ₀²/Hz]</div>
-  <p>The equivalent field noise, when coupled to a pickup loop of area A_eff, is:</p>
+  <div class="formula">S_Φ = 16 k_B T L² / R    [Wb²/Hz]</div>
+  <p>This idealized Tesche–Clarke result yields S_Φ^(1/2) ≈ 0.66 µΦ₀/√Hz for our parameters. Practical DC SQUIDs typically measure 1–2 µΦ₀/√Hz due to additional noise contributions (preamplifier back-action, non-ideal bias, circulating-current fluctuations). The table below uses representative measured values.</p>
+  <p>The equivalent field noise, when coupled to a flux transformer with effective coupled area A_eff, is:</p>
   <div class="formula">S_B^(1/2) = S_Φ^(1/2) / A_eff    [T/√Hz]</div>
+  <p>Here A_eff is the effective flux capture area — the product of the physical pickup coil area and the coupling efficiency of the flux transformer (typically a few percent), not the bare coil area.</p>
   <p>The energy sensitivity (noise energy per unit bandwidth) is:</p>
   <div class="formula">ε = S_Φ / (2L) = 8 k_B T L / R    [J/Hz]</div>
   <p>For a typical LTS SQUID at 4.2 K: ε ≈ 9.3 × 10⁻³³ J/Hz, roughly 180× above the quantum limit ε_q = ℏ/2 ≈ 5.3 × 10⁻³⁵ J/Hz<a href="#ref-1" class="cite">[1]</a>. Note: the thermal noise model becomes unphysical below ~50 mK where quantum fluctuations dominate; the true noise floor is ε ≥ ℏ/2.</p>
@@ -644,7 +646,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <tr><td>Loop inductance</td><td>L</td><td>100 pH</td><td>Optimised for β_L = 2LI_c/Φ₀ ≈ 1</td></tr>
     <tr><td>Shunt resistance</td><td>R</td><td>5 Ω</td><td>Over-damped regime</td></tr>
     <tr><td>Boltzmann constant</td><td>k_B</td><td>1.381 × 10⁻²³ J/K</td><td>Fundamental constant</td></tr>
-    <tr><td>Effective area</td><td>A_eff</td><td>10⁻⁴ m² (with pickup coil)</td><td>Flux transformer coupled</td></tr>
+    <tr><td>Effective coupled area</td><td>A_eff</td><td>~10⁻⁶ m² (1 mm²)</td><td>Pickup coil ~1 cm² × coupling efficiency ~1%</td></tr>
   </table></div>
 
   <h3 class="sub">④ Solution &amp; Discussion</h3>
@@ -802,8 +804,8 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <ul>
     <li><strong>Nb/AlOx/Nb tri-layer:</strong> The gold standard for LTS SQUIDs. Sputter-deposited Nb base, thin Al layer (~5 nm) oxidised in controlled O₂ to form the tunnel barrier, then Nb counter-electrode. Junction critical current density J_c is set by oxidation parameters. Achieves I_c uniformity &lt; 1% across a 150 mm wafer<a href="#ref-6" class="cite">[6]</a>.</li>
     <li><strong>YBCO grain-boundary:</strong> Junctions form at crystallographic discontinuities — either on bicrystal substrates or at lithographically defined step edges. The 77 K operation is advantageous but the junction parameters are inherently less controllable than tunnel junctions.</li>
-    <li><strong>Hypres foundry process:</strong> Standardised Nb-based multi-layer fabrication with 1 kA/cm² J_c. Enables complex SQUID circuits (arrays, digital readout) but with fixed design rules that may not suit all applications.</li>
-    <li><strong>Shadow evaporation:</strong> Creates Al/AlOx/Al junctions via angle-evaporation through a resist bridge. Excellent for single-junction devices and charge-sensitive applications but Al's low T_c (1.2 K) limits use to millikelvin temperatures.</li>
+    <li><strong>Hypres foundry process:</strong> Standardised Nb-based multi-layer fabrication with 1 kA/cm² J_c<a href="#ref-9" class="cite">[9]</a>. Enables complex SQUID circuits (arrays, digital readout) but with fixed design rules that may not suit all applications.</li>
+    <li><strong>Shadow evaporation:</strong> Creates Al/AlOx/Al junctions via angle-evaporation through a resist bridge (Dolan bridge technique)<a href="#ref-8" class="cite">[8]</a>. Excellent for single-junction devices and charge-sensitive applications but Al's low T_c (1.2 K) limits use to millikelvin temperatures.</li>
     <li><strong>FIB milling:</strong> Useful for rapid prototyping and research but Ga⁺ implantation degrades superconducting properties. Not suitable for production SQUIDs.</li>
   </ul>
   <div class="chosen">
@@ -969,7 +971,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <p><strong>Type tags:</strong> <code>MATHEMATICAL</code>, <code>GENERIC</code></p>
 
   <h3 class="sub">① State of the Art</h3>
-  <p>Long-duration SQUID operation requires a cryostat that maintains stable low temperatures for months with minimal intervention<a href="#ref-5" class="cite">[5]</a>.</p>
+  <p>Long-duration SQUID operation requires a cryostat that maintains stable low temperatures for months with minimal intervention<a href="#ref-5" class="cite">[5]</a><a href="#ref-10" class="cite">[10]</a>.</p>
   <div class="tw"><table>
     <tr><th>Cryostat Type</th><th>Key Properties</th><th>Pros</th><th>Cons</th></tr>
     <tr><td>Bath cryostat (LHe)</td><td>Sample immersed in liquid He bath</td><td>Simple, very stable temperature</td><td>High He consumption, requires refills</td></tr>
@@ -1007,20 +1009,29 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="formula">Q_total = Q_radiation + Q_conduction + Q_wiring    [W]</div>
   <p>Radiative heat transfer between concentric shields follows the Stefan-Boltzmann law:</p>
   <div class="formula">Q_rad = ε_eff · σ · A · (T_hot⁴ − T_cold⁴)    [W]</div>
-  <p>where ε_eff is the effective emissivity of the MLI (multi-layer insulation), typically 10⁻⁴ for 30+ layers. The helium boil-off rate is:</p>
+  <p>where ε_eff is the effective emissivity of the MLI (multi-layer insulation), typically 10⁻⁴ for 30+ layers on the inner shield. The helium boil-off rate is:</p>
   <div class="formula">dm/dt = Q_total / L_v    [kg/s]    where L_v = 20.7 kJ/kg (He latent heat)</div>
   <p>The volume consumption rate and total reserve for a target duration T_op are:</p>
   <div class="formula">V_reserve = (Q_total / L_v) · T_op / ρ_LHe    [L]    where ρ_LHe = 125 kg/m³</div>
 
+  <p><strong>LN₂ shield consumption:</strong> The nitrogen radiation shield intercepts the 300 K → 77 K radiative heat load. With a less stringent outer MLI (ε_eff ≈ 5 × 10⁻³ for ~10 layers) and outer shell area A_outer ≈ 0.7 m²<a href="#ref-10" class="cite">[10]</a>:</p>
+  <div class="formula">Q_LN₂ = ε_outer · σ · A_outer · (300⁴ − 77⁴) ≈ 1.6 W</div>
+  <p>The nitrogen boil-off rate is then:</p>
+  <div class="formula">V_LN₂ = Q_LN₂ / (L_v,N₂ · ρ_LN₂) ≈ 1.6 / (199 × 0.808) ≈ 0.6 L/day</div>
+
   <div class="tw"><table>
     <tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
-    <tr><td>Inner vessel area</td><td>A</td><td>0.5 m²</td><td>Typical for 60 L dewar</td></tr>
-    <tr><td>MLI effective emissivity</td><td>ε_eff</td><td>1 × 10⁻⁴</td><td>30-layer superinsulation</td></tr>
+    <tr><td>Inner vessel area (77 K → 4.2 K)</td><td>A</td><td>0.5 m²</td><td>Typical for 60 L dewar</td></tr>
+    <tr><td>Inner MLI effective emissivity</td><td>ε_eff</td><td>1 × 10⁻⁴</td><td>30-layer superinsulation</td></tr>
     <tr><td>Stefan-Boltzmann const.</td><td>σ</td><td>5.67 × 10⁻⁸ W/m²K⁴</td><td>Fundamental constant</td></tr>
     <tr><td>Outer shield temp.</td><td>T_hot</td><td>77 K (LN₂ shield)</td><td>Nitrogen-cooled radiation shield</td></tr>
     <tr><td>He bath temp.</td><td>T_cold</td><td>4.2 K</td><td>Normal boiling point of He</td></tr>
     <tr><td>Latent heat of He</td><td>L_v</td><td>20.7 kJ/kg</td><td>At 1 atm, 4.2 K</td></tr>
-    <tr><td>LHe density</td><td>ρ</td><td>125 kg/m³</td><td>At 4.2 K, 1 atm</td></tr>
+    <tr><td>LHe density</td><td>ρ_LHe</td><td>125 kg/m³</td><td>At 4.2 K, 1 atm</td></tr>
+    <tr><td>Outer shell area (300 K → 77 K)</td><td>A_outer</td><td>0.7 m²</td><td>Larger outer vessel</td></tr>
+    <tr><td>Outer MLI effective emissivity</td><td>ε_outer</td><td>5 × 10⁻³</td><td>10-layer outer superinsulation</td></tr>
+    <tr><td>Latent heat of N₂</td><td>L_v,N₂</td><td>199 kJ/kg</td><td>At 1 atm, 77 K</td></tr>
+    <tr><td>LN₂ density</td><td>ρ_LN₂</td><td>808 kg/m³</td><td>At 77 K, 1 atm</td></tr>
   </table></div>
 
   <h3 class="sub">④ Solution &amp; Discussion</h3>
@@ -1081,22 +1092,22 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <svg viewBox="0 0 460 300" width="460" xmlns="http://www.w3.org/2000/svg" style="background:#161e30;border-radius:10px;border:1px solid #1f2d47">
       <text x="230" y="28" text-anchor="middle" fill="#e2e8f0" font-family="Syne,sans-serif" font-size="14" font-weight="700">Heat Budget (77 K &rarr; 4.2 K stage)</text>
       <!-- Pie chart center at (180, 160), radius 100 -->
-      <!-- Segment 1: Radiation ~0.1 mW = <1% (cyan), 0 to ~1 degree — too thin to see, skip arc -->
-      <path d="M180,160 L180,60 A100,100 0 0,0 179,60 Z" fill="#00d4ff" opacity="0.7"/>
-      <!-- Segment 2: Wiring ~18 mW = ~56% (violet), 1 to 203 degrees -->
-      <path d="M180,160 L179,60 A100,100 0 0,1 104,218 Z" fill="#8b5cf6" opacity="0.7"/>
-      <!-- Segment 3: Supports ~14 mW = ~44% (green), 203 to 360 degrees -->
-      <path d="M180,160 L104,218 A100,100 0 0,1 180,60 Z" fill="#10d880" opacity="0.7"/>
+      <!-- Wiring: 56% = 201.6deg CW from top. End: (180+100*sin(201.6), 160-100*cos(201.6)) = (143, 253) -->
+      <path d="M180,160 L180,60 A100,100 0 1,1 143,253 Z" fill="#8b5cf6" opacity="0.7"/>
+      <!-- Supports: 44% = 158.4deg CW. From (143,253) back to (180,60) -->
+      <path d="M180,160 L143,253 A100,100 0 0,1 180,60 Z" fill="#10d880" opacity="0.7"/>
+      <!-- Radiation accent: <1% too thin for a segment, shown as a thin line at boundary -->
+      <line x1="180" y1="160" x2="180" y2="60" stroke="#00d4ff" stroke-width="3" opacity="0.9"/>
       <!-- Legend -->
       <rect x="310" y="90" width="14" height="14" rx="2" fill="#00d4ff" opacity="0.7"/>
       <text x="330" y="102" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Radiation</text>
       <text x="330" y="114" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~0.1 mW (&lt;1%)</text>
       <rect x="310" y="130" width="14" height="14" rx="2" fill="#8b5cf6" opacity="0.7"/>
       <text x="330" y="142" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Wiring</text>
-      <text x="330" y="154" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~18 mW (55%)</text>
+      <text x="330" y="154" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~18 mW (56%)</text>
       <rect x="310" y="170" width="14" height="14" rx="2" fill="#10d880" opacity="0.7"/>
       <text x="330" y="182" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10">Supports</text>
-      <text x="330" y="194" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~14 mW (42%)</text>
+      <text x="330" y="194" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">~14 mW (44%)</text>
       <text x="330" y="230" fill="#e2e8f0" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">Total: ~32 mW</text>
       <text x="230" y="285" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="9">MLI reduces radiation to &lt;1% of total heat budget</text>
     </svg>
@@ -1117,10 +1128,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <h4 class="subsub">LHe Reserve Requirements (with 50% safety margin)</h4>
   <div class="tw"><table>
     <tr><th>Duration</th><th>LHe Volume (L)</th><th>LHe Cost ($)</th><th>LN&#8322; Volume (L)</th><th>LN&#8322; Cost ($)</th></tr>
-    <tr><td>1 month</td><td>~48</td><td>~960</td><td>~20</td><td>~10</td></tr>
-    <tr><td>3 months</td><td>~145</td><td>~2,900</td><td>~60</td><td>~30</td></tr>
-    <tr><td>6 months</td><td>~290</td><td>~5,800</td><td>~120</td><td>~60</td></tr>
-    <tr><td>12 months</td><td>~580</td><td>~11,600</td><td>~240</td><td>~120</td></tr>
+    <tr><td>1 month</td><td>~48</td><td>~960</td><td>~27</td><td>~14</td></tr>
+    <tr><td>3 months</td><td>~145</td><td>~2,900</td><td>~81</td><td>~41</td></tr>
+    <tr><td>6 months</td><td>~290</td><td>~5,800</td><td>~162</td><td>~81</td></tr>
+    <tr><td>12 months</td><td>~580</td><td>~11,600</td><td>~324</td><td>~162</td></tr>
   </table></div>
 
   <!-- Wire sensitivity table -->
@@ -1243,6 +1254,27 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
     <div class="bib-num"><a href="#ref-7" class="bib-link">[7]</a></div>
     <div class="bib-text">
       <em>D. E. McCumber</em>, "Effect of ac impedance on dc voltage-current characteristics of superconductor weak-link junctions," <em>Journal of Applied Physics</em>, vol. 39, no. 7, pp. 3113–3118, 1968. doi: <a href="https://doi.org/10.1063/1.1656743" target="_blank" class="bib-link">10.1063/1.1656743</a>
+    </div>
+  </div>
+
+  <div class="bib-item" id="ref-8">
+    <div class="bib-num"><a href="#ref-8" class="bib-link">[8]</a></div>
+    <div class="bib-text">
+      <em>G. J. Dolan</em>, "Offset masks for lift‐off photoprocessing," <em>Applied Physics Letters</em>, vol. 31, no. 5, pp. 337–339, 1977. doi: <a href="https://doi.org/10.1063/1.89690" target="_blank" class="bib-link">10.1063/1.89690</a>
+    </div>
+  </div>
+
+  <div class="bib-item" id="ref-9">
+    <div class="bib-num"><a href="#ref-9" class="bib-link">[9]</a></div>
+    <div class="bib-text">
+      <em>S. K. Tolpygo, V. Bolkhovsky, T. J. Weir, L. M. Johnson, M. A. Gouker, and W. D. Oliver</em>, "Advanced fabrication processes for superconducting very large-scale integrated circuits," <em>IEEE Transactions on Applied Superconductivity</em>, vol. 26, no. 3, p. 1100110, 2016. doi: <a href="https://doi.org/10.1109/TASC.2016.2519388" target="_blank" class="bib-link">10.1109/TASC.2016.2519388</a>
+    </div>
+  </div>
+
+  <div class="bib-item" id="ref-10">
+    <div class="bib-num"><a href="#ref-10" class="bib-link">[10]</a></div>
+    <div class="bib-text">
+      <em>J. W. Ekin</em>, <em>Experimental Techniques for Low-Temperature Measurements</em>, Oxford University Press, 2006. ISBN: 978-0-19-857054-7
     </div>
   </div>
 </section>
