@@ -61,9 +61,10 @@ section.section{margin-bottom:72px;scroll-margin-top:calc(var(--hdr-h) + 24px)}
 .pill{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:4px 14px;border-radius:20px;border:1px solid var(--border2);color:var(--text2)}
 
 /* Section Headings */
-h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2;display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px}
+h2.st{font-family:var(--display);font-size:27px;font-weight:700;color:#fff;line-height:1.2}
 h3.sub{font-family:var(--display);font-size:17px;font-weight:600;color:var(--cyan);margin:32px 0 12px}
-.section-num{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:6px;padding:3px 10px;white-space:nowrap;letter-spacing:.08em;flex-shrink:0}
+.section-num{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:6px;padding:3px 10px;white-space:nowrap;margin-top:5px;letter-spacing:.08em}
 .section-num.v{color:var(--violet);background:var(--violet-dim);border-color:var(--violet)}
 .section-num.g{color:var(--green);background:var(--green-dim);border-color:var(--green)}
 .section-num.a{color:var(--amber);background:#f59e0b12;border-color:var(--amber)}
@@ -203,7 +204,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </nav>
 
 <!-- ── Main Content ────────────────────── -->
-<div id="main">
+<main id="main">
 
 <!-- ── HERO ─────────────────────────────── -->
 <section class="section" id="hero">
@@ -220,14 +221,20 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── ABSTRACT ─────────────────────────── -->
 <section class="section" id="abstract">
-<h2 class="st"><span class="section-num">01</span>Abstract</h2>
+<div class="section-header">
+  <span class="section-num">01</span>
+  <h2 class="st">Abstract</h2>
+</div>
 <p>This report addresses the engineering challenge of designing a model-free reinforcement learning controller for an underwater unmanned vehicle (UUV). The vehicle has three degrees of freedom — yaw via differential motor thrust, forward translation via equal motor thrust, and depth via a three-state ballast pump — and is equipped with a 9-axis IMU (accelerometer, gyroscope, magnetometer) plus a pressure sensor. The RL agent must stabilize the trajectory between navigation beacon waypoints defined by magnetic bearing and depth targets, without prior knowledge of the plant transfer function, and subject to bounded external disturbances.</p>
 <p>Across ten questions we develop: (Q1) a SysML system model; (Q2) a functional RL-environment architecture; (Q3) state and action variable spaces; (Q4) sensor fusion and observation preprocessing; (Q5) a multi-objective reward function; (Q6) a complete RL algorithm with pseudocode and Keras implementation; (Q7) convergence acceleration strategies; (Q8) training and evaluation methodology; (Q9) embedded platform selection; and (Q10) ROS integration plan. Each question follows a four-step methodology — state-of-the-art survey, comparative selection, solution planning, and solution discussion — with diagrams and mathematical derivations throughout.</p>
 </section>
 
 <!-- ── ACRONYMS ──────────────────────────── -->
 <section class="section" id="acronyms">
-<h2 class="st"><span class="section-num">01b</span>Acronyms &amp; Abbreviations</h2>
+<div class="section-header">
+  <span class="section-num">01b</span>
+  <h2 class="st">Acronyms &amp; Abbreviations</h2>
+</div>
 <div class="tw"><table>
 <thead><tr><th>Acronym</th><th>Full Name</th></tr></thead>
 <tbody>
@@ -258,7 +265,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── PROBLEM STATEMENT ────────────────── -->
 <section class="section" id="s1">
-<h2 class="st"><span class="section-num">02</span>Problem Statement</h2>
+<div class="section-header">
+  <span class="section-num">02</span>
+  <h2 class="st">Problem Statement</h2>
+</div>
 <h3 class="sub">System Constraints</h3>
 <p><strong>Actuators:</strong> Two DC motors driven by H-bridges with PWM for differential thrust (yaw + forward), and a ballast pump with three states (water-in, water-out, stopped) for depth control.</p>
 <p><strong>Sensors:</strong> 3-axis accelerometer + gyroscope (IMU), 3-axis magnetometer, and a pressure sensor for depth. Maximum sample rate: 100 Hz.</p>
@@ -283,7 +293,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ── METHODOLOGY ──────────────────────── -->
 <section class="section" id="s2">
-<h2 class="st"><span class="section-num">03</span>Methodology</h2>
+<div class="section-header">
+  <span class="section-num">03</span>
+  <h2 class="st">Methodology</h2>
+</div>
 <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
 <div class="meth-grid">
 <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey ≥ 3 existing techniques with a comparison table. Include inline citations to foundational references.</div></div>
@@ -294,7 +307,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </section>
 <!-- ══ Q1 — SysML Model ══════════════════ -->
 <section class="section" id="s3">
-<h2 class="st"><span class="section-num v">Q1</span>SysML System Model</h2>
+<div class="section-header">
+  <span class="section-num v">Q1</span>
+  <h2 class="st">SysML System Model</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -514,7 +530,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ Q2 — RL Functional Architecture ══ -->
 <section class="section" id="s4">
-<h2 class="st"><span class="section-num v">Q2</span>RL Agent Functional Architecture</h2>
+<div class="section-header">
+  <span class="section-num v">Q2</span>
+  <h2 class="st">RL Agent Functional Architecture</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -617,7 +636,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </section>
 <!-- ══ Q3 — Variable Space Definition ════ -->
 <section class="section" id="s5">
-<h2 class="st"><span class="section-num v">Q3</span>Variable Space Definition</h2>
+<div class="section-header">
+  <span class="section-num v">Q3</span>
+  <h2 class="st">Variable Space Definition</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -664,7 +686,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ Q4 — Sensor Data Processing ══════ -->
 <section class="section" id="s6">
-<h2 class="st"><span class="section-num v">Q4</span>Sensor Data Processing</h2>
+<div class="section-header">
+  <span class="section-num v">Q4</span>
+  <h2 class="st">Sensor Data Processing</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -747,7 +772,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ Q5 — Reward Strategy ═════════════ -->
 <section class="section" id="s7">
-<h2 class="st"><span class="section-num v">Q5</span>Reward Strategy &amp; Function</h2>
+<div class="section-header">
+  <span class="section-num v">Q5</span>
+  <h2 class="st">Reward Strategy &amp; Function</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -827,7 +855,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </section>
 <!-- ══ Q6 — RL Algorithm ═════════════════ -->
 <section class="section" id="s8">
-<h2 class="st"><span class="section-num v">Q6</span>RL Algorithm — Pseudocode &amp; Keras</h2>
+<div class="section-header">
+  <span class="section-num v">Q6</span>
+  <h2 class="st">RL Algorithm — Pseudocode &amp; Keras</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -921,7 +952,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ Q7 — Convergence Optimization ════ -->
 <section class="section" id="s9">
-<h2 class="st"><span class="section-num v">Q7</span>Convergence Speed Estimation &amp; Optimization</h2>
+<div class="section-header">
+  <span class="section-num v">Q7</span>
+  <h2 class="st">Convergence Speed Estimation &amp; Optimization</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -958,7 +992,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ Q8 — Training & Evaluation ═══════ -->
 <section class="section" id="s10">
-<h2 class="st"><span class="section-num v">Q8</span>Training &amp; Evaluation Methodology</h2>
+<div class="section-header">
+  <span class="section-num v">Q8</span>
+  <h2 class="st">Training &amp; Evaluation Methodology</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -1042,7 +1079,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </section>
 <!-- ══ Q9 — Embedded Platform ═════════════ -->
 <section class="section" id="s11">
-<h2 class="st"><span class="section-num v">Q9</span>Embedded Platform Selection</h2>
+<div class="section-header">
+  <span class="section-num v">Q9</span>
+  <h2 class="st">Embedded Platform Selection</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -1078,7 +1118,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ Q10 — ROS Integration ════════════ -->
 <section class="section" id="s12">
-<h2 class="st"><span class="section-num v">Q10</span>ROS-Compliant Implementation Plan</h2>
+<div class="section-header">
+  <span class="section-num v">Q10</span>
+  <h2 class="st">ROS-Compliant Implementation Plan</h2>
+</div>
 
 <h3 class="sub">① State of the Art</h3>
 <div class="tw"><table>
@@ -1179,7 +1222,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </section>
 <!-- ══ AI DISCLOSURE ═════════════════════ -->
 <section class="section" id="s13">
-<h2 class="st"><span class="section-num a">13</span>AI Usage Disclosure</h2>
+<div class="section-header">
+  <span class="section-num a">13</span>
+  <h2 class="st">AI Usage Disclosure</h2>
+</div>
 <p>This report was generated with the assistance of <strong>Claude Sonnet 4</strong> by <strong>Anthropic</strong>. The AI was used as a technical co-author to produce structured engineering analysis, diagrams, code generation, and report formatting under human direction and review.</p>
 
 <h3 class="sub">AI Contribution vs Human Responsibility</h3>
@@ -1205,7 +1251,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ CONCLUSION ════════════════════════ -->
 <section class="section" id="s14">
-<h2 class="st"><span class="section-num g">14</span>Conclusion</h2>
+<div class="section-header">
+  <span class="section-num g">14</span>
+  <h2 class="st">Conclusion</h2>
+</div>
 
 <h3 class="sub">Summary Table</h3>
 <div class="tw"><table>
@@ -1229,7 +1278,10 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 
 <!-- ══ BIBLIOGRAPHY ══════════════════════ -->
 <section class="section" id="s15">
-<h2 class="st"><span class="section-num">15</span>Bibliography</h2>
+<div class="section-header">
+  <span class="section-num">15</span>
+  <h2 class="st">Bibliography</h2>
+</div>
 <p>The following references are cited throughout this report. Click any inline citation [N] to jump to its entry below.</p>
 
 <div class="bib-item" id="ref-1">
@@ -1270,7 +1322,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </div>
 </section>
 
-</div><!-- end main -->
+</main><!-- end main -->
 <!-- ══ PYTHON SCRIPT: Q6 Keras Reference (display only) ═══════ -->
 <script type="text/x-python" id="src-q6ref">
 # ── Keras TD3 Implementation ────────────────────────────────────

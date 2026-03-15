@@ -585,6 +585,7 @@ class RouterNode:
             return   # we are the original source — route installed, done
 
         # Forward RREP one hop closer to source
+        self.stats["rrep_tx"] += 1
         idx      = rrep["path"].index(self.id)
         prev_hop = rrep["path"][idx - 1]
         self.nodes[prev_hop].receive_rrep(dict(rrep))
@@ -1240,6 +1241,7 @@ class SimNode:
             self.pending = still_pending
         else:
             # Forward RREP toward the original source
+            self.counters["rrep_tx"] += 1
             idx  = pkt["path"].index(self.id)
             prev = pkt["path"][idx - 1]
             d    = edist(self._pos(), (self.net.nodes[prev].x, self.net.nodes[prev].y))
