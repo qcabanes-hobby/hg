@@ -36,7 +36,7 @@ from collections import deque
 MAX_RANGE_M = 50.0          # maximum radio range in metres
 FREQ_HZ     = 2.4e9         # 2.4 GHz ISM band (Zigbee / IEEE 802.15.4)
 # Friis constant: 20·log10(c / 4π) with c = 3×10⁸ m/s, f in Hz, d in m
-FRIIS_K     = 147.55
+FRIIS_K     = 147.56
 
 
 # ── Node ─────────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ class Node:
     def rssi_to(self, other: "Node") -> float:
         """
         Friis free-space path-loss model (dBm):
-            RSSI = -20·log10(d) - 20·log10(f) + 147.55
+            RSSI = -20·log10(d) - 20·log10(f) + 147.56
         Assumes unity antenna gains and 0 dBm transmit power.
         """
         d = max(self.distance_to(other), 0.1)   # avoid log(0)
@@ -245,7 +245,7 @@ T_HELLO   = 5.0     # HELLO broadcast interval (seconds)
 T_TIMEOUT = 15.0    # entry expiry = 3 missed HELLOs
 MAX_RANGE = 50.0    # radio range (metres)
 FREQ_HZ   = 2.4e9  # carrier frequency for RSSI calculation
-FRIIS_K   = 147.55  # Friis path-loss constant
+FRIIS_K   = 147.56  # Friis path-loss constant
 
 
 # ── Helper functions ──────────────────────────────────────────────────
@@ -450,7 +450,7 @@ from collections import deque
 # ── Constants ─────────────────────────────────────────────────────────
 MAX_RANGE = 50.0    # metres
 FREQ_HZ   = 2.4e9
-FRIIS_K   = 147.55
+FRIIS_K   = 147.56
 
 
 def distance(pos_a: tuple, pos_b: tuple) -> float:
@@ -1017,7 +1017,7 @@ from typing import Any, Callable, Optional
 # ── Constants ────────────────────────────────────────────────────────
 MAX_RANGE  = 50.0    # metres
 FREQ_HZ    = 2.4e9  # carrier frequency
-FRIIS_K    = 147.55  # Friis path-loss constant
+FRIIS_K    = 147.56  # Friis path-loss constant
 HELLO_INT  = 5.0    # HELLO broadcast interval (virtual seconds)
 HELLO_TOUT = 15.0   # neighbour entry expiry (3 missed HELLOs)
 SPEED_OF_LIGHT = 3e8  # m/s — for propagation delay
@@ -1722,7 +1722,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </section>
 
 <section class="section" id="s2">
-  <div class="section-header"><span class="section-num">03</span><h2 class="st">Applied Methodology</h2></div>
+  <div class="section-header"><span class="section-num">03</span><h2 class="st">Methodology</h2></div>
   <p>Every question in this report follows a rigorous four-step approach ensuring reproducibility and justified technical decisions:</p>
   <div class="meth-grid">
     <div class="meth-card"><div class="meth-num">①</div><div class="meth-title">State of the Art</div><div class="meth-desc">Survey existing algorithms and protocols with a comparison table. Include inline citations to foundational references.</div></div>
@@ -1750,7 +1750,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>NetworkX:</strong> richly attributed nodes and edges, built-in BFS/Dijkstra, excellent matplotlib integration — ideal prototype choice. Used in the project ZIP.</li>
     <li><strong>Boost Graph / igraph:</strong> high performance but require C++ expertise or native bindings; overkill for a proof-of-concept with N ≤ 254 nodes.</li>
   </ul>
-  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Pure-Python adjacency list with BFS</strong> — zero external dependencies, runs entirely in Pyodide without additional packages. NetworkX is used in the project ZIP for production; the browser version reimplements the same interface with built-in dicts.</p></div>
+  <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Pure-Python adjacency list with BFS</strong> — zero external dependencies, runs entirely in Pyodide without additional packages. NetworkX is used in the project ZIP for production; the browser version reimplements the same interface with built-in dicts.</p></div>
   <h3 class="sub">③ Free-Space Path-Loss Model &amp; Solution Plan</h3>
   <p>The RSSI formula is derived from the <strong>Friis transmission equation</strong> <a href="#ref-2" class="cite">[2]</a>. Assuming unity antenna gains and a reference transmit power of 0 dBm:</p>
   <div class="tw"><table>
@@ -1759,14 +1759,14 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <tr><td>Carrier frequency <em>f</em></td><td>2.4 GHz</td><td>ISM band (Zigbee / IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a>)</td></tr>
       <tr><td>Antenna gain G<sub>t</sub> = G<sub>r</sub></td><td>1 (0 dBi)</td><td>Omnidirectional — conservative worst-case</td></tr>
       <tr><td>Transmit power P<sub>t</sub></td><td>0 dBm (normalised)</td><td>Relative RSSI comparison only</td></tr>
-      <tr><td>Constant K</td><td>147.55</td><td>20·log₁₀(c / 4π) with d in metres, f in Hz</td></tr>
+      <tr><td>Constant K</td><td>147.56</td><td>20·log₁₀(c / 4π) with d in metres, f in Hz</td></tr>
       <tr><td>Edge weight</td><td>1 (hop count)</td><td>Routing objective is minimum hops → unit-weight BFS is optimal</td></tr>
     </tbody>
   </table></div>
   <p><strong>Why weight = 1?</strong> The problem statement explicitly requests a route with a <em>minimum number of hops</em>. Assigning unit weight to every edge turns the shortest-path problem into a BFS problem, guaranteeing that the AODV RREQ flood finds the path crossing the fewest intermediate nodes — minimising latency, energy, and collision probability.</p>
   <p><strong>Solution plan:</strong> a <code>Node</code> class storing <code>id</code>, <code>(x,y)</code> position, and a neighbour table <code>{id → RSSI dBm}</code>; a <code>MeshNetwork</code> class wrapping an adjacency list with <code>add_node</code>, <code>build_edges</code> (iff distance ≤ 50 m), and <code>bfs</code> methods; and an ASCII canvas renderer for topology visualisation.</p>
   <h3 class="sub">④ Implementation — click ▶ Run</h3>
-  <div class="formula">RSSI (dBm) = −20·log₁₀(d) − 20·log₁₀(f) + 147.55</div>
+  <div class="formula">RSSI (dBm) = −20·log₁₀(d) − 20·log₁₀(f) + 147.56</div>
   <p>The output includes a full edge table, BFS shortest path, and an <strong>ASCII topology diagram</strong> with nodes at their physical positions.</p>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">mesh_graph.py · prettified + ASCII topology</span>
@@ -1778,7 +1778,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <pre class="out-body" id="txt-q1"></pre>
     </div>
   </div>
-  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+  <div class="analysis"><div class="analysis-title">Output Analysis</div><ul>
     <li>Random 10-node: ~13 edges from 45 possible, avg degree ≈ 2.6 — a realistic sparse radio deployment.</li>
     <li>ASCII canvas: nodes displayed as their ID numbers at scaled physical positions.</li>
     <li>BFS shortest path printed as a hop-by-hop sequence — visually verifiable against the topology.</li>
@@ -1804,7 +1804,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>Gossip / epidemic:</strong> non-deterministic; may miss neighbours; unsuitable for safety-critical routing where complete 1-hop knowledge is required.</li>
     <li><strong>Periodic HELLO:</strong> minimal overhead, deterministic, sufficient for 1-hop discovery. Standard baseline used by OLSR (RFC 3626 <a href="#ref-3" class="cite">[3]</a>). Timeout = 3 × interval provides automatic link-failure detection.</li>
   </ul>
-  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Periodic HELLO broadcast</strong> (OLSR RFC 3626 <a href="#ref-3" class="cite">[3]</a>) — minimal overhead, deterministic 1-hop discovery, link-failure detection via timeout = 3 × interval.</p></div>
+  <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Periodic HELLO broadcast</strong> (OLSR RFC 3626 <a href="#ref-3" class="cite">[3]</a>) — minimal overhead, deterministic 1-hop discovery, link-failure detection via timeout = 3 × interval.</p></div>
   <h3 class="sub">③ Protocol Principle</h3>
   <ol class="rl">
     <li>Every <code>T_HELLO = 5 s</code>, a node broadcasts <code>HELLO(id, seq)</code> to all radio neighbours.</li>
@@ -1823,7 +1823,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <pre class="out-body" id="txt-q2"></pre>
     </div>
   </div>
-  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+  <div class="analysis"><div class="analysis-title">Output Analysis</div><ul>
     <li>At t≈0 s nodes send first HELLO with empty tables — no prior topology knowledge, as required.</li>
     <li>By second cycle (t≈5 s) all direct neighbours are discovered and tables stabilise.</li>
     <li>Symmetry check passes — all links bidirectional, required by the routing layer.</li>
@@ -1853,7 +1853,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>DSR <a href="#ref-5" class="cite">[5]</a>:</strong> stores the full path in every data packet header — overhead grows linearly with path length, costly for long chains.</li>
     <li><strong>AODV <a href="#ref-1" class="cite">[1]</a>:</strong> broadcasts RREQ only when needed; RREP unicasts the shortest path back. Hop-optimality is guaranteed because the first RREP to arrive at the source has crossed the fewest hops — the BFS property of simultaneous flooding with unit weights.</li>
   </ul>
-  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
+  <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
   <p><strong>Note:</strong> This implementation uses source-routed paths (similar to DSR) rather than per-node routing tables as in RFC 3561 AODV. This simplification maintains AODV's route-discovery semantics (RREQ flood + RREP unicast) while using explicit path headers for forwarding.</p>
   <h3 class="sub">③ Protocol Operation</h3>
   <p><strong>Phase 1 — Route Discovery:</strong> source broadcasts <code>RREQ(src, dst, seq, hops=0, path=[src])</code>. Each node increments <code>hops</code>, appends its ID to <code>path</code>, and re-broadcasts (duplicate-suppressed by a <code>seen_rreqs</code> set). The destination sends a unicast <code>RREP</code> back along the recorded path, carrying the complete hop-optimal route.</p>
@@ -1869,7 +1869,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <pre class="out-body" id="txt-q3"></pre>
     </div>
   </div>
-  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+  <div class="analysis"><div class="analysis-title">Output Analysis</div><ul>
     <li>Linear chain: exactly 7 hops, 1 RREQ per node — confirms duplicate suppression works correctly.</li>
     <li>Random network: AODV finds BFS-optimal path without prior topology knowledge.</li>
     <li>Message statistics confirm: destination sends exactly 1 RREP; no broadcast storm.</li>
@@ -1889,7 +1889,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     </tbody>
   </table></div>
   <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
-  <div class="chosen"><span class="chosen-label">CHOSEN</span><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
+  <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Moore-style FSM</strong> with entry actions and event queue — clear state/behaviour mapping; directly maps to embedded C <code>switch/case</code> for firmware deployment.</p></div>
   <h3 class="sub">③ FSM Diagram</h3>
   <div id="fsm-wrap">
     <svg viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'JetBrains Mono',monospace;">
@@ -1974,7 +1974,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <pre class="out-body" id="txt-q4"></pre>
     </div>
   </div>
-  <div class="analysis"><div class="analysis-title">📊 Output Analysis</div><ul>
+  <div class="analysis"><div class="analysis-title">Output Analysis</div><ul>
     <li>BOOT reliably transitions INIT→IDLE — mandatory first event, correctly initialised.</li>
     <li>HELLO cycle (IDLE→HELLO_TX→IDLE) completes in one step; entry action auto-posts TX_DONE.</li>
     <li>Error recovery: ROUTE_TIMEOUT→ERROR→auto-BOOT→IDLE; node never permanently stuck.</li>
@@ -1996,8 +1996,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     </tbody>
   </table></div>
   <h3 class="sub">② Comparative Analysis &amp; Selection</h3>
-  <div class="chosen"><span class="chosen-label">PHASE 1</span><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
-  <div class="chosen"><span class="chosen-label">PHASE 2</span><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
+  <div class="chosen"><div class="chosen-label">PHASE 1</div><p><strong>Custom Python DES</strong> — zero dependencies, runs in-browser, full control over the radio model. Rapid algorithm validation with direct access to all simulation internals.</p></div>
+  <div class="chosen"><div class="chosen-label">PHASE 2</div><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
   <h3 class="sub">③ Solution Planning</h3>
   <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with TTL-scoped flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
   <h3 class="sub">④ Run all 4 scenarios</h3>
@@ -2011,7 +2011,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
       <pre class="out-body" id="txt-q5"></pre>
     </div>
   </div>
-  <div class="analysis"><div class="analysis-title">📊 Scenario Results</div><ul>
+  <div class="analysis"><div class="analysis-title">Scenario Results</div><ul>
     <li><strong>A (linear, 8 nodes):</strong> 7-hop route — matches theoretical BFS minimum ✓</li>
     <li><strong>B (random, 10 nodes):</strong> BFS-optimal paths for both concurrent flows ✓</li>
     <li><strong>C (node failure):</strong> 1st message delivered; 2nd lost when Node 4 dies — expected in strict linear chain; dense mesh would re-discover a detour ✓</li>

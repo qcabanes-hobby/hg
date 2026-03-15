@@ -293,7 +293,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="formula">I_bias = I_c · sin(φ) + (Φ₀ / 2πR) · dφ/dt + C · (Φ₀ / 2π) · d²φ/dt²</div>
   <p>For a DC SQUID (two junctions in a superconducting loop), fluxoid quantisation constrains the phase difference:</p>
   <div class="formula">φ₁ − φ₂ = 2π · Φ_ext / Φ₀  +  2π · n      (n integer)</div>
-  <p>where Φ₀ = h/2e ≈ 2.068 × 10⁻¹⁵ Wb is the magnetic flux quantum<a href="#ref-1" class="cite">[1]</a>.</p>
+  <p>where Φ₀ = h/2e ≈ 2.068 × 10⁻¹⁵ Wb is the magnetic flux quantum<a href="#ref-1" class="cite">[1]</a>. (This is the zero-screening-current approximation. The full fluxoid quantisation condition is φ₁ − φ₂ = 2π(Φ_ext + L·I_circ)/Φ₀ + 2πn, where L·I_circ is the screening flux. The approximation is valid when β_L = 2LI_c/Φ₀ ≪ 1; at the β_L ≈ 1 operating point optimised in Q3 the screening term is non-negligible and modifies the V(Φ) transfer function.)</p>
 
   <div class="tw"><table>
     <tr><th>Parameter</th><th>Symbol</th><th>Typical Value</th><th>Justification</th></tr>
@@ -600,7 +600,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <div class="analysis">
     <div class="analysis-title">Key Observations</div>
     <ul>
-      <li>The V(&Phi;) curve exhibits clear &Phi;&#8320;-periodicity, with voltage minima at integer multiples of &Phi;&#8320; (where supercurrent is maximum) and maxima at half-integer multiples (where supercurrent is fully suppressed) -- consistent with the flux quantisation condition<a href="#ref-1" class="cite">[1]</a>.</li>
+      <li>The V(&Phi;) curve exhibits clear &Phi;&#8320;-periodicity, with voltage minima at integer multiples of &Phi;&#8320; (where supercurrent is maximum) and maxima at half-integer multiples (where supercurrent approaches full suppression in the &beta;_L &rarr; 0 limit; at the &beta;_L &approx; 1 operating point of Q3 the suppression is partial due to screening currents) &mdash; consistent with the flux quantisation condition<a href="#ref-1" class="cite">[1]</a>.</li>
       <li>The transfer coefficient V_&Phi; peaks at &Phi; = &Phi;&#8320;/4 and 3&Phi;&#8320;/4 (the steepest slopes), confirming the optimal bias point for magnetometer operation.</li>
       <li>The flux-locked loop maintains the SQUID at its steepest-slope operating point, providing linear output over many flux quanta with bandwidth up to ~10 MHz.</li>
     </ul>
@@ -749,9 +749,9 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <h4 class="subsub">Noise Parameters vs Temperature</h4>
   <div class="tw"><table>
     <tr><th>Temperature (K)</th><th>S_&Phi;^(1/2) (&mu;&Phi;&#8320;/&radic;Hz)</th><th>S_B^(1/2) (fT/&radic;Hz)</th><th>&epsilon; (J/Hz)</th><th>Ratio to &hbar;/2</th></tr>
-    <tr><td>0.01</td><td>0.07</td><td>0.15</td><td>&ge; 5.3 &times; 10&#8315;&#179;&#8309; (&hbar;/2 floor)</td><td>~1&times; (quantum-limited)</td></tr>
-    <tr><td>4.2</td><td>1.53</td><td>3.1</td><td>9.3 &times; 10&#8315;&#179;&#179;</td><td>~180&times;</td></tr>
-    <tr><td>77</td><td>6.56</td><td>13.4</td><td>1.7 &times; 10&#8315;&#179;&#185;</td><td>~3,300&times;</td></tr>
+    <tr><td>0.01</td><td>0.07</td><td>0.14</td><td>&ge; 5.3 &times; 10&#8315;&#179;&#8309; (&hbar;/2 floor)</td><td>~1&times; (quantum-limited)</td></tr>
+    <tr><td>4.2</td><td>1.53</td><td>3.2</td><td>9.3 &times; 10&#8315;&#179;&#179;</td><td>~180&times;</td></tr>
+    <tr><td>77</td><td>6.56</td><td>13.6</td><td>1.7 &times; 10&#8315;&#179;&#185;</td><td>~3,300&times;</td></tr>
   </table></div>
   <p style="font-size:12px;color:var(--text3);margin-top:4px"><strong>Note:</strong> S_&Phi;^(1/2) and S_B^(1/2) columns use representative <em>measured</em> values (~2.3&times; above the idealized Tesche&ndash;Clarke prediction), reflecting practical noise contributions. The &epsilon; column uses the theoretical expression &epsilon; = 8k_BTL/R, which gives the fundamental thermal limit. Practical energy sensitivity is correspondingly ~5&times; higher than the tabulated &epsilon; values.</p>
 
@@ -812,7 +812,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <ul>
     <li><strong>Nb/AlOx/Nb tri-layer:</strong> The gold standard for LTS SQUIDs. Sputter-deposited Nb base, thin Al layer (~5 nm) oxidised in controlled O₂ to form the tunnel barrier, then Nb counter-electrode. Junction critical current density J_c is set by oxidation parameters. Achieves I_c uniformity &lt; 1% across a 150 mm wafer<a href="#ref-6" class="cite">[6]</a>.</li>
     <li><strong>YBCO grain-boundary:</strong> Junctions form at crystallographic discontinuities — either on bicrystal substrates or at lithographically defined step edges. The 77 K operation is advantageous but the junction parameters are inherently less controllable than tunnel junctions.</li>
-    <li><strong>Standardised foundry processes (e.g., MIT Lincoln Lab, Hypres):</strong> Multi-layer Nb fabrication with 1 kA/cm² J_c<a href="#ref-9" class="cite">[9]</a>. Enables complex SQUID circuits (arrays, digital readout) but with fixed design rules that may not suit all applications.</li>
+    <li><strong>Standardised foundry processes (e.g., Hypres, MIT Lincoln Lab):</strong> Multi-layer Nb fabrication with standardised design rules. MIT Lincoln Lab's process achieves 1 kA/cm² J_c with high-yield VLSI integration<a href="#ref-9" class="cite">[9]</a>; Hypres offers a similar commercial foundry service. These processes enable complex SQUID circuits (arrays, digital readout) but with fixed design rules that may not suit all applications.</li>
     <li><strong>Shadow evaporation:</strong> Creates Al/AlOx/Al junctions via angle-evaporation through a resist bridge (Dolan bridge technique)<a href="#ref-8" class="cite">[8]</a>. Excellent for single-junction devices and charge-sensitive applications but Al's low T_c (1.2 K) limits use to millikelvin temperatures.</li>
     <li><strong>FIB milling:</strong> Useful for rapid prototyping and research but Ga⁺ implantation degrades superconducting properties. Not suitable for production SQUIDs.</li>
   </ul>
@@ -1149,7 +1149,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
   <h4 class="subsub">Sensitivity Analysis: Heat Load vs Number of Wires</h4>
   <div class="tw"><table>
     <tr><th>N wires</th><th>Q_total (mW)</th><th>LHe boil-off (L/day)</th><th>6-month LHe (L)</th></tr>
-    <tr><td>4</td><td>~20</td><td>0.69</td><td>~187</td></tr>
+    <tr><td>4</td><td>~20</td><td>0.67</td><td>~181</td></tr>
     <tr><td>10</td><td>~32</td><td>1.07</td><td>~290</td></tr>
     <tr><td>20</td><td>~51</td><td>1.71</td><td>~462</td></tr>
     <tr><td>40</td><td>~87</td><td>2.92</td><td>~789</td></tr>

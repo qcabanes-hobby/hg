@@ -2804,7 +2804,7 @@ L 74.396955 398.75335
 <li><strong>Stopband attenuation:</strong> &ge; 36 dB at 10 kHz and &ge; 36 dB at 80 kHz. The receiver must reject the full ambient noise spectrum (turbulence noise below 10 kHz, thermal noise above 100 kHz) to prevent aliasing into the ADC and to protect the low-noise amplifier from saturation by strong out-of-band interferers.</li>
 <li><strong>Noise figure contribution:</strong> The Rx BPF must contribute &lt; 0.5 dB to the overall receiver noise figure. This is achieved by placing the BPF after the LNA (which sets the system noise figure) and using low-loss active filter topologies (Sallen-Key with OPA1612).</li>
 <li><strong>Group delay variation:</strong> &lt; 8 &mu;s across the passband. The 6th-order Butterworth achieves ~6 &mu;s variation, still within the CP budget.</li>
-<li><strong>Roll-off rate:</strong> The 6th-order BPF (6 poles, 3 per transition band) provides &minus;60 dB/decade per transition, yielding &gt; 50 dB rejection at 5 kHz and 80 kHz, necessary for the high dynamic range required in the Rx path.</li>
+<li><strong>Roll-off rate:</strong> The 6th-order BPF (6 poles, 3 per transition band) provides &minus;60 dB/decade per transition, yielding ~36 dB rejection at 5 kHz (0.6 decades from the 20 kHz lower edge) and ~18 dB at 80 kHz (0.3 decades from the 40 kHz upper edge), necessary for the high dynamic range required in the Rx path.</li>
 </ul>
 
 <h3 class="sub">Harmonic Distortion Constraints on Amplifier Stages</h3>
@@ -2813,7 +2813,7 @@ L 74.396955 398.75335
 <h4 class="subsub">Emitter Amplifier (PA) THD Constraint</h4>
 <ul>
 <li><strong>THD &lt; &minus;40 dB (1% distortion)</strong> at full output power (100 W). This ensures that harmonic products fall below the noise floor at the receiver after propagation loss.</li>
-<li><strong>Rationale:</strong> With a typical link budget providing 15&ndash;20 dB SNR at the receiver, Tx harmonics at &minus;40 dBc are received at &minus;55 to &minus;60 dBc relative to the desired signal, well below the demodulation threshold. Second and third harmonics (at 40&ndash;80 kHz and 60&ndash;120 kHz) would fall partially within the Rx filter passband if not adequately suppressed.</li>
+<li><strong>Rationale:</strong> With a typical link budget providing 15&ndash;20 dB SNR at the receiver, Tx harmonics at &minus;40 dBc are received at &minus;55 to &minus;60 dBc relative to the desired signal, well below the demodulation threshold. The critical concern is that the 2nd harmonic of the lower band edge (2 &times; 20 kHz = 40 kHz) falls at the upper edge of the 20&ndash;40 kHz Rx passband, while the 2nd harmonic of the upper band edge (2 &times; 40 kHz = 80 kHz) is rejected by the Rx BPF. Third harmonics (60&ndash;120 kHz) fall entirely above the Rx passband and are suppressed by the BPF roll-off.</li>
 <li><strong>Implementation:</strong> Class-AB output stage biased at 15&ndash;20% quiescent current, with pre-distortion or output back-off of 3&ndash;4 dB from the 1 dB compression point to handle OFDM PAPR. The Tx BPF after the PA provides additional harmonic suppression.</li>
 <li><strong>Intermodulation distortion (IMD):</strong> OIP3 &ge; +60 dBm to ensure 3rd-order intermodulation products remain below &minus;40 dBc across the 20 kHz signal bandwidth.</li>
 </ul>
@@ -2854,6 +2854,7 @@ L 74.396955 398.75335
 
 <div class="chosen"><div class="chosen-label">CHOSEN</div>
 <p><strong>64-point FFT</strong> with 48 data subcarriers, 4 pilots, 12 null/guard subcarriers, and 25% cyclic prefix &mdash; yielding 312.5 Hz subcarrier spacing, 4.0 ms symbol duration, and ~10.2 kbps net data rate with QPSK + rate-1/2 FEC.</p>
+<p><strong>CP limitation:</strong> The 0.8 ms cyclic prefix covers delay spreads &lt; 1 ms, suitable for ranges up to ~1 km. For the full 5 km range requirement (delay spreads up to 10&ndash;20 ms), an adaptive CP extension strategy is required &mdash; see the range-dependent CP design note below.</p>
 </div>
 
 <h3 class="sub">③ Solution Planning</h3>
@@ -2872,7 +2873,7 @@ L 74.396955 398.75335
 </div>
 
 <h4 class="subsub">c) Subcarrier Spacing Analysis</h4>
-<p>312.5 Hz spacing is a deliberate compromise. Narrower spacing (e.g., 78 Hz with N=256) would suffer from Doppler-induced ICI. Relative Doppler: v/c &asymp; 3/1500 = 2&times;10<sup>&minus;3</sup>, causing ~57 Hz offset at the band center of 28.28 kHz (or ~60 Hz at the upper subcarriers near 40 kHz) &mdash; up to 19% of a 312.5 Hz subcarrier <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>. Wider spacing provides Doppler margin.</p>
+<p>312.5 Hz spacing is a deliberate compromise. Narrower spacing (e.g., 78 Hz with N=256) would suffer from Doppler-induced ICI. Relative Doppler: v/c &asymp; 3/1500 = 2&times;10<sup>&minus;3</sup>, causing ~57 Hz offset at the band center of 28.28 kHz (~18% of a 312.5 Hz subcarrier) and up to ~80 Hz at the upper band edge near 40 kHz (~26% of subcarrier spacing) <a href="#ref-3" class="cite">[3]</a> <a href="#ref-17" class="cite">[17]</a>. Wider spacing provides Doppler margin.</p>
 
 <h4 class="subsub">d) Noise Model</h4>
 <p>Ambient noise PSD comprises four components, each expressed in dB re &mu;Pa&sup2;/Hz (<strong>f in kHz</strong>) <a href="#ref-7" class="cite">[7]</a> <a href="#ref-5" class="cite">[5]</a>:</p>
@@ -14656,10 +14657,10 @@ z
 <tr><td>MCU (Cortex-M7 @ 480 MHz)</td><td>~350 mW</td><td>Active DSP mode</td></tr>
 <tr><td>ADC/DAC peripherals</td><td>~50 mW</td><td>Continuous sampling</td></tr>
 <tr><td>LNA + Rx BPF</td><td>~80 mW</td><td>OPA1612 stages</td></tr>
-<tr><td>PA (Class-AB, 100 W acoustic)</td><td>~150 W peak</td><td>Duty-cycled, ~20% average</td></tr>
+<tr><td>PA (Class-AB, 100 W acoustic)</td><td>~150 W peak</td><td>Duty-cycled, ~20% average; OFDM PAPR of 10&ndash;12 dB means instantaneous peaks can exceed 150 W &mdash; PA must be sized with headroom or PAPR reduction (e.g., clipping, SLM) is assumed</td></tr>
 <tr><td>Misc (regulators, relay, LEDs)</td><td>~20 mW</td><td>Quiescent</td></tr>
 </table></div>
-<p>In receive-only mode, total system consumption is approximately 500 mW. During transmission, the PA dominates at up to 150 W peak, but average power depends on the transmit duty cycle.</p>
+<p>In receive-only mode, total system consumption is approximately 500 mW. During transmission, the PA dominates at up to 150 W peak (average electrical), but OFDM&rsquo;s 10&ndash;12 dB PAPR drives instantaneous electrical peaks significantly higher. Average power depends on the transmit duty cycle.</p>
 </section>
 
 <section class="section" id="s9">
@@ -15313,7 +15314,7 @@ z
  <span class="deco">memset</span>(bits, <span class="num">0</span>, max_bits / <span class="num">8</span> + <span class="num">1</span>);
  <span class="kw">for</span> (<span class="cls">uint16_t</span> d = <span class="num">0</span>; d &lt; OFDM_NDATA &amp;&amp; bpos + <span class="num">2</span> &lt;= max_bits; d++) {
  <span class="cls">uint8_t</span> k = data_map[d];
- <span class="cls">uint8_t</span> sym = ((freq_I[k] &lt; <span class="num">0</span>) ? <span class="num">1</span> : <span class="num">0</span>) | ((freq_Q[k] &lt; <span class="num">0</span>) ? <span class="num">2</span> : <span class="num">0</span>);
+ <span class="cls">uint8_t</span> sym = ((freq_I[k] &lt; <span class="num">0</span>) ? <span class="num">2</span> : <span class="num">0</span>) | ((freq_Q[k] &lt; <span class="num">0</span>) ? <span class="num">1</span> : <span class="num">0</span>);
  bits[bpos/<span class="num">8</span>] |= (sym &lt;&lt; (bpos % <span class="num">8</span>));
  bpos += <span class="num">2</span>;
  }
