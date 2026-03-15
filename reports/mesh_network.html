@@ -1765,7 +1765,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   </table></div>
   <p><strong>Why weight = 1?</strong> The problem statement explicitly requests a route with a <em>minimum number of hops</em>. Assigning unit weight to every edge turns the shortest-path problem into a BFS problem, guaranteeing that the AODV RREQ flood finds the path crossing the fewest intermediate nodes — minimising latency, energy, and collision probability.</p>
   <p><strong>Solution plan:</strong> a <code>Node</code> class storing <code>id</code>, <code>(x,y)</code> position, and a neighbour table <code>{id → RSSI dBm}</code>; a <code>MeshNetwork</code> class wrapping an adjacency list with <code>add_node</code>, <code>build_edges</code> (iff distance ≤ 50 m), and <code>bfs</code> methods; and an ASCII canvas renderer for topology visualisation.</p>
-  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
   <div class="formula">RSSI (dBm) = −20·log₁₀(d) − 20·log₁₀(f) + 147.56</div>
   <p>The output includes a full edge table, BFS shortest path, and an <strong>ASCII topology diagram</strong> with nodes at their physical positions.</p>
   <div class="code-card">
@@ -1812,7 +1812,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li>Entries older than <code>T_TIMEOUT = 15 s</code> (3 missed HELLOs) are expired — link failure detected.</li>
     <li>Monotonic <code>seq</code> allows duplicate detection in multi-path topologies.</li>
   </ol>
-  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">hello_discovery.py · fully commented</span>
       <button class="run-btn" id="run-q2" onclick="runScript('q2')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
@@ -1858,7 +1858,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <h3 class="sub">③ Protocol Operation</h3>
   <p><strong>Phase 1 — Route Discovery:</strong> source broadcasts <code>RREQ(src, dst, seq, hops=0, path=[src])</code>. Each node increments <code>hops</code>, appends its ID to <code>path</code>, and re-broadcasts (duplicate-suppressed by a <code>seen_rreqs</code> set). The destination sends a unicast <code>RREP</code> back along the recorded path, carrying the complete hop-optimal route.</p>
   <p><strong>Phase 2 — Data Forwarding:</strong> source installs the route from the RREP and forwards <code>DATA</code> packets hop-by-hop. Intermediate nodes also acquire reverse-path entries during RREQ propagation — these are free routing table entries obtained as a by-product of the flood.</p>
-  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">routing.py · fully commented</span>
       <button class="run-btn" id="run-q3" onclick="runScript('q3')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
@@ -1963,7 +1963,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     </svg>
     <div class="fsm-cap">Figure 1 — Node FSM: 8 states, 16 transitions. IDLE is the central event-dispatch hub. Dashed red = automatic error recovery.</div>
   </div>
-  <h3 class="sub">④ Implementation — click ▶ Run</h3>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">node_fsm.py · fully commented</span>
       <button class="run-btn" id="run-q4" onclick="runScript('q4')"><span class="play-icon">▶ Run</span><span class="spinner"></span></button>
@@ -2000,7 +2000,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
   <div class="chosen"><div class="chosen-label">PHASE 2</div><p><strong>NS-3</strong> — rigorous PHY/MAC evaluation and scalability testing (1000+ nodes) before hardware deployment on real IEEE 802.15.4 <a href="#ref-7" class="cite">[7]</a> or mesh Wi-Fi <a href="#ref-6" class="cite">[6]</a> hardware.</p></div>
   <h3 class="sub">③ Solution Planning</h3>
   <p>The custom DES builds on the AODV-inspired protocol from Q3, adding timed events for HELLO broadcasts, route discovery with TTL-scoped flooding, and data delivery with hop-by-hop forwarding. The <code>SimNode</code> class encapsulates per-node state (routing table, neighbour list, event log) and a unified <code>run_scenario()</code> driver function provides consistent execution, logging, and metric reporting across all test configurations.</p>
-  <h3 class="sub">④ Run all 4 scenarios</h3>
+  <h3 class="sub">④ Solution &amp; Discussion</h3>
   <div class="code-card">
     <div class="code-toolbar"><span class="code-lang">PYTHON</span><span class="code-file">simulator.py · fully commented · 4 scenarios</span>
       <button class="run-btn" id="run-q5" onclick="runScript('q5')"><span class="play-icon">▶ Run All</span><span class="spinner"></span></button>

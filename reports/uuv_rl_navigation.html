@@ -332,7 +332,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p>We model the UUV system using four SysML diagram types. The <strong>Block Definition Diagram (BDD)</strong> captures the system hierarchy: the top-level UUV block contains sub-blocks for the Propulsion Subsystem (2 brushless motors, 2 ESCs), Ballast Subsystem (pump, tank, valve), Sensor Suite (IMU, magnetometer, pressure sensor), Navigation Controller (RL agent), and Power Supply. Each block carries value properties such as <code>mass: Real = 50 kg</code>, <code>maxRPM: Integer</code>, etc.</p>
 <p>The <strong>Internal Block Diagram</strong> shows flow ports connecting the sensor suite outputs (bearing, angular rates, depth) to the RL agent's observation input, and the agent's action output to the motor drivers and pump controller. The <strong>Use Case Diagram</strong> defines actors (Operator, Environment) and use cases (Navigate to Waypoint, Maintain Depth, Maintain Bearing, Emergency Surface). The <strong>Requirement Diagram</strong> links top-level requirements to sub-requirements with «satisfy» and «verify» relationships.</p>
 
-<h3 class="sub">④ SysML Diagrams</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 
 <!-- BDD Diagram -->
 <div class="svg-wrap">
@@ -554,7 +554,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h3 class="sub">③ Solution Planning</h3>
 <p>The architecture separates into five modules: <strong>SensorPreprocessor</strong> (raw → fused state), <strong>UUVEnvironment</strong> (Gymnasium interface), <strong>RLAgent</strong> (actor + critic networks), <strong>ReplayBuffer</strong> (transition storage), and <strong>TrainingLoop</strong> (orchestration). Data flows as: Raw Sensors → SensorPreprocessor → observation → RLAgent → action → UUVEnvironment → (new obs, reward) → ReplayBuffer → RLAgent (training).</p>
 
-<h3 class="sub">④ Functional Architecture Diagram</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <div class="svg-wrap">
 <svg viewBox="0 0 820 400" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
 <defs>
@@ -677,7 +677,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>Depth error derivative</td><td>ė_z</td><td>[-5, 5]</td><td>m/s</td><td>Finite difference of e_z</td></tr>
 </table></div>
 
-<h3 class="sub">④ Discussion</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <p>The observation vector is designed to provide the RL agent with a PID-like information set: the error terms give proportional signals, the derivatives give rate-of-change (derivative signals), and the integral terms provide accumulated error for steady-state correction. This allows the RL agent to <em>discover</em> nonlinear combinations of these signals that outperform classical PID tuning, while not burdening it with raw sensor fusion.</p>
 <p><strong>Note on redundancy:</strong> When waypoint targets are constant between transitions, ė_ψ = d/dt(ψ_target − ψ) = −ψ̇ and similarly ė_z = −ż, making dimensions 11–12 linearly dependent on dimensions 3–4. The two pairs diverge only at waypoint transitions (where the target changes discontinuously). If observation dimensionality becomes a concern for embedded inference, these redundant dimensions can be removed with minimal impact on policy quality.</p>
 <p>The action space mixes continuous (motor PWM) and discrete (pump). For the TD3 algorithm (Q6), we treat the pump as a continuous variable in [-1, 1] and apply rounding to {-1, 0, 1} at execution time with hysteresis thresholds at ±0.33. This avoids the complexity of hybrid action space algorithms while preserving differentiability for policy gradient updates.</p>
@@ -723,7 +723,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>Sample period</td><td>Δt</td><td>0.01 s</td><td>100 Hz typical MEMS IMU rate</td></tr>
 </table></div>
 
-<h3 class="sub">④ Data Processing Pipeline</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <div class="svg-wrap">
 <svg viewBox="0 0 820 260" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
 <defs><marker id="arp" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker></defs>
@@ -798,7 +798,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h3 class="sub">③ Solution Planning</h3>
 <div class="formula">R(s, a, s') = w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp − w₄·‖a‖² − w₅·Δt + R_bonus</div>
 <div class="formula">where  Δx = x(t) − x(t+1)   (positive when error decreases)</div>
-<div class="formula">R_bonus = +100 if d_wp &lt; 5m (arrival),  −50 if |e_z| &gt; 50m or |θ| &gt; 60°</div>
+<div class="formula">R_bonus = +100 if d_wp &lt; 5m (arrival),  −50 if |e_z| &gt; 50m or |θ| &gt; 45°</div>
 
 <div class="tw"><table>
 <tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Justification</th></tr>
@@ -810,7 +810,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td>Discount factor</td><td>γ</td><td>0.99</td><td>Long-horizon planning for waypoint nav</td></tr>
 </table></div>
 
-<h3 class="sub">④ Reward Strategy Discussion</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <div class="svg-wrap">
 <svg viewBox="0 0 820 220" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
 <text x="410" y="20" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="700">Reward Function Architecture</text>
@@ -927,7 +927,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 </pre>
 </div>
 
-<h3 class="sub">④ Keras Implementation</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <p>Complete TD3 implementation in Keras/TensorFlow — a reference for deployment. This code requires <code>tensorflow&ge;2.12</code> and cannot run in the browser, but the architecture and training loop are fully specified.</p>
 <div class="code-card">
 <div class="code-toolbar"><span class="code-lang">PYTHON / KERAS</span><span class="code-file">td3_keras.py · reference implementation</span></div>
@@ -983,7 +983,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="formula">IS Weight:       w_i = (N · P(i))^(-β) / max_j(w_j),    β: 0.4 → 1.0</div>
 <div class="formula">Cosine LR:       η(t) = η_min + 0.5·(η_max − η_min)·(1 + cos(π·t/T))</div>
 
-<h3 class="sub">④ Discussion</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <p><strong>Prioritized Experience Replay</strong> replaces uniform sampling in the replay buffer with probability-weighted sampling based on TD-error magnitude. Transitions where the critic's prediction was most wrong (high |δ|) are sampled more frequently, focusing gradient updates on the most informative experiences. The importance sampling (IS) weights compensate for the bias introduced by non-uniform sampling, with the correction factor β annealing from 0.4 to 1.0 over training.</p>
 <p><strong>Curriculum learning</strong> structures training into four progressive stages: (1) <em>Calm baseline</em> — no current, nearby waypoint at 20 m, heading error < 30°; (2) <em>Mild disturbance</em> — 0.2 m/s current, 50 m waypoint; (3) <em>Moderate challenge</em> — 0.5 m/s current, 100 m waypoint, depth changes; (4) <em>Full difficulty</em> — random disturbances up to 1.0 m/s, multi-waypoint sequences. The agent must achieve a threshold performance (e.g., average reward > 80% of maximum) at each stage before advancing. This prevents catastrophic forgetting by ensuring fundamental control skills are solidified before adding complexity.</p>
 <p><strong>Cosine learning rate scheduling</strong> with η_max = 3×10⁻⁴ and η_min = 1×10⁻⁵ over the full training horizon provides large initial steps for exploration and small final steps for fine-tuning. The cosine shape avoids the sharp transitions of step-decay schedules.</p>
@@ -1017,7 +1017,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <h3 class="sub">③ Solution Planning</h3>
 <p>The training methodology follows a sim-to-real transfer pipeline: train fast in low-fidelity, fine-tune in high-fidelity, deploy on hardware. Four standardized evaluation scenarios validate the policy at each stage:</p>
 
-<h3 class="sub">④ Training &amp; Evaluation Pipeline</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <div class="svg-wrap">
 <svg viewBox="0 0 820 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace">
 <defs><marker id="atr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/></marker></defs>
@@ -1110,7 +1110,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <p>The <strong>STM32H7</strong> and <strong>STM32N6+NPU</strong> both excel on the primary criteria: sub-2W power, bare-metal real-time guarantees, and micro-ROS support. The STM32N6 offers a dedicated Ethos-U65 NPU for faster INT8/INT16 inference, giving it an edge if the network grows. However, the STM32H7 has a more mature toolchain (STM32Cube.AI), broader community documentation, and a proven track record in embedded ML inference — making it the lower-risk choice for initial deployment. The STM32N6 is the natural upgrade path.</p>
 <p>The <strong>FPGA+NPU</strong> option provides maximum flexibility for custom quantization but demands HDL expertise and significantly longer development cycles. The <strong>Jetson Nano</strong> and <strong>Raspberry Pi 5</strong> offer rich ecosystems and full ROS 2 support, but their Linux-based OSes cannot guarantee deterministic control loop timing, and their 3–10W compute draw — while small relative to total system power dominated by motors and pump — is unnecessary for a network that fits in < 200 KB. The <strong>DSP</strong> option lacks dedicated NN support and is better suited as a co-processor for advanced sensor fusion than as a primary inference platform.</p>
 
-<h3 class="sub">④ Discussion — Architecture Options</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 <p><strong>Baseline configuration (recommended):</strong> A single STM32H7 runs both sensor fusion and RL inference. The Cortex-M7 at 480 MHz with FPU executes the complementary filter at < 50 μs per iteration and the INT8 actor network at < 1 ms, leaving ample margin within the 10 ms control period. STM32Cube.AI converts the Keras model (Q6) to optimized C code with INT8 quantization, typically achieving < 5% accuracy loss versus FP32.</p>
 <p><strong>Enhanced configuration (for growth):</strong> STM32H7 + FPGA co-processor. The FPGA handles NN inference for larger or custom-quantized networks (e.g., 4-bit weights for minimal flash usage), while the STM32 handles sensor I/O, communication, and safety monitoring. Communication via SPI at 40 MHz provides < 100 μs transfer latency. This option is warranted when: the network architecture evolves beyond what STM32Cube.AI supports, inference latency must be < 100 μs for higher control rates, or custom quantization schemes (mixed precision, ternary weights) are needed.</p>
 <p><strong>DSP co-processor option:</strong> If the sensor fusion pipeline grows to include more sophisticated algorithms (e.g., EKF with 15+ states, or FFT-based vibration analysis for motor diagnostics), a dedicated DSP (e.g., TI TMS320C5535 at < 0.5 W) can offload these computations from the STM32, freeing CPU cycles for NN inference. This is a modular upgrade that doesn't change the base architecture.</p>
@@ -1199,7 +1199,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <div class="svg-caption">Figure 8 — ROS 2 node graph. Left: STM32H7 runs real-time nodes via micro-ROS. Right: companion/ground station runs mission management and logging. Bridge via DDS-XRCE over serial or UDP.</div>
 </div>
 
-<h3 class="sub">④ Implementation Plan</h3>
+<h3 class="sub">④ Solution &amp; Discussion</h3>
 
 <p>The following 10-step plan takes the system from workspace creation to operational deployment:</p>
 
@@ -1211,7 +1211,7 @@ code{font-family:var(--mono);font-size:.87em;background:var(--surface);color:var
 <tr><td><strong>4</strong></td><td>Implement sensor fusion node</td><td>Port complementary filter (Q4) to STM32 C code using CMSIS-DSP for optimized trig operations. Subscribe to raw sensor topics, publish <code>/state/fused</code> at 100 Hz.</td><td>12D fused observation verified against Python reference</td></tr>
 <tr><td><strong>5</strong></td><td>Convert &amp; deploy RL model</td><td>Export Keras model (Q6) to TFLite, then quantize to INT8 using STM32Cube.AI. Flash the C-generated model to STM32H7. The <code>rl_agent</code> node subscribes to <code>/state/fused</code> and publishes <code>/control/motors</code> + <code>/control/pump</code>.</td><td>Inference running < 1 ms, action outputs verified against Keras reference</td></tr>
 <tr><td><strong>6</strong></td><td>Implement actuator drivers</td><td>STM32 hardware timers for PWM generation (motors). GPIO relay driver for pump. Subscribe to control topics. Include slew-rate limiting and dead-zone compensation.</td><td>Motors responding to commanded PWM, pump switching correctly</td></tr>
-<tr><td><strong>7</strong></td><td>Implement safety monitor</td><td>Independent watchdog on STM32: monitors depth (< 50 m), pitch (< 60°), roll (< 60°), and communication timeout (5 s). Emergency surface = pump full OUT + motors stop. Uses RELIABLE QoS on <code>/safety/status</code>.</td><td>Emergency surface triggered correctly in fault-injection tests</td></tr>
+<tr><td><strong>7</strong></td><td>Implement safety monitor</td><td>Independent watchdog on STM32: monitors depth (< 40 m, i.e. 80% of 50 m rated depth), pitch (< 45°), roll (< 45°), and communication timeout (5 s). Emergency surface = pump full OUT + motors stop. Uses RELIABLE QoS on <code>/safety/status</code>.</td><td>Emergency surface triggered correctly in fault-injection tests</td></tr>
 <tr><td><strong>8</strong></td><td>Implement navigation manager</td><td>Companion-side ROS 2 node: loads waypoint list from YAML config, publishes current <code>/navigation/target</code>, detects waypoint arrival (d_wp < 5 m), advances to next waypoint.</td><td>Correct waypoint sequencing verified in simulation</td></tr>
 <tr><td><strong>9</strong></td><td>Create launch &amp; config</td><td><code>uuv_bringup</code> package with launch file starting all nodes, parameter YAML (filter gains, reward weights, safety thresholds), and QoS profiles (RELIABLE for safety, BEST_EFFORT for sensors).</td><td>Full system starts with single <code>ros2 launch</code> command</td></tr>
 <tr><td><strong>10</strong></td><td>Integration testing</td><td>Hardware-in-the-loop (HIL): STM32 connected to Gazebo via micro-ROS agent, running Phase 2 evaluation scenarios (Q8: S1-S4). Record rosbag2 for offline analysis. Validate against acceptance criteria before pool testing.</td><td>All 4 scenarios pass with metrics within 20% of simulation</td></tr>
