@@ -2804,7 +2804,7 @@ L 74.396955 398.75335
 <h4 class="subsub">Receiver (Rx) Stage Constraints</h4>
 <ul>
 <li><strong>Passband flatness:</strong> &le; 0.3 dB variation across 20&ndash;40 kHz. The Rx path has tighter requirements because the received signal is already attenuated by propagation loss, so any additional amplitude distortion directly impacts demodulation accuracy.</li>
-<li><strong>Stopband attenuation:</strong> &ge; 36 dB at 10 kHz and &ge; 36 dB at 80 kHz. The receiver must reject the full ambient noise spectrum (turbulence noise below 10 kHz, thermal noise above 100 kHz) to prevent aliasing into the ADC and to protect the low-noise amplifier from saturation by strong out-of-band interferers.</li>
+<li><strong>Stopband attenuation:</strong> &ge; 36 dB at 10 kHz (lower stopband) and &ge; 18 dB at 80 kHz (upper stopband). The analog BPF provides the primary rejection of turbulence noise below 10 kHz; on the upper side, the 6th-order roll-off yields ~18 dB at 80 kHz, with additional digital decimation filtering in the DSP chain providing further out-of-band rejection to prevent ADC aliasing and protect the LNA from saturation by strong interferers.</li>
 <li><strong>Noise figure contribution:</strong> The Rx BPF must contribute &lt; 0.5 dB to the overall receiver noise figure. This is achieved by placing the BPF after the LNA (which sets the system noise figure) and using low-loss active filter topologies (Sallen-Key with OPA1612).</li>
 <li><strong>Group delay variation:</strong> &lt; 8 &mu;s across the passband. The 6th-order Butterworth achieves ~6 &mu;s variation, still within the CP budget.</li>
 <li><strong>Roll-off rate:</strong> The 6th-order BPF (6 poles, 3 per transition band) provides &minus;60 dB/decade per transition, yielding ~36 dB rejection at 5 kHz (0.6 decades from the 20 kHz lower edge) and ~18 dB at 80 kHz (0.3 decades from the 40 kHz upper edge), necessary for the high dynamic range required in the Rx path.</li>
@@ -2900,7 +2900,7 @@ R<sub>raw</sub> = N<sub>data</sub> &times; b &times; (1/T<sub>sym</sub>) = 48 &t
 R<sub>coded</sub> = 24,000 &times; 0.5 = 12 kbps (rate-1/2 FEC)<br>
 R<sub>net</sub> &asymp; 12 &times; 0.85 = <strong>10.2 kbps</strong> (net, after protocol overhead)
 </div>
-<p>This meets the 10 kbps target. The rate-1/2 convolutional code (constraint length K=7) provides ~5 dB coding gain at BER = 10<sup>&minus;4</sup>, reducing required E<sub>b</sub>/N<sub>0</sub> from 8.4 dB (uncoded QPSK) to ~3.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
+<p>This meets the 10 kbps target. The rate-1/2 convolutional code (constraint length K=7) with soft-decision Viterbi decoding provides ~4 dB coding gain at BER = 10<sup>&minus;4</sup>, reducing required E<sub>b</sub>/N<sub>0</sub> from 8.4 dB (uncoded QPSK) to ~4.5 dB <a href="#ref-6" class="cite">[6]</a> <a href="#ref-14" class="cite">[14]</a>.</p>
 
 <h4 class="subsub">f) Sound Speed Profile</h4>
 <p>Sound speed computed via Mackenzie equation <a href="#ref-9" class="cite">[9]</a>:</p>
@@ -2945,7 +2945,7 @@ P<sub>b</sub> &asymp; (1/log&#8322;M) &middot; erfc(&radic;(log&#8322;M &middot;
 <p>The underwater acoustic channel presents several challenges that strongly favor QPSK over higher-order modulations:</p>
 
 <h4 class="subsub">1. Limited and Variable SNR</h4>
-<p>Typical received SNR in shallow water channels at 1-5 km range is 10-25 dB <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a>. Stojanovic and Preisig characterize the underwater channel as having signal-to-noise ratios that fluctuate by 10-15 dB over timescales of seconds to minutes due to surface scattering and internal waves <a href="#ref-1" class="cite">[1]</a>. With rate-1/2 FEC, QPSK requires only ~5.5 dB E<sub>b</sub>/N<sub>0</sub>, leaving comfortable margin. Higher-order schemes like 8-PSK or 16-QAM would require 12+ dB and frequently fall below threshold.</p>
+<p>Typical received SNR in shallow water channels at 1-5 km range is 10-25 dB <a href="#ref-1" class="cite">[1]</a> <a href="#ref-10" class="cite">[10]</a>. Stojanovic and Preisig characterize the underwater channel as having signal-to-noise ratios that fluctuate by 10-15 dB over timescales of seconds to minutes due to surface scattering and internal waves <a href="#ref-1" class="cite">[1]</a>. With rate-1/2 FEC, QPSK requires only ~4.5 dB E<sub>b</sub>/N<sub>0</sub>, leaving comfortable margin. Higher-order schemes like 8-PSK or 16-QAM would require 12+ dB and frequently fall below threshold.</p>
 
 <h4 class="subsub">2. Multipath Fading</h4>
 <p>The underwater channel exhibits severe frequency-selective fading with coherence bandwidths of 1-10 kHz <a href="#ref-10" class="cite">[10]</a> <a href="#ref-16" class="cite">[16]</a>. Qarabaqi and Stojanovic show that the channel can be modelled as a wide-sense stationary uncorrelated scattering (WSSUS) process with Rayleigh-distributed fading amplitudes on individual subcarriers <a href="#ref-10" class="cite">[10]</a>. QPSK with its large constellation spacing (minimum distance = &radic;2 for unit-energy signals) is far more robust to fading-induced amplitude and phase errors than 16-QAM (minimum distance = 2/&radic;10 &asymp; 0.632).</p>

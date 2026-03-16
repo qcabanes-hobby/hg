@@ -1458,9 +1458,9 @@ run_scenario("B", "Random 10-node (120x120 m, seed=42), 2 concurrent flows",
              pos_b,
              flows=[(1, 9, "Flow A"), (2, 8, "Flow B")])
 
-# Scenario C: linear chain with node 4 failure at t=8
+# Scenario C: linear chain with node 4 failure 8 s after flow start (t=20 s)
 pos_c = {nid: ((nid - 1) * 40.0, 0.0) for nid in range(1, 9)}
-run_scenario("C", "Linear chain, Node 4 fails at t=8 s",
+run_scenario("C", "Linear chain, Node 4 fails at t=20 s (8 s after flows begin)",
              pos_c,
              flows=[(1, 8, "Message before failure")],
              kill_node=(4, 8.0))
@@ -1852,7 +1852,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
     <li><strong>Flooding:</strong> always finds a path but generates O(N) redundant transmissions per packet — unacceptable overhead.</li>
     <li><strong>Geographic routing:</strong> requires node position knowledge not guaranteed in this problem; susceptible to local minima voids.</li>
     <li><strong>DSR <a href="#ref-5" class="cite">[5]</a>:</strong> stores the full path in every data packet header — overhead grows linearly with path length, costly for long chains.</li>
-    <li><strong>AODV <a href="#ref-1" class="cite">[1]</a>:</strong> broadcasts RREQ only when needed; RREP unicasts the shortest path back. Hop-optimality is guaranteed because the first RREP to arrive at the source has crossed the fewest hops — the BFS property of simultaneous flooding with unit weights.</li>
+    <li><strong>AODV <a href="#ref-1" class="cite">[1]</a>:</strong> broadcasts RREQ only when needed; RREP unicasts the shortest path back. Hop-optimality is guaranteed in this synchronous simulation because the first RREP to arrive at the source has crossed the fewest hops — the BFS property of simultaneous flooding with unit weights. In real asynchronous networks with varying link delays, RFC 3561 destination sequence numbers are needed to supersede stale routes and maintain optimality.</li>
   </ul>
   <div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>AODV-inspired reactive protocol</strong> <a href="#ref-1" class="cite">[1]</a> — reactive (no topology pre-knowledge); BFS-optimal hop count; low steady-state overhead; standard for mesh sensor networks <a href="#ref-4" class="cite">[4]</a>.</p></div>
   <p><strong>Note:</strong> This implementation uses source-routed paths (similar to DSR) rather than per-node routing tables as in RFC 3561 AODV. This simplification maintains AODV's route-discovery semantics (RREQ flood + RREP unicast) while using explicit path headers for forwarding.</p>

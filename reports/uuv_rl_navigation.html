@@ -377,7 +377,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <!-- Sensor Suite -->
 <rect x="385" y="150" width="170" height="72" rx="8" fill="#161e30" stroke="#8b5cf6" stroke-width="1.5"/>
 <text x="470" y="172" fill="#8b5cf6" font-size="11" text-anchor="middle" font-weight="600">«block» SensorSuite</text>
-<text x="470" y="188" fill="#94a3b8" font-size="9" text-anchor="middle">IMU=6-axis MEMS</text>
+<text x="470" y="188" fill="#94a3b8" font-size="9" text-anchor="middle">IMU=6-axis MEMS (accel + gyro)</text>
 <text x="470" y="202" fill="#94a3b8" font-size="9" text-anchor="middle">magnetometer=3-axis</text>
 <text x="470" y="216" fill="#94a3b8" font-size="9" text-anchor="middle">pressure=0-10bar abs</text>
 <!-- Nav Controller -->
@@ -681,12 +681,12 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <tr><td>Depth rate</td><td>ż</td><td>[-0.5, 0.5]</td><td>m/s</td><td>Pressure time derivative</td></tr>
 <tr><td>Pitch</td><td>θ</td><td>[-π/2, π/2]</td><td>rad</td><td>From accelerometer + gyro fusion</td></tr>
 <tr><td>Roll</td><td>φ</td><td>[-π/2, π/2]</td><td>rad</td><td>From accelerometer + gyro fusion</td></tr>
-<tr><td>Forward speed</td><td>v_x</td><td>[0, 3]</td><td>m/s</td><td>Motor-model estimate fused with accelerometer dead-reckoning (∫a_x·dt); a DVL would improve accuracy but is omitted for cost</td></tr>
+<tr><td>Forward speed</td><td>v_x</td><td>[0, 1.5]</td><td>m/s</td><td>Motor-model estimate is the primary source, consistent with ~40 N total thrust on a 50 kg UUV (drag-limited). Accelerometer integration (∫a_x·dt) supplements for short-term corrections between acoustic beacon fixes, but drifts rapidly due to MEMS bias (~0.5 m/s error after 100 s). A DVL would improve accuracy but is omitted for cost</td></tr>
 <tr><td>Integral bearing error</td><td>∫e_ψ dt</td><td>[-10, 10]</td><td>rad·s</td><td>Clamped integrator for steady-state correction</td></tr>
 <tr><td>Integral depth error</td><td>∫e_z dt</td><td>[-50, 50]</td><td>m·s</td><td>Clamped integrator for steady-state correction</td></tr>
 <tr><td>Distance to waypoint</td><td>d_wp</td><td>[0, 1000]</td><td>m</td><td>Estimated via acoustic-beacon range measurement when in range; dead-reckoning between fixes</td></tr>
-<tr><td>Bearing error derivative</td><td>ė_ψ</td><td>[-5, 5]</td><td>rad/s</td><td>Finite difference of e_ψ</td></tr>
-<tr><td>Depth error derivative</td><td>ė_z</td><td>[-5, 5]</td><td>m/s</td><td>Finite difference of e_z</td></tr>
+<tr><td>Bearing error derivative</td><td>ė_ψ</td><td>[-4, 4]</td><td>rad/s</td><td>Finite difference of e_ψ; headroom beyond ψ̇ ∈ [-2, 2] rad/s to cover waypoint transitions</td></tr>
+<tr><td>Depth error derivative</td><td>ė_z</td><td>[-1, 1]</td><td>m/s</td><td>Finite difference of e_z; consistent with ż ∈ [-0.5, 0.5] m/s</td></tr>
 </table></div>
 
 <h3 class="sub">④ Solution &amp; Discussion</h3>
@@ -805,10 +805,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <p><strong>Multi-objective weighted sum:</strong> Natural fit for our problem with explicit trade-offs between bearing tracking, depth tracking, energy, and time.</p>
 <p><strong>HER:</strong> Powerful for sparse goal-reaching but unnecessary when dense shaping is straightforward.</p>
 <p><strong>Potential-based shaping:</strong> Approximates optimal-policy preservation — a theoretical safeguard against reward hacking.</p>
-<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum with potential-based shaping</strong> — The error terms use shaping: R_shaped = γ·Φ(s') - Φ(s), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. Combined with energy penalty and terminal bonuses, this provides dense feedback while approximating optimality preservation of the shaping component<a href="#ref-9" class="cite">[9]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
+<div class="chosen"><div class="chosen-label">CHOSEN</div><p><strong>Multi-objective weighted sum inspired by potential-based shaping</strong> — The error-reduction terms approximate shaping: Δ|e| ≈ Φ(s) − Φ(s'), where Φ(s) = -w_ψ·|e_ψ| - w_z·|e_z| - w_d·d_wp. The γ discount factor on the next-state potential is omitted, so this does not strictly satisfy the formal shaping condition F(s,s') = γΦ(s') − Φ(s), but the approximation is tight for γ ≈ 1. Combined with energy penalty and terminal bonuses, this provides dense feedback while approximately preserving the optimal policy<a href="#ref-9" class="cite">[9]</a><a href="#ref-5" class="cite">[5]</a>.</p></div>
 
 <h3 class="sub">③ Solution Planning</h3>
-<div class="formula">R(s, a, s') = w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp − w₄·‖a‖² − w₅·Δt + R_bonus</div>
+<div class="formula">R(s, a, s') = w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp − w₄·‖a‖² − w₅ + R_bonus</div>
 <div class="formula">where  Δx = x(t) − x(t+1)   (positive when error decreases)</div>
 <div class="formula">R_bonus = +100 if d_wp &lt; 5m (arrival),  −50 if |e_z| &gt; 20m or |θ| &gt; 45°</div>
 
@@ -818,7 +818,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <tr><td>Depth weight</td><td>w₂</td><td>2.0</td><td>Secondary safety objective</td></tr>
 <tr><td>Distance weight</td><td>w₃</td><td>1.0</td><td>Encourages forward progress</td></tr>
 <tr><td>Energy penalty</td><td>w₄</td><td>0.05</td><td>Prevents actuator saturation</td></tr>
-<tr><td>Time penalty</td><td>w₅</td><td>0.01</td><td>Encourages time minimization</td></tr>
+<tr><td>Time penalty (per step)</td><td>w₅</td><td>0.01</td><td>Fixed per-step cost; encourages time minimization</td></tr>
 <tr><td>Discount factor</td><td>γ</td><td>0.99</td><td>Long-horizon planning for waypoint nav</td></tr>
 </table></div>
 
@@ -849,7 +849,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <text x="435" y="98" fill="#4f6480" font-size="8" text-anchor="middle">safety viol: −50</text>
 <!-- Time penalty -->
 <rect x="370" y="135" width="130" height="30" rx="5" fill="#161e30" stroke="#4f6480" stroke-width="1"/>
-<text x="435" y="155" fill="#4f6480" font-size="9" text-anchor="middle">−w₅·Δt (time)</text>
+<text x="435" y="155" fill="#4f6480" font-size="9" text-anchor="middle">−w₅ (per step)</text>
 <!-- Final sum -->
 <circle cx="560" cy="105" r="20" fill="#161e30" stroke="#00d4ff" stroke-width="2"/><text x="560" y="111" fill="#00d4ff" font-size="14" text-anchor="middle">+</text>
 <line x1="335" y1="125" x2="540" y2="105" stroke="#00d4ff" stroke-width="1.5"/>
@@ -862,8 +862,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 </svg>
 <div class="svg-caption">Figure 6 — Reward function architecture. Weighted sum of error improvements + terminal bonus + time penalty = total scalar reward.</div>
 </div>
-<p>The weight hierarchy (w₁=3.0 > w₂=2.0 > w₃=1.0) encodes the priority: bearing accuracy is more critical than depth accuracy (the vehicle can adjust depth more easily than heading in currents), and both are more important than forward speed. The energy penalty (w₄=0.05) is intentionally small — it should discourage actuator saturation but not prevent aggressive maneuvers during course corrections. The time penalty (w₅=0.01) creates a constant negative baseline that encourages the agent to reach waypoints quickly rather than hover in a low-error state.</p>
-<p>The potential-based shaping framework<a href="#ref-9" class="cite">[9]</a> approximates optimal-policy preservation when adding the shaped error-reduction terms (w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp) to the base reward (energy penalty + time penalty + terminal bonuses). Formally, the formal shaping condition is F(s,s') = γ·Φ(s') − Φ(s), while our error-reduction terms use Δ|e| = |e(t)| − |e(t+1)| = Φ(s) − Φ(s'). Note: the error-reduction formulation approximates but does not strictly satisfy the formal potential-based shaping condition F(s,s') = γΦ(s') − Φ(s), as it omits the discount factor on the next-state potential. For γ ≈ 1, the approximation is tight. The energy, time, and terminal terms define the actual task objective and are not part of the shaping — they shape <em>what</em> is optimal, while the potential-based terms only shape <em>how fast</em> the agent learns it.</p>
+<p>The weight hierarchy (w₁=3.0 > w₂=2.0 > w₃=1.0) encodes the priority: bearing accuracy is more critical than depth accuracy (the vehicle can adjust depth more easily than heading in currents), and both are more important than forward speed. The energy penalty (w₄=0.05) is intentionally small — it should discourage actuator saturation but not prevent aggressive maneuvers during course corrections. The time penalty (w₅=0.01) is a fixed per-step cost that creates a constant negative baseline, encouraging the agent to reach waypoints quickly rather than hover in a low-error state.</p>
+<p>The reward design is inspired by the potential-based shaping framework<a href="#ref-9" class="cite">[9]</a>, which provides a theoretical safeguard for optimal-policy preservation when adding shaped terms to a base reward. The error-reduction terms (w₁·Δ|e_ψ| + w₂·Δ|e_z| + w₃·Δd_wp) approximate potential-based shaping with Φ(s) = -|e|, yielding Δ|e| = Φ(s) − Φ(s'). However, the formal shaping condition requires F(s,s') = γ·Φ(s') − Φ(s), including the discount factor on the next-state potential. Our formulation omits this γ factor, so it does not strictly satisfy the condition — but for γ = 0.99, the approximation error is on the order of (1−γ)·Φ ≈ 0.01·Φ per step, which is negligible in practice. The energy, time, and terminal terms define the actual task objective and are not part of the shaping — they shape <em>what</em> is optimal, while the potential-inspired terms shape <em>how fast</em> the agent learns it.</p>
 </section>
 <!-- ══ Q6 — RL Algorithm ═════════════════ -->
 <section class="section" id="s8">
@@ -958,7 +958,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
 <li>Twin critics Q₁ and Q₂ receive the concatenation of state and action as input, each producing a scalar Q-value. The minimum of both is used for target computation, reducing overestimation bias.</li>
 <li>Delayed policy update (d=2) means the actor is updated only every 2nd critic update, preventing the actor from exploiting transient critic inaccuracies.</li>
 <li>Soft target update with τ=0.005 ensures slow tracking of the main networks, stabilizing the Bellman targets.</li>
-<li>The replay buffer stores 100,000 transitions — sufficient for ~1000 episodes of 100 steps each, covering diverse state-action pairs.</li>
+<li>The replay buffer stores 100,000 transitions, sized for embedded deployment memory constraints (~1000 episodes of 100 steps). For production training on a workstation, a larger capacity of 500k–1M transitions would improve sample diversity and reduce correlation between sampled mini-batches, particularly during later curriculum stages with longer episodes.</li>
 </ul></div>
 </section>
 
